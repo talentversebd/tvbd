@@ -756,3 +756,227 @@ async function savePopupSettings() {
   if(ok) toast("Saved! ✅");
   else toast("Failed!", true);
 }
+/*===== CERTIFICATE MANAGEMENT =====*/
+
+// Render Certificates Table
+function renderCertificatesTable() {
+  const tbody = document.getElementById('ctbl');
+  if(!tbody) return;
+  
+  const certs = getCertificates();
+  if(certs.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No certificates yet. Click "+ Add Certificate" to start.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  certs.forEach((c) => {
+    const date = c.issueDate || 'N/A';
+    tbody.innerHTML += `
+      <tr>
+        <td><strong style="color:var(--blue-br)">${c.certId}</strong></td>
+        <td>${c.name}</td>
+        <td>${c.event}</td>
+        <td><span class="bs bs-active">${c.position}</span></td>
+        <td>${date}</td>
+        <td class="tbl-acts">
+          <button class="e-btn" onclick="viewCertificate('${c.id}')" title="View & QR">👁️</button>
+          <button class="e-btn" onclick="editCertificate('${c.id}')">Edit</button>
+          <button class="d-btn" onclick="deleteCertificateAction('${c.id}')">Delete</button>
+        </td>
+      </tr>`;
+  });
+}
+
+// Open Add Certificate Form
+function openCertificateForm() {
+  document.getElementById('cfm-title').textContent = "Add Certificate";
+  document.getElementById('cf-eid').value = '';
+  document.getElementById('cf-certid').value = '';
+  document.getElementById('cf-certid').disabled = false;
+  document.getElementById('cf-name').value = '';
+  document.getElementById('cf-event').value = '';
+  document.getElementById('cf-position').value = '';
+  document.getElementById('cf-date').value = new Date().toISOString().split('T')[0];
+  openFM('cfm');
+}
+
+// Edit Certificate
+function editCertificate(id) {
+  const c = getCertificates().find(x => x.id === id);
+  if(!c) return;
+  document.getElementById('cfm-title').textContent = "Edit Certificate";
+  document.getElementById('cf-eid').value = id;
+  document.getElementById('cf-certid').value = c.certId || '';
+  document.getElementById('cf-certid').disabled = true; // ID change করা যাবে না
+  document.getElementById('cf-name').value = c.name || '';
+  document.getElementById('cf-event').value = c.event || '';
+  document.getElementById('cf-position').value = c.position || '';
+  document.getElementById('cf-date').value = c.issueDate || '';
+  openFM('cfm');
+}
+
+// Save Certificate
+async function saveCertificate() {
+  const certId = document.getElementById('cf-certid').value.trim();
+  const name = document.getElementById('cf-name').value.trim();
+  const event = document.getElementById('cf-event').value.trim();
+  const position = document.getElementById('cf-position').value.trim();
+  const issueDate = document.getElementById('cf-date').value;
+  
+  if(!certId) return toast("Certificate ID is required!", true);
+  if(!name) return toast("Participant Name is required!", true);
+  if(!event) return toast("Event Name is required!", true);
+  if(!position) return toast("Position is required!", true);
+  if(!issueDate) return toast("Issue Date is required!", true);
+  
+  const cert = { certId, name, event, position, issueDate };
+  const eid = document.getElementById('cf-eid').value;
+  
+  const btn = document.querySelector('#cfm .fs-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+  
+  let result;
+  if(eid === '') {
+    result = await addCertificate(cert);
+  } else {
+    result = await updateCertificate(eid, cert);
+  }
+  
+  btn.textContent = 'Save Certificate';
+  btn.disabled = false;
+  
+  if(result.success) {
+    renderCertificatesTable();
+    renderDashboard();
+    closeFM('cfm');
+    toast("Certificate saved! ✅");
+  } else {
+    toast(result.error || "Save failed!", true);
+  }
+}
+
+// Delete Certificate
+async function deleteCertificateAction(id) {
+  if(!confirm("Delete this certificate? This cannot be undone!")) return;
+  const ok = await deleteCertificate(id);
+  if(ok) {
+    renderCertificatesTable();
+    renderDashboard();
+    toast("Certificate deleted.");
+  } else {
+    toast("Delete failed!", true);
+  }
+}
+
+// View Certificate (with QR Code)
+function viewCertificate(id) {
+  const c = getCertificates().find(x => x.id === id);
+  if(!c) return;
+  
+  const verifyUrl = `https://talentversebd.github.io/TVBD/verify.html?id=${encodeURIComponent(c.certId)}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verifyUrl)}`;
+  
+  const content = document.getElementById('cv-content');
+  content.innerHTML = `
+    <div style="text-align:center;padding:10px;">
+      <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+        <div style="font-size:2.5rem;margin-bottom:8px;">✅</div>
+        <h3 style="font-family:Montserrat;font-size:1.2rem;color:#4ade80;margin-bottom:4px;">Certificate Verified</h3>
+        <p style="color:var(--muted);font-size:.85rem;">TalentVerse Bangladesh</p>
+      </div>
+      
+      <div style="text-align:left;background:var(--card2);border-radius:10px;padding:16px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);">
+          <span style="color:var(--muted);font-size:.85rem;">🆔 Certificate ID</span>
+          <strong style="color:var(--blue-br);font-family:monospace;">${c.certId}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);">
+          <span style="color:var(--muted);font-size:.85rem;">👤 Name</span>
+          <strong>${c.name}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);">
+          <span style="color:var(--muted);font-size:.85rem;">🏆 Event</span>
+          <strong style="text-align:right;max-width:60%;">${c.event}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);">
+          <span style="color:var(--muted);font-size:.85rem;">🥇 Position</span>
+          <strong style="color:#4ade80;">${c.position}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;">
+          <span style="color:var(--muted);font-size:.85rem;">📅 Issue Date</span>
+          <strong>${formatDate(c.issueDate)}</strong>
+        </div>
+      </div>
+      
+      <h4 style="font-family:Montserrat;margin-bottom:12px;">📱 QR Code</h4>
+      <div style="background:#fff;padding:16px;border-radius:12px;display:inline-block;margin-bottom:16px;">
+        <img src="${qrUrl}" alt="QR Code" style="width:200px;height:200px;display:block;" id="cv-qr">
+      </div>
+      
+      <p style="color:var(--muted);font-size:.8rem;margin-bottom:16px;line-height:1.6;">
+        📌 Print this QR code on the certificate.<br>
+        Scanning will show verification page.
+      </p>
+      
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+        <button onclick="downloadQR('${c.certId}', '${qrUrl}')" class="fs-btn" style="padding:10px 20px;font-size:.85rem;">
+          ⬇️ Download QR
+        </button>
+        <button onclick="copyVerifyLink('${verifyUrl}')" class="fs-btn" style="padding:10px 20px;font-size:.85rem;background:linear-gradient(135deg,#16a34a,#15803d);">
+          🔗 Copy Link
+        </button>
+      </div>
+      
+      <div style="margin-top:16px;padding:12px;background:var(--card2);border-radius:8px;font-size:.75rem;color:var(--muted);word-break:break-all;font-family:monospace;">
+        ${verifyUrl}
+      </div>
+    </div>
+  `;
+  
+  openFM('cvm');
+}
+
+// Format date
+function formatDate(dateStr) {
+  if(!dateStr) return 'N/A';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// Download QR Code
+async function downloadQR(certId, qrUrl) {
+  try {
+    const response = await fetch(qrUrl);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `QR_${certId}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast("QR Code downloaded! ✅");
+  } catch(err) {
+    console.error("Download error:", err);
+    toast("Download failed!", true);
+  }
+}
+
+// Copy verify link
+function copyVerifyLink(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    toast("Link copied! ✅");
+  }).catch(() => {
+    // Fallback
+    const input = document.createElement('input');
+    input.value = url;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    toast("Link copied! ✅");
+  });
+}

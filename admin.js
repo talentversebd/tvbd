@@ -148,6 +148,11 @@ function checkAdminAuth() {
               if(typeof renderRegistrationsTable === 'function') renderRegistrationsTable();
             });
           }
+      if(typeof loadCertificates === 'function') {
+  loadCertificates().then(() => {
+    if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
+  });
+}
         } else {
           console.log("❌ No user logged in");
           if(login) {

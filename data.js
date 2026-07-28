@@ -421,3 +421,120 @@ async function updatePopupSettings(data) {
     return false;
   }
 }
+/*===== CERTIFICATE FUNCTIONS =====*/
+
+// Get all certificates
+async function loadCertificates() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "certificates"), orderBy("createdAt", "desc")));
+    cache.certificates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return cache.certificates;
+  } catch(err) {
+    console.error("Load certificates error:", err);
+    return [];
+  }
+}
+
+function getCertificates() {
+  return cache.certificates || [];
+}
+
+// Get single certificate by Certificate ID (not Firestore ID)
+async function getCertificateById(certId) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    // First try from cache
+    if(cache.certificates) {
+      const found = cache.certificates.find(c => c.certId === certId);
+      if(found) return found;
+    }
+    
+    // Fetch from Firestore
+    const snap = await getDocs(collection(db, "certificates"));
+    let result = null;
+    snap.forEach(doc => {
+      const data = doc.data();
+      if(data.certId === certId) {
+        result = { id: doc.id, ...data };
+      }
+    });
+    return result;
+  } catch(err) {
+    console.error("Get certificate error:", err);
+    return null;
+  }
+}
+
+// Add certificate
+async function addCertificate(cert) {
+  await waitForFirebase();
+  const { collection, addDoc, getDocs, query, where } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    // Check if Certificate ID already exists
+    const snap = await getDocs(collection(db, "certificates"));
+    let exists = false;
+    snap.forEach(doc => {
+      if(doc.data().certId === cert.certId) exists = true;
+    });
+    
+    if(exists) {
+      return { success: false, error: "Certificate ID already exists!" };
+    }
+    
+    cert.createdAt = Date.now();
+    cert.status = "Verified";
+    const ref = await addDoc(collection(db, "certificates"), cert);
+    
+    if(!cache.certificates) cache.certificates = [];
+    cache.certificates.unshift({ id: ref.id, ...cert });
+    
+    return { success: true, id: ref.id };
+  } catch(err) {
+    console.error("Add certificate error:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+// Update certificate
+async function updateCertificate(id, cert) {
+  await waitForFirebase();
+  const { doc, updateDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    cert.updatedAt = Date.now();
+    await updateDoc(doc(db, "certificates", id), cert);
+    
+    if(cache.certificates) {
+      const idx = cache.certificates.findIndex(x => x.id === id);
+      if(idx > -1) cache.certificates[idx] = { id, ...cert };
+    }
+    
+    return { success: true };
+  } catch(err) {
+    console.error("Update certificate error:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+// Delete certificate
+async function deleteCertificate(id) {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await deleteDoc(doc(db, "certificates", id));
+    if(cache.certificates) {
+      cache.certificates = cache.certificates.filter(x => x.id !== id);
+    }
+    return true;
+  } catch(err) {
+    console.error("Delete certificate error:", err);
+    return false;
+  }
+}

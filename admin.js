@@ -193,34 +193,37 @@ function goSec(btn) {
   btn.classList.add('active');
 
   const titles = {
-    'dash': 'Dashboard',
-    'home-ed': 'Home Page Editor',
-    'olymp-adm': 'Manage Olympiads',
-    'gal-adm': 'Gallery Manager',
-    'news-adm': 'News Updates',
-    'msg-adm': 'Contact Messages',
-    'reg-adm': 'Registrations',
-    'popup-adm': 'Popup Notice',
-    'set-adm': 'System Settings'
-  };
+  'dash': 'Dashboard',
+  'home-ed': 'Home Page Editor',
+  'olymp-adm': 'Manage Olympiads',
+  'gal-adm': 'Gallery Manager',
+  'news-adm': 'News Updates',
+  'msg-adm': 'Contact Messages',
+  'reg-adm': 'Registrations',
+  'cert-adm': 'Certificates',
+  'popup-adm': 'Popup Notice',
+  'set-adm': 'System Settings'
+};
   const ptitle = document.getElementById('adm-ptitle');
   if(ptitle) ptitle.textContent = titles[secId] || secId;
 
   const actions = document.getElementById('adm-topbar-actions');
   if(actions) {
-    actions.innerHTML = '';
-    if(secId === 'home-ed') {
-      actions.innerHTML = `<button class="save-btn" onclick="saveHomeEditor()">💾 Save Changes</button>`;
-    } else if(secId === 'olymp-adm') {
-      actions.innerHTML = `<button class="add-btn" onclick="openOlympiadForm()">+ Add Olympiad</button>`;
-    } else if(secId === 'gal-adm') {
-      actions.innerHTML = `<button class="add-btn" onclick="openGalleryForm()">+ Add Media</button>`;
-    } else if(secId === 'news-adm') {
-      actions.innerHTML = `<button class="add-btn" onclick="openNewsForm()">+ Add News</button>`;
-    } else if(secId === 'reg-adm') {
-      actions.innerHTML = `<button class="add-btn" onclick="downloadRegistrationsCSV()">⬇️ Download CSV</button>`;
-    }
+  actions.innerHTML = '';
+  if(secId === 'home-ed') {
+    actions.innerHTML = `<button class="save-btn" onclick="saveHomeEditor()">💾 Save Changes</button>`;
+  } else if(secId === 'olymp-adm') {
+    actions.innerHTML = `<button class="add-btn" onclick="openOlympiadForm()">+ Add Olympiad</button>`;
+  } else if(secId === 'gal-adm') {
+    actions.innerHTML = `<button class="add-btn" onclick="openGalleryForm()">+ Add Media</button>`;
+  } else if(secId === 'news-adm') {
+    actions.innerHTML = `<button class="add-btn" onclick="openNewsForm()">+ Add News</button>`;
+  } else if(secId === 'reg-adm') {
+    actions.innerHTML = `<button class="add-btn" onclick="downloadRegistrationsCSV()">⬇️ Download CSV</button>`;
+  } else if(secId === 'cert-adm') {
+    actions.innerHTML = `<button class="add-btn" onclick="openCertificateForm()">+ Add Certificate</button>`;
   }
+}
 
   if(secId === 'set-adm' && typeof loadRegistrationSettings === 'function') {
     loadRegistrationSettings();
@@ -229,7 +232,6 @@ function goSec(btn) {
   if(secId === 'popup-adm' && typeof loadPopupSettings === 'function') {
     loadPopupSettings();
   }
-
   if(window.innerWidth <= 700) closeSidebar();
 }
 
@@ -239,6 +241,7 @@ function renderAdminAll() {
   if(typeof renderOlympiadTable === 'function') renderOlympiadTable();
   if(typeof renderGalleryTable === 'function') renderGalleryTable();
   if(typeof renderNewsTable === 'function') renderNewsTable();
+  if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
   if(typeof loadHomeEditor === 'function') loadHomeEditor();
 }
 

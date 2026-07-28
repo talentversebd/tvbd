@@ -139,20 +139,23 @@ function checkAdminAuth() {
           
           if(typeof renderAdminAll === 'function') renderAdminAll();
           if(typeof loadMessages === 'function') {
-            loadMessages().then(() => {
-              if(typeof renderMessagesTable === 'function') renderMessagesTable();
-            });
-          }
-          if(typeof loadRegistrations === 'function') {
-            loadRegistrations().then(() => {
-              if(typeof renderRegistrationsTable === 'function') renderRegistrationsTable();
-            });
-          }
-      if(typeof loadCertificates === 'function') {
-  loadCertificates().then(() => {
-    if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
-  });
-}
+      loadMessages().then(() => {
+        if(typeof renderMessagesTable === 'function') renderMessagesTable();
+      });
+    }
+    if(typeof loadRegistrations === 'function') {
+      loadRegistrations().then(() => {
+        if(typeof renderRegistrationsTable === 'function') renderRegistrationsTable();
+      });
+    }
+    // ADD THIS:
+    if(typeof loadCertificates === 'function') {
+      loadCertificates().then(() => {
+        if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
+      });
+    }
+  }
+});
         } else {
           console.log("❌ No user logged in");
           if(login) {

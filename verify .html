@@ -4,185 +4,62 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Verify Certificate — TalentVerse Bangladesh</title>
-<meta name="description" content="Verify authenticity of TalentVerse Bangladesh certificates.">
+<meta name="description" content="Verify certificates issued by TalentVerse Bangladesh.">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
 .verify-container{max-width:700px;margin:0 auto;padding:0 16px;}
+.verify-card{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:36px;box-shadow:var(--glow);}
+@media(max-width:500px){.verify-card{padding:24px 20px;border-radius:16px;}}
 
 /* Search Box */
-.verify-search{
-  background:var(--card);border:1px solid var(--bdr);border-radius:16px;
-  padding:32px;margin-bottom:24px;box-shadow:var(--glow);
-}
-@media(max-width:500px){.verify-search{padding:24px 20px;}}
-.verify-search h3{
-  font-family:Montserrat;font-size:1.2rem;font-weight:800;
-  margin-bottom:8px;text-align:center;
-}
-.verify-search p{
-  color:var(--muted);font-size:.88rem;
-  text-align:center;margin-bottom:20px;
-}
-.search-group{display:flex;gap:10px;flex-wrap:wrap;}
-.search-input{
-  flex:1;min-width:200px;
-  background:var(--card2);border:1px solid var(--bdr);color:var(--txt);
-  padding:14px 16px;border-radius:10px;font-size:.95rem;outline:none;
-  font-family:monospace;text-transform:uppercase;letter-spacing:.05em;
-  transition:border-color .2s,box-shadow .2s;
-}
+.search-box{background:var(--card2);border:1px solid var(--bdr);border-radius:12px;padding:20px;margin-bottom:24px;}
+.search-box h3{font-family:Montserrat;font-size:1.05rem;margin-bottom:12px;}
+.search-input-wrap{display:flex;gap:10px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;background:var(--bg);border:1px solid var(--bdr);color:var(--txt);padding:12px 16px;border-radius:8px;font-family:monospace;font-size:.95rem;text-transform:uppercase;outline:none;}
 .search-input:focus{border-color:var(--blue-br);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
-.search-btn{
-  background:linear-gradient(135deg,var(--blue),var(--blue-dk));
-  color:#fff;border:none;padding:14px 28px;border-radius:10px;
-  font-weight:700;font-size:.9rem;cursor:pointer;
-  box-shadow:var(--glow);transition:transform .15s;
-  display:flex;align-items:center;gap:8px;
-}
-.search-btn:hover{transform:translateY(-2px);}
-.search-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
-
-/* Certificate Card */
-.cert-card{
-  background:var(--card);border:1px solid var(--bdr);border-radius:16px;
-  overflow:hidden;box-shadow:var(--glow);animation:fadeInUp .5s ease;
-}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-
-.cert-header{
-  background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(37,99,235,.02));
-  padding:36px 24px;text-align:center;
-  border-bottom:1px solid var(--bdr);
-  position:relative;overflow:hidden;
-}
-.cert-header::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at 50% 0%,rgba(37,99,235,.15) 0%,transparent 60%);
-}
-.cert-header .verify-badge{
-  display:inline-flex;align-items:center;gap:8px;
-  background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);
-  color:#4ade80;padding:8px 16px;border-radius:30px;
-  font-size:.85rem;font-weight:700;letter-spacing:.05em;
-  margin-bottom:16px;position:relative;z-index:1;
-  animation:pulse-badge 2s infinite;
-}
-@keyframes pulse-badge{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4);}50%{box-shadow:0 0 0 12px rgba(34,197,94,0);}}
-.cert-header .check-icon{
-  font-size:4rem;margin-bottom:12px;
-  animation:bounce-check .8s ease;
-  position:relative;z-index:1;
-}
-@keyframes bounce-check{0%{transform:scale(0);}50%{transform:scale(1.2);}100%{transform:scale(1);}}
-.cert-header h2{
-  font-family:Montserrat;font-size:1.6rem;font-weight:900;
-  color:var(--txt);margin-bottom:6px;position:relative;z-index:1;
-}
-.cert-header p{
-  color:var(--muted);font-size:.9rem;position:relative;z-index:1;
-}
-
-.cert-body{padding:24px;}
-
-.cert-detail{
-  display:flex;justify-content:space-between;align-items:flex-start;
-  padding:16px 0;border-bottom:1px solid var(--bdr);
-  gap:16px;
-}
-.cert-detail:last-child{border-bottom:none;}
-.cert-detail .cd-label{
-  display:flex;align-items:center;gap:8px;
-  color:var(--muted);font-size:.85rem;font-weight:500;
-  min-width:120px;
-}
-.cert-detail .cd-value{
-  text-align:right;color:var(--txt);font-weight:600;
-  font-size:.95rem;flex:1;
-}
-.cert-detail .cd-value.cert-id{
-  font-family:monospace;color:var(--blue-br);
-  background:rgba(37,99,235,.1);padding:4px 10px;
-  border-radius:6px;display:inline-block;
-}
-.cert-detail .cd-value.position{
-  color:#4ade80;background:rgba(34,197,94,.1);
-  padding:4px 10px;border-radius:6px;display:inline-block;
-}
-
-.cert-footer{
-  background:var(--card2);padding:20px 24px;
-  text-align:center;border-top:1px solid var(--bdr);
-}
-.cert-footer p{color:var(--muted);font-size:.78rem;line-height:1.7;}
-.cert-footer strong{color:var(--blue-br);}
-
-.cert-actions{
-  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
-  padding:20px 24px;background:var(--card2);
-  border-top:1px solid var(--bdr);
-}
-.cert-actions button{
-  background:var(--card);border:1px solid var(--bdr);color:var(--txt);
-  padding:10px 20px;border-radius:8px;font-size:.85rem;font-weight:600;
-  cursor:pointer;transition:all .2s;
-  display:flex;align-items:center;gap:6px;
-}
-.cert-actions button:hover{background:var(--bdr);border-color:var(--blue-br);}
+.search-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:700;cursor:pointer;box-shadow:var(--glow);}
 
 /* Loading */
-.verify-loading{
-  text-align:center;padding:60px 20px;
-  background:var(--card);border-radius:16px;border:1px solid var(--bdr);
-}
-.verify-loading .spinner{
-  display:inline-block;width:50px;height:50px;
-  border:4px solid var(--bdr);border-top-color:var(--blue-br);
-  border-radius:50%;animation:spin 1s linear infinite;
-  margin-bottom:16px;
-}
+.verify-loading{text-align:center;padding:50px 20px;color:var(--muted);}
+.verify-loading .spin{font-size:3rem;margin-bottom:16px;animation:spin 2s linear infinite;display:inline-block;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.verify-loading p{color:var(--muted);}
+
+/* Verified Badge */
+.verified-badge{background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(34,197,94,.05));border:2px solid rgba(34,197,94,.3);border-radius:16px;padding:24px;text-align:center;margin-bottom:24px;position:relative;overflow:hidden;}
+.verified-badge::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(34,197,94,.2) 0%,transparent 70%);}
+.verified-badge .check-icon{font-size:4rem;margin-bottom:12px;animation:bounceIn .6s cubic-bezier(0.68, -0.55, 0.265, 1.55);display:inline-block;position:relative;}
+@keyframes bounceIn{0%{transform:scale(0);}50%{transform:scale(1.2);}100%{transform:scale(1);}}
+.verified-badge h2{font-family:Montserrat;font-size:1.6rem;font-weight:800;color:#4ade80;margin-bottom:6px;position:relative;}
+.verified-badge p{color:var(--muted);font-size:.9rem;position:relative;}
+
+/* Details Grid */
+.cert-details{background:var(--card2);border:1px solid var(--bdr);border-radius:14px;padding:20px;margin-bottom:20px;}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--bdr);gap:12px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-label{color:var(--muted);font-size:.85rem;font-weight:500;display:flex;align-items:center;gap:6px;min-width:120px;}
+.detail-value{font-weight:700;color:var(--txt);font-size:.95rem;text-align:right;flex:1;}
+.detail-value.cert-id{color:var(--blue-br);font-family:monospace;font-size:1rem;}
+.detail-value.position{color:#4ade80;}
 
 /* Not Found */
-.verify-notfound{
-  background:var(--card);border:1px solid rgba(239,68,68,.3);border-radius:16px;
-  padding:40px 24px;text-align:center;
-  animation:shake .5s ease;
-}
-@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-10px);}75%{transform:translateX(10px);}}
-.verify-notfound .nf-icon{
-  font-size:4rem;margin-bottom:16px;
-}
-.verify-notfound h3{
-  font-family:Montserrat;font-size:1.4rem;font-weight:800;
-  color:#f87171;margin-bottom:10px;
-}
-.verify-notfound p{color:var(--muted);font-size:.9rem;line-height:1.7;margin-bottom:20px;}
-.verify-notfound .searched-id{
-  font-family:monospace;background:rgba(239,68,68,.1);color:#f87171;
-  padding:6px 12px;border-radius:6px;font-size:.85rem;
-  display:inline-block;margin-top:8px;
-}
+.not-found{text-align:center;padding:50px 20px;}
+.not-found .icon{font-size:5rem;margin-bottom:16px;}
+.not-found h2{font-family:Montserrat;font-size:1.5rem;color:#f87171;margin-bottom:10px;}
+.not-found p{color:var(--muted);font-size:.95rem;line-height:1.7;max-width:400px;margin:0 auto 20px;}
 
-/* Info Section */
-.verify-info{
-  background:rgba(37,99,235,.05);border:1px dashed var(--bdr2);
-  border-radius:12px;padding:20px;margin-top:24px;text-align:center;
-}
-.verify-info h4{
-  font-family:Montserrat;color:var(--blue-br);
-  font-size:.95rem;margin-bottom:10px;
-}
-.verify-info p{color:var(--muted);font-size:.82rem;line-height:1.7;}
+/* Actions */
+.verify-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:20px;}
+.action-btn{padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;cursor:pointer;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s;}
+.action-btn.primary{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;box-shadow:var(--glow);}
+.action-btn.primary:hover{transform:translateY(-2px);}
+.action-btn.secondary{background:var(--card2);color:var(--txt);border:1px solid var(--bdr);}
+.action-btn.secondary:hover{background:rgba(255,255,255,.05);}
 
-/* Print styles */
-@media print{
-  body{background:#fff !important;color:#000 !important;}
-  #site-header,footer,.verify-search,.cert-actions,.verify-info,.notice-bar{display:none !important;}
-  .cert-card{box-shadow:none !important;border:2px solid #000 !important;}
-  .cert-detail .cd-value{color:#000 !important;}
-}
+/* Trust Info */
+.trust-info{background:rgba(37,99,235,.05);border:1px dashed var(--bdr2);border-radius:10px;padding:16px;margin-top:24px;text-align:center;}
+.trust-info p{color:var(--muted);font-size:.82rem;line-height:1.7;}
+.trust-info strong{color:var(--txt);}
 </style>
 </head>
 <body>
@@ -215,44 +92,88 @@
 <div class="page-header">
   <span class="eyebrow">Certificate Verification</span>
   <h1>Verify <span>Certificate</span></h1>
-  <p>Enter Certificate ID or scan QR code to verify authenticity.</p>
+  <p>Enter or scan a certificate ID to verify its authenticity.</p>
 </div>
 
-<!-- MAIN SECTION -->
+<!-- VERIFY SECTION -->
 <section class="section">
   <div class="verify-container">
-    
+
     <!-- Search Box -->
-    <div class="verify-search">
-      <h3>🔍 Enter Certificate ID</h3>
-      <p>Type the Certificate ID printed on your certificate</p>
-      <form onsubmit="verifyCertificate(event)">
-        <div class="search-group">
-          <input 
-            type="text" 
-            class="search-input" 
-            id="cert-search" 
-            placeholder="e.g. TVBD-2026-001" 
-            required
-            autocomplete="off">
-          <button type="submit" class="search-btn" id="verify-btn">
-            <span>🔍</span>
-            <span>Verify</span>
-          </button>
+    <div class="verify-card" style="padding:24px 20px;margin-bottom:20px;">
+      <div class="search-box" style="margin-bottom:0;">
+        <h3>🔍 Search Certificate</h3>
+        <div class="search-input-wrap">
+          <input type="text" id="cert-search" class="search-input" placeholder="Enter Certificate ID (e.g. TVBD-2026-001)" onkeydown="if(event.key==='Enter')searchCertificate()">
+          <button onclick="searchCertificate()" class="search-btn">🔍 Verify</button>
         </div>
-      </form>
+      </div>
     </div>
-    
-    <!-- Result Container -->
-    <div id="result-container"></div>
-    
-    <!-- Info Section -->
-    <div class="verify-info">
-      <h4>💡 About Certificate Verification</h4>
-      <p>
-        All certificates issued by TalentVerse Bangladesh contain a unique QR code and Certificate ID. 
-        You can verify the authenticity of any certificate by entering its ID above or scanning the QR code with your phone.
-      </p>
+
+    <!-- Loading State -->
+    <div class="verify-card verify-loading" id="v-loading" style="display:none;">
+      <div class="spin">⏳</div>
+      <p>Verifying certificate...</p>
+    </div>
+
+    <!-- Verified Certificate -->
+    <div class="verify-card" id="v-verified" style="display:none;">
+      <div class="verified-badge">
+        <div class="check-icon">✅</div>
+        <h2>Certificate Verified</h2>
+        <p>This is an authentic certificate issued by TalentVerse Bangladesh</p>
+      </div>
+
+      <div class="cert-details">
+        <div class="detail-row">
+          <span class="detail-label">🆔 Certificate ID</span>
+          <span class="detail-value cert-id" id="v-certid">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">👤 Name</span>
+          <span class="detail-value" id="v-name">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">🏆 Event</span>
+          <span class="detail-value" id="v-event">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">🥇 Position</span>
+          <span class="detail-value position" id="v-position">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">📅 Issue Date</span>
+          <span class="detail-value" id="v-date">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">✅ Status</span>
+          <span class="detail-value" style="color:#4ade80;">Verified ✓</span>
+        </div>
+      </div>
+
+      <div class="verify-actions">
+        <button onclick="printCertificate()" class="action-btn secondary">🖨️ Print</button>
+        <button onclick="shareLink()" class="action-btn primary">🔗 Share Link</button>
+      </div>
+
+      <div class="trust-info">
+        <p>
+          🛡️ <strong>Verified by TalentVerse Bangladesh</strong><br>
+          This certificate has been digitally verified and is authentic. For any queries, contact us.
+        </p>
+      </div>
+    </div>
+
+    <!-- Not Found -->
+    <div class="verify-card not-found" id="v-notfound" style="display:none;">
+      <div class="icon">❌</div>
+      <h2>Certificate Not Found</h2>
+      <p>The certificate ID you entered doesn't exist in our database. Please check the ID and try again.</p>
+      <p style="font-size:.8rem;color:var(--muted);margin-top:10px;">If you believe this is an error, please contact us.</p>
+      <div class="verify-actions">
+        <button onclick="location.reload()" class="action-btn secondary">🔄 Try Again</button>
+        <a href="contact.html" class="action-btn primary">📧 Contact Us</a>
+      </div>
     </div>
 
   </div>
@@ -299,216 +220,99 @@
   <span class="toast-msg" id="t-msg"></span>
 </div>
 
-<!-- Firebase & EmailJS -->
+<!-- Firebase -->
 <script type="module" src="firebase-config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
 <script src="data.js"></script>
-<script src="render.js"></script>
 <script src="main.js"></script>
 
 <script>
-// Format date helper
-function formatCertDate(dateStr) {
-  if(!dateStr) return 'N/A';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
-}
+let currentCert = null;
 
-// Verify Certificate
-async function verifyCertificate(event) {
-  if(event) event.preventDefault();
+// Auto-verify from URL parameter
+document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const certId = urlParams.get('id');
   
-  const certId = document.getElementById('cert-search').value.trim().toUpperCase();
-  const container = document.getElementById('result-container');
-  const btn = document.getElementById('verify-btn');
-  
-  if(!certId) return;
-  
-  // Show loading
-  btn.disabled = true;
-  btn.innerHTML = '<span>⏳</span><span>Searching...</span>';
-  container.innerHTML = `
-    <div class="verify-loading">
-      <div class="spinner"></div>
-      <p>Verifying certificate...</p>
-    </div>
-  `;
-  
-  try {
-    // Wait for Firebase
-    let attempts = 0;
-    while(!window.firebaseDB && attempts < 50) {
-      await new Promise(r => setTimeout(r, 100));
-      attempts++;
-    }
-    
-    if(!window.firebaseDB) {
-      throw new Error("Firebase not loaded");
-    }
-    
-    const cert = await getCertificateById(certId);
-    
-    btn.disabled = false;
-    btn.innerHTML = '<span>🔍</span><span>Verify</span>';
-    
-    if(cert) {
-      showVerifiedCertificate(cert);
-    } else {
-      showNotFound(certId);
-    }
-    
-  } catch(err) {
-    console.error("Verify error:", err);
-    btn.disabled = false;
-    btn.innerHTML = '<span>🔍</span><span>Verify</span>';
-    container.innerHTML = `
-      <div class="verify-notfound">
-        <div class="nf-icon">⚠️</div>
-        <h3>Something went wrong</h3>
-        <p>Please try again in a moment.</p>
-      </div>
-    `;
+  if(certId) {
+    document.getElementById('cert-search').value = certId.toUpperCase();
+    setTimeout(() => searchCertificate(), 500);
   }
+});
+
+async function searchCertificate() {
+  const certId = document.getElementById('cert-search').value.trim().toUpperCase();
+  
+  if(!certId) {
+    toast("Please enter a Certificate ID!", true);
+    return;
+  }
+
+  // Hide all
+  document.getElementById('v-verified').style.display = 'none';
+  document.getElementById('v-notfound').style.display = 'none';
+  document.getElementById('v-loading').style.display = 'block';
+
+  // Wait for Firebase
+  const check = setInterval(async () => {
+    if(typeof getCertificateById === 'function' && window.firebaseDB) {
+      clearInterval(check);
+      
+      try {
+        const cert = await getCertificateById(certId);
+        document.getElementById('v-loading').style.display = 'none';
+        
+        if(cert) {
+          currentCert = cert;
+          showVerified(cert);
+        } else {
+          showNotFound();
+        }
+      } catch(err) {
+        console.error("Verify error:", err);
+        document.getElementById('v-loading').style.display = 'none';
+        showNotFound();
+      }
+    }
+  }, 200);
+
+  // Fallback
+  setTimeout(() => {
+    if(document.getElementById('v-loading').style.display === 'block') {
+      document.getElementById('v-loading').style.display = 'none';
+      showNotFound();
+    }
+  }, 8000);
 }
 
-// Show Verified Certificate
-function showVerifiedCertificate(cert) {
-  const container = document.getElementById('result-container');
-  container.innerHTML = `
-    <div class="cert-card">
-      
-      <div class="cert-header">
-        <div class="verify-badge">
-          <span>✓</span>
-          <span>Verified Authentic</span>
-        </div>
-        <div class="check-icon">✅</div>
-        <h2>Certificate Verified</h2>
-        <p>This is a genuine TalentVerse Bangladesh certificate</p>
-      </div>
-      
-      <div class="cert-body">
-        <div class="cert-detail">
-          <div class="cd-label">
-            <span>🆔</span>
-            <span>Certificate ID</span>
-          </div>
-          <div class="cd-value">
-            <span class="cert-id">${cert.certId}</span>
-          </div>
-        </div>
-        
-        <div class="cert-detail">
-          <div class="cd-label">
-            <span>👤</span>
-            <span>Name</span>
-          </div>
-          <div class="cd-value">${cert.name}</div>
-        </div>
-        
-        <div class="cert-detail">
-          <div class="cd-label">
-            <span>🏆</span>
-            <span>Event</span>
-          </div>
-          <div class="cd-value">${cert.event}</div>
-        </div>
-        
-        <div class="cert-detail">
-          <div class="cd-label">
-            <span>🥇</span>
-            <span>Position</span>
-          </div>
-          <div class="cd-value">
-            <span class="position">${cert.position}</span>
-          </div>
-        </div>
-        
-        <div class="cert-detail">
-          <div class="cd-label">
-            <span>📅</span>
-            <span>Issue Date</span>
-          </div>
-          <div class="cd-value">${formatCertDate(cert.issueDate)}</div>
-        </div>
-        
-        <div class="cert-detail">
-          <div class="cd-label">
-            <span>✅</span>
-            <span>Status</span>
-          </div>
-          <div class="cd-value" style="color:#4ade80;font-weight:700;">
-            Verified ✓
-          </div>
-        </div>
-      </div>
-      
-      <div class="cert-actions">
-        <button onclick="printCertificate()">
-          <span>🖨️</span> Print
-        </button>
-        <button onclick="shareCertificate('${cert.certId}')">
-          <span>🔗</span> Share
-        </button>
-        <button onclick="copyCertLink('${cert.certId}')">
-          <span>📋</span> Copy Link
-        </button>
-      </div>
-      
-      <div class="cert-footer">
-        <p>
-          🔒 Verified by <strong>TalentVerse Bangladesh</strong><br>
-          Verification performed on ${new Date().toLocaleString()}
-        </p>
-      </div>
-      
-    </div>
-  `;
+function showVerified(cert) {
+  document.getElementById('v-certid').textContent = cert.certId;
+  document.getElementById('v-name').textContent = cert.name;
+  document.getElementById('v-event').textContent = cert.event;
+  document.getElementById('v-position').textContent = cert.position;
+  
+  // Format date
+  const dateStr = cert.issueDate ? new Date(cert.issueDate).toLocaleDateString('en-US', { 
+    day: 'numeric', month: 'long', year: 'numeric' 
+  }) : 'N/A';
+  document.getElementById('v-date').textContent = dateStr;
+  
+  document.getElementById('v-verified').style.display = 'block';
+  
+  // Update URL without reload
+  const newUrl = window.location.pathname + '?id=' + encodeURIComponent(cert.certId);
+  window.history.replaceState({}, '', newUrl);
 }
 
-// Show Not Found
-function showNotFound(certId) {
-  const container = document.getElementById('result-container');
-  container.innerHTML = `
-    <div class="verify-notfound">
-      <div class="nf-icon">❌</div>
-      <h3>Certificate Not Found</h3>
-      <p>
-        No certificate found with this ID in our database.<br>
-        Please check the ID and try again.
-      </p>
-      <div class="searched-id">Searched: ${certId}</div>
-      <p style="margin-top:20px;font-size:.8rem;">
-        💡 Make sure you're entering the exact ID printed on the certificate.<br>
-        If you believe this is a mistake, please <a href="contact.html" style="color:var(--blue-br);">contact us</a>.
-      </p>
-    </div>
-  `;
+function showNotFound() {
+  document.getElementById('v-notfound').style.display = 'block';
 }
 
-// Print Certificate
 function printCertificate() {
   window.print();
 }
 
-// Share Certificate
-function shareCertificate(certId) {
-  const url = `https://talentversebd.github.io/TVBD/verify.html?id=${certId}`;
-  if(navigator.share) {
-    navigator.share({
-      title: 'Certificate Verification - TalentVerse Bangladesh',
-      text: `Verify certificate ${certId}`,
-      url: url
-    }).catch(err => console.log('Share failed:', err));
-  } else {
-    copyCertLink(certId);
-  }
-}
-
-// Copy Link
-function copyCertLink(certId) {
-  const url = `https://talentversebd.github.io/TVBD/verify.html?id=${certId}`;
+function shareLink() {
+  const url = window.location.href;
   navigator.clipboard.writeText(url).then(() => {
     toast("Link copied to clipboard! ✅");
   }).catch(() => {
@@ -521,24 +325,6 @@ function copyCertLink(certId) {
     toast("Link copied! ✅");
   });
 }
-
-// Auto-verify from URL query
-document.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const certId = urlParams.get('id');
-  
-  if(certId) {
-    // Wait for Firebase to load
-    const check = setInterval(() => {
-      if(window.firebaseDB && typeof getCertificateById === 'function') {
-        clearInterval(check);
-        document.getElementById('cert-search').value = certId.toUpperCase();
-        verifyCertificate();
-      }
-    }, 200);
-  }
-});
 </script>
-
 </body>
 </html>

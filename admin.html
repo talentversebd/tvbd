@@ -151,11 +151,12 @@ select.fi{cursor:pointer}
         <button class="adm-nb" data-sec="olymp-adm" onclick="goSec(this)"><span class="ico">🏆</span>Olympiads</button>
         <button class="adm-nb" data-sec="gal-adm" onclick="goSec(this)"><span class="ico">📷</span>Gallery</button>
         <button class="adm-nb" data-sec="news-adm" onclick="goSec(this)"><span class="ico">📰</span>News</button>
-        
         <div class="adm-ns">Inbox</div>
 <button class="adm-nb" data-sec="msg-adm" onclick="goSec(this)"><span class="ico">✉️</span>Messages</button>
 <button class="adm-nb" data-sec="reg-adm" onclick="goSec(this)"><span class="ico">📝</span>Registrations</button>
 
+<div class="adm-ns">Verification</div>
+<button class="adm-nb" data-sec="cert-adm" onclick="goSec(this)"><span class="ico">📜</span>Certificates</button>
 <div class="adm-ns">Notice & Settings</div>
 <button class="adm-nb" data-sec="popup-adm" onclick="goSec(this)"><span class="ico">📢</span>Popup Notice</button>
 <button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
@@ -261,6 +262,40 @@ select.fi{cursor:pointer}
           </table>
         </div>
       </div>
+      <!-- CERTIFICATES -->
+<div class="adm-sec" id="cert-adm">
+  
+  <!-- Info Card -->
+  <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+    <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">
+      📜 Certificate Verification System
+    </h3>
+    <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+      Add certificates for participants. Each certificate gets a unique QR code. 
+      When scanned, users can verify certificate authenticity on your website.
+    </p>
+    <div style="margin-top:12px;padding:10px;background:rgba(37,99,235,.05);border-radius:8px;font-size:.78rem;color:var(--lblue);">
+      💡 <strong>How to use:</strong> Add certificate → Click 👁️ to see QR code → Download QR → Print on certificate
+    </div>
+  </div>
+  
+  <!-- Table -->
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Certificate ID</th>
+          <th>Name</th>
+          <th>Event</th>
+          <th>Position</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="ctbl"></tbody>
+    </table>
+  </div>
+</div>
       <!-- POPUP NOTICE -->
 <div class="adm-sec" id="popup-adm">
   <div class="set-wrap" style="max-width:700px;">
@@ -527,7 +562,71 @@ select.fi{cursor:pointer}
     </div>
   </div>
 </div>
+  <!-- CERTIFICATE FORM -->
+<div class="fm-ov" id="cfm" onclick="if(event.target===this)closeFM('cfm')">
+  <div class="fm">
+    <div class="fm-head">
+      <h3 id="cfm-title">Add Certificate</h3>
+      <button onclick="closeFM('cfm')">✕</button>
+    </div>
+    <input type="hidden" id="cf-eid">
+    
+    <div class="fg">
+      <label>🆔 Certificate ID *</label>
+      <input class="fi" id="cf-certid" placeholder="e.g. TVBD-2026-001" style="font-family:monospace;text-transform:uppercase;">
+      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
+        💡 Must be unique. Cannot be changed after creation.
+      </p>
+    </div>
+    
+    <div class="fg">
+      <label>👤 Participant Name *</label>
+      <input class="fi" id="cf-name" placeholder="e.g. Rahim Uddin Ahmed">
+    </div>
+    
+    <div class="fg">
+      <label>🏆 Event Name *</label>
+      <input class="fi" id="cf-event" placeholder="e.g. Bangladesh Math Olympiad 2026">
+    </div>
+    
+    <div class="f-row">
+      <div class="fg">
+        <label>🥇 Position / Award *</label>
+        <input class="fi" id="cf-position" placeholder="e.g. 1st Runner Up, Champion, Participant">
+      </div>
+      <div class="fg">
+        <label>📅 Issue Date *</label>
+        <input class="fi" type="date" id="cf-date">
+      </div>
+    </div>
+    
+    <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;margin-bottom:16px;">
+      <p style="font-size:.8rem;color:#4ade80;">
+        ✅ <strong>Status will be:</strong> Verified (Auto)
+      </p>
+    </div>
+    
+    <div class="fm-foot">
+      <button class="fc-btn" onclick="closeFM('cfm')">Cancel</button>
+      <button class="fs-btn" onclick="saveCertificate()">Save Certificate</button>
+    </div>
+  </div>
+</div>
 
+<!-- CERTIFICATE VIEW MODAL (with QR) -->
+<div class="fm-ov" id="cvm" onclick="if(event.target===this)closeFM('cvm')">
+  <div class="fm" style="max-width:520px;">
+    <div class="fm-head">
+      <h3>📜 Certificate Details</h3>
+      <button onclick="closeFM('cvm')">✕</button>
+    </div>
+    <div id="cv-content"></div>
+    <div class="fm-foot">
+      <button class="fc-btn" onclick="closeFM('cvm')">Close</button>
+    </div>
+  </div>
+</div>
+  
 <!-- NEWS FORM -->
 <div class="fm-ov" id="nfm" onclick="if(event.target===this)closeFM('nfm')">
   <div class="fm">

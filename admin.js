@@ -260,6 +260,7 @@ function renderDashboard() {
   const news = typeof getNews === 'function' ? getNews() : [];
   const messages = typeof getMessages === 'function' ? getMessages() : [];
   const registrations = typeof getRegistrations === 'function' ? getRegistrations() : [];
+  const certificates = typeof getCertificates === 'function' ? getCertificates() : [];
 
   const active = olympiads.filter(o => o.status === 'active').length;
   const upcoming = olympiads.filter(o => o.status === 'upcoming').length;
@@ -275,7 +276,8 @@ function renderDashboard() {
       <div class="stat-card"><div class="sl">News Posts</div><div class="sv">${news.length}</div></div>
       <div class="stat-card"><div class="sl">Messages</div><div class="sv">${messages.length}</div></div>
       <div class="stat-card"><div class="sl">Unread Msgs</div><div class="sv" style="color:#f87171;">${unreadMsg}</div></div>
-      <div class="stat-card"><div class="sl">Registrations</div><div class="sv">${registrations.length}</div></div>`;
+      <div class="stat-card"><div class="sl">Registrations</div><div class="sv">${registrations.length}</div></div>
+      <div class="stat-card"><div class="sl">Certificates</div><div class="sv">${certificates.length}</div></div>`;
   }
 
   const recent = document.getElementById('db-recent');

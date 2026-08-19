@@ -603,3 +603,134 @@ async function savePopupSettings() {
   if(await updatePopupSettings(data)) toast("Saved! ✅");
   else toast("Failed!", true);
 }
+/*===== TEAM MANAGEMENT =====*/
+
+// Render Team Table
+function renderTeamTable() {
+  const tbody = document.getElementById('ttbl');
+  if(!tbody) return;
+  
+  const team = getTeam();
+  if(team.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No team members yet. Click "+ Add Member" to start.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  team.forEach((m) => {
+    tbody.innerHTML += `
+      <tr>
+        <td><strong style="color:var(--blue-br)">${m.order || '—'}</strong></td>
+        <td>
+          ${m.photo 
+            ? `<img src="${m.photo}" class="thumb" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` 
+            : `<div class="thumb" style="width:40px;height:40px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--blue-br);font-weight:700;">${(m.name || 'NA').substring(0,2).toUpperCase()}</div>`}
+        </td>
+        <td>${m.name}</td>
+        <td><span class="bs bs-active">${m.role}</span></td>
+        <td style="color:var(--muted);font-size:.8rem;">${(m.description || '—').substring(0, 40)}${m.description && m.description.length > 40 ? '...' : ''}</td>
+        <td class="tbl-acts">
+          <button class="e-btn" onclick="editTeamMember('${m.id}')">Edit</button>
+          <button class="d-btn" onclick="deleteTeamMemberAction('${m.id}')">Delete</button>
+        </td>
+      </tr>`;
+  });
+}
+
+// Open Add Team Form
+function openTeamForm() {
+  document.getElementById('tfm-title').textContent = "Add Team Member";
+  document.getElementById('tf-eid').value = '';
+  document.getElementById('tf-name').value = '';
+  document.getElementById('tf-role').value = '';
+  document.getElementById('tf-desc').value = '';
+  document.getElementById('tf-order').value = '';
+  document.getElementById('tf-photo').value = '';
+  document.getElementById('tf-prev').innerHTML = '';
+  openFM('tfm');
+}
+
+// Edit Team Member
+function editTeamMember(id) {
+  const m = getTeam().find(x => x.id === id);
+  if(!m) return;
+  document.getElementById('tfm-title').textContent = "Edit Team Member";
+  document.getElementById('tf-eid').value = id;
+  document.getElementById('tf-name').value = m.name || '';
+  document.getElementById('tf-role').value = m.role || '';
+  document.getElementById('tf-desc').value = m.description || '';
+  document.getElementById('tf-order').value = m.order || '';
+  document.getElementById('tf-photo').value = m.photo || '';
+  document.getElementById('tf-prev').innerHTML = m.photo ? `<img src="${m.photo}">` : '';
+  openFM('tfm');
+}
+
+// Save Team Member
+async function saveTeamMember() {
+  const name = document.getElementById('tf-name').value.trim();
+  const role = document.getElementById('tf-role').value.trim();
+  const description = document.getElementById('tf-desc').value.trim();
+  const order = parseInt(document.getElementById('tf-order').value) || 999;
+  const photo = document.getElementById('tf-photo').value.trim();
+  
+  if(!name) return toast("Name is required!", true);
+  if(!role) return toast("Role is required!", true);
+  
+  const member = { name, role, description, order, photo };
+  const eid = document.getElementById('tf-eid').value;
+  
+  const btn = document.querySelector('#tfm .fs-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+  
+  const ok = eid === '' ? await addTeamMember(member) : await updateTeamMember(eid, member);
+  
+  btn.textContent = 'Save Member';
+  btn.disabled = false;
+  
+  if(ok) {
+    renderTeamTable();
+    renderDashboard();
+    closeFM('tfm');
+    toast("Team member saved! ✅");
+  } else {
+    toast("Save failed!", true);
+  }
+}
+
+// Delete Team Member
+async function deleteTeamMemberAction(id) {
+  if(!confirm("Delete this team member?")) return;
+  const ok = await deleteTeamMember(id);
+  if(ok) {
+    renderTeamTable();
+    renderDashboard();
+    toast("Team member deleted.");
+  } else {
+    toast("Delete failed!", true);
+  }
+}
+
+// Team Photo Upload
+async function prevTeamPhoto(input) {
+  if(!input.files?.[0]) return;
+  const file = input.files[0];
+  
+  if(file.size > 32 * 1024 * 1024) {
+    return toast("File too large! Max 32MB", true);
+  }
+  
+  const prev = document.getElementById('tf-prev');
+  prev.innerHTML = `<div style="padding:10px;color:var(--muted)">⏳ Uploading to ImgBB...</div>`;
+  
+  const result = await uploadToImgBB(file);
+  
+  if(result.success) {
+    document.getElementById('tf-photo').value = result.url;
+    prev.innerHTML = `<img src="${result.url}"><div style="color:#4ade80;font-size:.75rem;margin-top:5px">✅ Uploaded!</div>`;
+    toast("Photo uploaded! ✅");
+  } else {
+    prev.innerHTML = `<div style="color:#f87171">❌ Upload failed</div>`;
+    toast("Upload failed!", true);
+  }
+}

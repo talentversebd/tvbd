@@ -149,7 +149,7 @@ select.fi{cursor:pointer}
         <div class="adm-ns">Content</div>
         <button class="adm-nb" data-sec="home-ed" onclick="goSec(this)"><span class="ico">🏠</span>Home Page</button>
         <button class="adm-nb" data-sec="olymp-adm" onclick="goSec(this)"><span class="ico">🏆</span>Olympiads</button>
-        <button class="adm-nb" data-sec="gal-adm" onclick="goSec(this)"><span class="ico">📷</span>Gallery</button>
+        <button class="adm-nb" data-sec="team-adm" onclick="goSec(this)"><span class="ico">👔</span>Team Members</button>
         <button class="adm-nb" data-sec="news-adm" onclick="goSec(this)"><span class="ico">📰</span>News</button>
         <div class="adm-ns">Inbox</div>
 <button class="adm-nb" data-sec="msg-adm" onclick="goSec(this)"><span class="ico">✉️</span>Messages</button>
@@ -223,16 +223,6 @@ select.fi{cursor:pointer}
         </div>
       </div>
 
-      <!-- GALLERY -->
-      <div class="adm-sec" id="gal-adm">
-        <div class="tbl-wrap">
-          <table class="tbl">
-            <thead><tr><th>Preview</th><th>Caption</th><th>Type</th><th>Actions</th></tr></thead>
-            <tbody id="gtbl"></tbody>
-          </table>
-        </div>
-      </div>
-
       <!-- NEWS -->
       <div class="adm-sec" id="news-adm">
         <div class="tbl-wrap">
@@ -242,6 +232,41 @@ select.fi{cursor:pointer}
           </table>
         </div>
       </div>
+      
+      <!-- TEAM MEMBERS -->
+<div class="adm-sec" id="team-adm">
+  
+  <!-- Info Card -->
+  <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+    <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">
+      👔 Team Members
+    </h3>
+    <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+      Add your team members here. They will appear on the Team page in order (1, 2, 3...). 
+      Founders and important members should have lower order numbers to appear first.
+    </p>
+    <div style="margin-top:12px;padding:10px;background:rgba(37,99,235,.05);border-radius:8px;font-size:.78rem;color:var(--lblue);">
+      💡 <strong>Tip:</strong> Order = 1 will be shown first, then 2, 3, etc.
+    </div>
+  </div>
+  
+  <!-- Table -->
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Photo</th>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="ttbl"></tbody>
+    </table>
+  </div>
+</div>
 
       <!-- MESSAGES -->
       <div class="adm-sec" id="msg-adm">
@@ -530,38 +555,6 @@ select.fi{cursor:pointer}
   </div>
 </div>
 
-<!-- GALLERY FORM -->
-<div class="fm-ov" id="gfm" onclick="if(event.target===this)closeFM('gfm')">
-  <div class="fm">
-    <div class="fm-head">
-      <h3 id="gfm-title">Add Media</h3>
-      <button onclick="closeFM('gfm')">✕</button>
-    </div>
-    <input type="hidden" id="gf-eid">
-    <div class="fg"><label>Caption</label><input class="fi" id="gf-cap"></div>
-    <div class="fg">
-      <label>Type</label>
-      <select class="fi" id="gf-type">
-        <option value="image">Image</option>
-        <option value="video">Video</option>
-      </select>
-    </div>
-    <div class="fg"><label>URL (or upload below)</label><input class="fi" id="gf-url" placeholder="https://..."></div>
-    <div class="fg">
-      <label>Upload File (Auto-uploads to ImgBB for images)</label>
-      <div class="up-area" onclick="document.getElementById('gf-file').click()">
-        <div class="up-ico">📁</div>
-        <p>Tap to upload image or video</p>
-        <input type="file" id="gf-file" accept="image/*,video/*" style="display:none" onchange="prevGFile(this)">
-      </div>
-      <div class="up-prev" id="gf-prev"></div>
-    </div>
-    <div class="fm-foot">
-      <button class="fc-btn" onclick="closeFM('gfm')">Cancel</button>
-      <button class="fs-btn" onclick="saveGallery()">Save Media</button>
-    </div>
-  </div>
-</div>
   <!-- CERTIFICATE FORM -->
 <div class="fm-ov" id="cfm" onclick="if(event.target===this)closeFM('cfm')">
   <div class="fm">
@@ -623,6 +616,56 @@ select.fi{cursor:pointer}
     <div id="cv-content"></div>
     <div class="fm-foot">
       <button class="fc-btn" onclick="closeFM('cvm')">Close</button>
+    </div>
+  </div>
+</div>
+
+          <!-- TEAM MEMBER FORM -->
+<div class="fm-ov" id="tfm" onclick="if(event.target===this)closeFM('tfm')">
+  <div class="fm">
+    <div class="fm-head">
+      <h3 id="tfm-title">Add Team Member</h3>
+      <button onclick="closeFM('tfm')">✕</button>
+    </div>
+    <input type="hidden" id="tf-eid">
+    
+    <div class="fg">
+      <label>👤 Name *</label>
+      <input class="fi" id="tf-name" placeholder="e.g. Abdur Rahman">
+    </div>
+    
+    <div class="fg">
+      <label>💼 Role / Position *</label>
+      <input class="fi" id="tf-role" placeholder="e.g. President, CEO, Vice President">
+    </div>
+    
+    <div class="fg">
+      <label>📝 Short Description</label>
+      <textarea class="fi" id="tf-desc" style="min-height:80px;" placeholder="Brief bio or description about this member..."></textarea>
+    </div>
+    
+    <div class="fg">
+      <label>🔢 Display Order</label>
+      <input class="fi" type="number" id="tf-order" min="1" placeholder="e.g. 1, 2, 3... (Lower number shows first)">
+      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
+        💡 Order 1 = shows first, Order 2 = second, etc.
+      </p>
+    </div>
+    
+    <div class="fg">
+      <label>📸 Photo (Auto-uploads to ImgBB)</label>
+      <input class="fi" id="tf-photo" placeholder="Or paste image URL..." style="margin-bottom:10px;">
+      <div class="up-area" onclick="document.getElementById('tf-file').click()">
+        <div class="up-ico">📷</div>
+        <p>Tap to upload photo</p>
+        <input type="file" id="tf-file" accept="image/*" style="display:none" onchange="prevTeamPhoto(this)">
+      </div>
+      <div class="up-prev" id="tf-prev"></div>
+    </div>
+    
+    <div class="fm-foot">
+      <button class="fc-btn" onclick="closeFM('tfm')">Cancel</button>
+      <button class="fs-btn" onclick="saveTeamMember()">Save Member</button>
     </div>
   </div>
 </div>

@@ -538,3 +538,89 @@ async function deleteCertificate(id) {
     return false;
   }
 }
+/*===== TEAM FUNCTIONS =====*/
+
+// Load all team members
+async function loadTeam() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "team"), orderBy("order", "asc")));
+    cache.team = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return cache.team;
+  } catch(err) {
+    console.error("Load team error:", err);
+    // Fallback: load without orderBy if error
+    try {
+      const snap = await getDocs(collection(db, "team"));
+      cache.team = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Sort manually by order
+      cache.team.sort((a, b) => (a.order || 999) - (b.order || 999));
+      return cache.team;
+    } catch(e) {
+      console.error("Fallback load error:", e);
+      return [];
+    }
+  }
+}
+
+function getTeam() {
+  return cache.team || [];
+}
+
+// Add team member
+async function addTeamMember(member) {
+  await waitForFirebase();
+  const { collection, addDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    member.createdAt = Date.now();
+    const ref = await addDoc(collection(db, "team"), member);
+    if(!cache.team) cache.team = [];
+    cache.team.push({ id: ref.id, ...member });
+    // Sort by order
+    cache.team.sort((a, b) => (a.order || 999) - (b.order || 999));
+    return true;
+  } catch(err) {
+    console.error("Add team error:", err);
+    return false;
+  }
+}
+
+// Update team member
+async function updateTeamMember(id, member) {
+  await waitForFirebase();
+  const { doc, updateDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    member.updatedAt = Date.now();
+    await updateDoc(doc(db, "team", id), member);
+    if(cache.team) {
+      const idx = cache.team.findIndex(x => x.id === id);
+      if(idx > -1) cache.team[idx] = { id, ...member };
+      cache.team.sort((a, b) => (a.order || 999) - (b.order || 999));
+    }
+    return true;
+  } catch(err) {
+    console.error("Update team error:", err);
+    return false;
+  }
+}
+
+// Delete team member
+async function deleteTeamMember(id) {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await deleteDoc(doc(db, "team", id));
+    if(cache.team) {
+      cache.team = cache.team.filter(x => x.id !== id);
+    }
+    return true;
+  } catch(err) {
+    console.error("Delete team error:", err);
+    return false;
+  }
+}

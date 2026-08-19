@@ -52,6 +52,11 @@ function doLogin() {
         if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
       });
     }
+    if(typeof loadTeam === 'function') {
+  loadTeam().then(() => {
+    if(typeof renderTeamTable === 'function') renderTeamTable();
+     });
+    }
     
     toast("Welcome back, Admin! 👋");
   } else {
@@ -97,6 +102,11 @@ function checkAdminAuth() {
         if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
       });
     }
+    if(typeof loadTeam === 'function') {
+  loadTeam().then(() => {
+    if(typeof renderTeamTable === 'function') renderTeamTable();
+      });
+    }
   } else {
     // Not logged in - show login
     if(login) login.style.display = 'flex';
@@ -137,6 +147,7 @@ function goSec(btn) {
     'olymp-adm': 'Manage Olympiads',
     'gal-adm': 'Gallery Manager',
     'news-adm': 'News Updates',
+    'team-adm': 'Team Members',
     'msg-adm': 'Contact Messages',
     'reg-adm': 'Registrations',
     'cert-adm': 'Certificates',
@@ -157,6 +168,8 @@ function goSec(btn) {
       actions.innerHTML = `<button class="add-btn" onclick="openGalleryForm()">+ Add Media</button>`;
     } else if(secId === 'news-adm') {
       actions.innerHTML = `<button class="add-btn" onclick="openNewsForm()">+ Add News</button>`;
+    } else if(secId === 'team-adm') {
+      actions.innerHTML = `<button class="add-btn" onclick="openTeamForm()">+ Add Member</button>`;
     } else if(secId === 'reg-adm') {
       actions.innerHTML = `<button class="add-btn" onclick="downloadRegistrationsCSV()">⬇️ Download CSV</button>`;
     } else if(secId === 'cert-adm') {
@@ -176,6 +189,7 @@ function renderAdminAll() {
   if(typeof renderGalleryTable === 'function') renderGalleryTable();
   if(typeof renderNewsTable === 'function') renderNewsTable();
   if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
+  if(typeof renderTeamTable === 'function') renderTeamTable();
   if(typeof loadHomeEditor === 'function') loadHomeEditor();
 }
 

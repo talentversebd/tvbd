@@ -4,240 +4,209 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Executive Panel — TalentVerse Bangladesh</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<meta name="description" content="Meet the team behind TalentVerse Bangladesh.">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="chatbot.css">
 <style>
-.dept-section { margin-bottom: 48px; }
-.dept-header {
-  display: flex; align-items: center; gap: 14px;
-  padding: 16px 20px; background: white;
-  border: 1px solid var(--border); border-radius: 14px;
-  margin-bottom: 20px; box-shadow: 0 2px 8px rgba(13,27,64,0.06);
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;padding:0 16px;}
+@media(max-width:500px){.team-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}}
+
+.team-card{
+  background:var(--card);border:1px solid var(--bdr);
+  border-radius:16px;overflow:hidden;text-align:center;
+  transition:transform .25s,box-shadow .25s,border-color .25s;
 }
-.dept-icon {
-  width: 52px; height: 52px; border-radius: 12px;
-  background: linear-gradient(135deg, var(--navy), var(--blue));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; flex-shrink: 0;
+.team-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 12px 40px rgba(37,99,235,.2);
+  border-color:var(--bdr2);
 }
-.dept-info h3 { font-size: 20px; font-weight: 800; color: var(--navy); }
-.dept-count {
-  margin-left: auto; background: var(--light-blue); color: var(--blue);
-  padding: 6px 14px; border-radius: 100px; font-size: 13px; font-weight: 700;
-  white-space: nowrap;
+.team-card-top{
+  padding:28px 16px 18px;
+  background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(37,99,235,.05));
+  position:relative;
 }
-.exec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 16px; }
-.exec-card {
-  background: white; border: 1px solid var(--border);
-  border-radius: 16px; overflow: hidden; text-align: center;
-  transition: transform .25s, box-shadow .25s;
+.team-card-top::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,rgba(59,130,246,.15) 0%,transparent 70%);
 }
-.exec-card:hover { transform: translateY(-5px); box-shadow: 0 12px 36px rgba(13,27,64,.1); }
-.exec-top { padding: 24px 16px 16px; background: linear-gradient(135deg, var(--navy), var(--blue)); }
-.exec-avatar {
-  width: 80px; height: 80px; border-radius: 50%;
-  border: 3px solid rgba(255,255,255,.3);
-  margin: 0 auto 10px; object-fit: cover; display: block;
+.team-avatar{
+  width:90px;height:90px;border-radius:50%;
+  border:3px solid var(--bdr2);
+  margin:0 auto 12px;object-fit:cover;display:block;
+  position:relative;z-index:1;
+  box-shadow:0 4px 16px rgba(37,99,235,.3);
 }
-.exec-avatar-ph {
-  width: 80px; height: 80px; border-radius: 50%;
-  background: rgba(255,255,255,.15);
-  border: 3px solid rgba(255,255,255,.3);
-  margin: 0 auto 10px; display: flex;
-  align-items: center; justify-content: center;
-  font-size: 24px; font-weight: 800; color: white;
+.team-avatar-ph{
+  width:90px;height:90px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--blue-dk));
+  border:3px solid var(--bdr2);
+  margin:0 auto 12px;display:flex;
+  align-items:center;justify-content:center;
+  font-size:1.6rem;font-weight:800;color:white;
+  position:relative;z-index:1;
+  box-shadow:0 4px 16px rgba(37,99,235,.3);
 }
-.exec-top h4 { color: white; font-size: 14px; font-weight: 700; margin-bottom: 3px; }
-.exec-top p { color: rgba(255,255,255,.6); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
-.exec-body { padding: 12px 14px; }
-.exec-body .bio { font-size: 12px; color: var(--gray); line-height: 1.5; }
-.dept-badge {
-  display: inline-block; background: var(--light-blue); color: var(--blue);
-  font-size: 10px; font-weight: 700; padding: 2px 10px;
-  border-radius: 100px; margin-bottom: 6px;
+.team-card-top h4{
+  color:var(--txt);font-size:.95rem;font-weight:700;
+  margin-bottom:4px;position:relative;z-index:1;
 }
-.dept-icons { Leadership:'⭐', Administration:'📋', IT:'💻', Creative:'🎨', Cultural:'🎭', Marketing:'📣', Content:'✍️', Other:'👤' }
+.team-card-top .role{
+  color:var(--lblue);font-size:.7rem;
+  letter-spacing:1.5px;text-transform:uppercase;
+  font-weight:700;position:relative;z-index:1;
+}
+.team-card-body{padding:14px 16px 18px;}
+.team-bio{
+  font-size:.8rem;color:var(--muted);line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:3;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+.team-empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.team-empty .icon{font-size:4rem;margin-bottom:16px;}
+.team-empty h3{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;color:var(--txt);}
+.team-empty p{font-size:.95rem;line-height:1.7;max-width:400px;margin:0 auto;}
 </style>
 </head>
 <body>
 
-<style>
-.wa-btn{position:fixed;bottom:90px;right:24px;z-index:997;width:52px;height:52px;border-radius:50%;background:#25D366;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,.4);transition:transform .2s;text-decoration:none;font-size:26px;}
-.wa-btn:hover{transform:scale(1.1);}
-.ann-banner{background:linear-gradient(135deg,#0D1B40,#1A6BCC);color:white;padding:10px 20px;text-align:center;font-size:13px;font-weight:600;position:relative;display:none;}
-.ann-banner.show{display:block;}
-.ann-close{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:white;font-size:18px;cursor:pointer;opacity:.7;}
-</style>
+<!-- HEADER -->
+<header id="site-header">
+  <a class="h-logo" href="index.html">
+    <img class="h-logo-img" src="logo.jpg" alt="TalentVerse Logo">
+    <div class="h-logo-text">
+      <div class="name">Talent<span>Verse</span></div>
+      <div class="sub">Bangladesh</div>
+    </div>
+  </a>
+  <nav class="h-nav" id="hnav">
+    <a href="index.html">Home</a>
+    <a href="olympiads.html">Olympiads</a>
+    <a href="team.html" class="active">Team</a>
+    <a href="news.html">News</a>
+    <a href="register.html">Register</a>
+    <a href="verify.html">Verify</a>
+    <a href="contact.html">Contact</a>
+    <button class="h-admin-btn" onclick="window.location.href='admin.html'">⚙ Admin</button>
+  </nav>
+  <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
 
-<a href="https://wa.me/8801634428536" target="_blank" class="wa-btn" title="WhatsApp">💬</a>
-<div class="ann-banner" id="annBanner"><span id="annText">—</span><button class="ann-close" onclick="this.parentElement.style.display='none';sessionStorage.setItem('annClosed','1')">✕</button></div>
-
-<nav id="navbar">
-  <a href="index.html" class="nav-logo"><img src="logo.png" alt="TalentVerse Bangladesh"><span>Talent<b>Verse</b></span></a>
-  <ul class="nav-links">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="about.html">About</a></li>
-    <li><a href="events.html">Events</a></li>
-    <li><a href="team.html" class="active">Executive Panel</a></li>
-    <li><a href="contact.html">Contact</a></li>
-    <li><a href="verify.html">🎖️ Verify</a></li>
-    <li><a href="register.html">📝 Register</a></li>
-    <li><a href="join.html" class="nav-cta">Join Our Team</a></li>
-  </ul>
-  <button class="hamburger" onclick="toggleMenu()">☰</button>
-</nav>
-<div class="mobile-menu" id="mobileMenu">
-  <a href="index.html">🏠 Home</a>
-  <a href="about.html">ℹ️ About</a>
-  <a href="events.html">🏆 Events</a>
-  <a href="team.html">👥 Executive Panel</a>
-  <a href="contact.html">📬 Contact</a>
-  <a href="verify.html">🎖️ Certificate Verify</a>
-  <a href="register.html">📝 Event Register</a>
-  <a href="join.html">🤝 Join Our Team</a>
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <span class="eyebrow">Our Team</span>
+  <h1>Executive <span>Panel</span></h1>
+  <p>Meet the leaders and members of TalentVerse Bangladesh.</p>
 </div>
 
-<div class="page-hero">
-  <h1>Executive Panel</h1>
-  <p>TalentVerse Bangladesh এর নেতৃত্বে যারা আছেন।</p>
-</div>
-
-<section>
-  <div class="container">
-    <div id="team-container">
-      <p style="color:var(--gray);text-align:center;">লোড হচ্ছে...</p>
-    </div>
-    <div style="text-align:center;margin-top:40px;">
-      <a href="join.html" class="btn-blue" style="font-size:15px;padding:14px 28px;">🤝 Join Our Team →</a>
-    </div>
-  </div>
+<!-- TEAM SECTION -->
+<section class="section">
+  <div id="team-page-grid" class="team-grid"></div>
 </section>
 
-<section class="join-cta">
-  <div class="container" style="text-align:center;">
-    <h2 class="section-title" style="color:white;">আপনিও হতে পারেন আমাদের দলের অংশ</h2>
-    <p style="color:rgba(255,255,255,.75);font-size:16px;margin:16px auto 32px;max-width:480px;">TalentVerse Bangladesh এ যোগ দিন এবং পরিবর্তনের অংশ হোন।</p>
-    <a href="join.html" class="btn-primary">Apply Now →</a>
-  </div>
-</section>
-
+<!-- FOOTER -->
 <footer>
-  <div class="footer-inner">
-    <div class="footer-brand"><img src="logo.png" alt="TalentVerse Bangladesh"><div><h4>TalentVerse Bangladesh</h4><p>Where Talent Meets Opportunity</p></div></div>
-    <div class="footer-links"><h5>Quick Links</h5><a href="index.html">Home</a><a href="about.html">About</a><a href="events.html">Events</a><a href="team.html">Executive Panel</a><a href="contact.html">Contact</a><a href="verify.html">Certificate Verify</a><a href="register.html">Register</a><a href="join.html">Join Our Team</a></div>
-    <div class="footer-contact"><h5>Contact</h5><p>📍 Bangladesh</p><p>✉️ talentversebd5@gmail.com</p>
-      <div class="social-links">
-        <a href="https://www.facebook.com/share/18HcL7fN3C/" target="_blank">📘 Facebook</a>
-        <a href="https://www.instagram.com/talentverse.bangladesh07" target="_blank">📸 Instagram</a>
-        <a href="https://wa.me/8801634428536" target="_blank">💬 WhatsApp</a>
-      </div>
+  <div class="f-grid">
+    <div class="f-brand">
+      <a class="h-logo" href="index.html" style="text-decoration:none;">
+        <img class="h-logo-img" src="logo.jpg" alt="Logo">
+        <div class="h-logo-text">
+          <div class="name">Talent<span>Verse</span></div>
+          <div class="sub">Bangladesh</div>
+        </div>
+      </a>
+      <p id="f-desc">TalentVerse Bangladesh is the country's most dedicated platform for olympiad information.</p>
+    </div>
+    <div class="f-col">
+      <h4>Quick Links</h4>
+      <a href="index.html">Home</a>
+      <a href="olympiads.html">Olympiads</a>
+      <a href="team.html">Team</a>
+      <a href="news.html">News</a>
+      <a href="register.html">Register</a>
+      <a href="verify.html">Verify</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="f-col">
+      <h4>Contact</h4>
+      <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
+      <a id="f-phone" href="#">+880 1634-428536</a>
+      <a id="f-addr" href="#">Dhaka, Bangladesh</a>
     </div>
   </div>
-  <div class="footer-bottom"><p>© 2026 TalentVerse Bangladesh. All Rights Reserved.</p></div>
+  <div class="f-bottom">
+    <p>© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Numexis.</p>
+  </div>
 </footer>
 
-<script src="script.js"></script>
-<script src="chatbot.js"></script>
-<button class="chat-btn" onclick="toggleChat()" title="TVBot">🤖<span class="chat-badge" id="chat-badge" style="display:none">1</span></button>
-<div class="chat-window" id="chatWindow">
-  <div class="chat-header"><img src="logo.png" alt="TVBot" class="chat-header-av"><div class="chat-header-info"><h4>TVBot 🤖</h4><p>Online · TalentVerse Bangladesh</p></div><button class="chat-close" onclick="toggleChat()">✕</button></div>
-  <div class="chat-messages" id="chatMessages">
-    <div class="msg bot"><img src="logo.png" alt="" class="msg-av"><div><div class="msg-bubble">আস্সালামু আলাইকুম! 👋 আমি TVBot। কীভাবে সাহায্য করতে পারি?</div></div></div>
-  </div>
-  <div class="chat-input"><textarea id="chatInput" placeholder="বার্তা লিখুন..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea><button class="chat-send" id="sendBtn" onclick="handleSend()">➤</button></div>
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-const app = initializeApp({ apiKey:"AIzaSyA91JckJ_FYGiNZxSeAlTjddREl5ok3B3c", authDomain:"talentverse-bd-b072c.firebaseapp.com", databaseURL:"https://talentverse-bd-b072c-default-rtdb.firebaseio.com", projectId:"talentverse-bd-b072c", storageBucket:"talentverse-bd-b072c.firebasestorage.app", messagingSenderId:"304686688553", appId:"1:304686688553:web:0a887b8fc517e24d00af38" });
-const db = getDatabase(app);
-
-const deptIcons = { Leadership:'⭐', Administration:'📋', IT:'💻', Creative:'🎨', Cultural:'🎭', Marketing:'📣', Content:'✍️', Other:'👤' };
-const deptOrder = ['Leadership','Administration','IT','Creative','Cultural','Marketing','Content','Other'];
-
-onValue(ref(db,'members'), snap => {
-  const container = document.getElementById('team-container');
-
-  const founderDefaults = {
-    founder1:{ name:'Abdur Rahman', role:'CEO & Founder', initials:'AR', dept:'Leadership', bio:'TalentVerse Bangladesh এর প্রতিষ্ঠাতা ও প্রধান নির্বাহী কর্মকর্তা।', photo:'' },
-    founder2:{ name:'Abdullah', role:'COO', initials:'AB', dept:'Leadership', bio:'TalentVerse Bangladesh এর প্রধান পরিচালন কর্মকর্তা।', photo:'' }
-  };
-
-  const raw = snap.exists() ? snap.val() : {};
-
-  // Founders always show first — merged with any admin edits saved in Firebase
-  const founders = [
-    { ...founderDefaults.founder1, ...(raw.founder1||{}) },
-    { ...founderDefaults.founder2, ...(raw.founder2||{}) }
-  ];
-
-  const otherMembers = Object.keys(raw)
-    .filter(k => k !== 'founder1' && k !== 'founder2')
-    .map(k => raw[k]);
-
-  let allMembers = [...founders, ...otherMembers];
-
-  // Group by department
-  const grouped = {};
-  allMembers.forEach(m => {
-    const dept = m.dept || 'Other';
-    if(!grouped[dept]) grouped[dept] = [];
-    grouped[dept].push(m);
-  });
-
-  // Sort departments
-  const sortedDepts = Object.keys(grouped).sort((a,b) => {
-    const ai = deptOrder.indexOf(a); const bi = deptOrder.indexOf(b);
-    return (ai===-1?99:ai) - (bi===-1?99:bi);
-  });
-
-  container.innerHTML = sortedDepts.map(dept => {
-    const members = grouped[dept];
-    const icon = deptIcons[dept] || '👤';
-    const cards = members.map(m => {
-      const av = m.photo
-        ? `<img src="${m.photo}" class="exec-avatar">`
-        : `<div class="exec-avatar-ph">${m.initials||m.name.substring(0,2).toUpperCase()}</div>`;
-      return `<div class="exec-card">
-        <div class="exec-top">${av}<h4>${m.name}</h4><p>${m.role}</p></div>
-        <div class="exec-body"><span class="dept-badge">${dept}</span>${m.bio?`<p class="bio">${m.bio}</p>`:''}</div>
-      </div>`;
-    }).join('');
-    return `<div class="dept-section">
-      <div class="dept-header">
-        <div class="dept-icon">${icon}</div>
-        <div class="dept-info"><h3>${dept}</h3></div>
-        <span class="dept-count">${members.length} Members</span>
-      </div>
-      <div class="exec-grid">${cards}</div>
-    </div>`;
-  }).join('');
-});
-
-// Announcement
-onValue(ref(db,'announcement'), snap => {
-  if(!snap.exists()) return;
-  const a = snap.val();
-  if(a.active && !sessionStorage.getItem('annClosed')) {
-    document.getElementById('annText').textContent = a.text||'';
-    document.getElementById('annBanner').classList.add('show');
-    document.getElementById('annBanner').style.display='block';
-  }
-});
-</script>
+<!-- Firebase -->
+<script type="module" src="firebase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="data.js"></script>
+<script src="render.js"></script>
+<script src="main.js"></script>
 
 <script>
-let chatOpen=false;
-function toggleChat(){chatOpen=!chatOpen;document.getElementById("chatWindow").classList.toggle("open",chatOpen);document.getElementById("chat-badge").style.display="none";}
-function autoResize(el){el.style.height="auto";el.style.height=Math.min(el.scrollHeight,80)+"px";}
-function handleKey(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend();}}
-function addMsg(text,isUser){const msgs=document.getElementById("chatMessages");const div=document.createElement("div");div.className="msg "+(isUser?"user":"bot");if(isUser){div.innerHTML=`<div class="msg-av-u">আ</div><div class="msg-bubble">${text}</div>`;}else{div.innerHTML=`<img src="logo.png" alt="" class="msg-av"><div class="msg-bubble">${text.replace(/\n/g,"<br>")}</div>`;}msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;}
-function showTyping(){const msgs=document.getElementById("chatMessages");const div=document.createElement("div");div.className="msg bot";div.id="typing";div.innerHTML=`<img src="logo.png" alt="" class="msg-av"><div class="typing"><span></span><span></span><span></span></div>`;msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;}
-function removeTyping(){const t=document.getElementById("typing");if(t)t.remove();}
-async function handleSend(){const input=document.getElementById("chatInput");const btn=document.getElementById("sendBtn");const text=input.value.trim();if(!text)return;input.value="";input.style.height="auto";addMsg(text,true);btn.disabled=true;showTyping();try{const reply=await window.TVBot.getReply(text);removeTyping();addMsg(reply,false);}catch(e){removeTyping();addMsg("দুঃখিত, WhatsApp: +8801634428536",false);}btn.disabled=false;}
-setTimeout(()=>{if(!chatOpen)document.getElementById("chat-badge").style.display="flex";},3000);
+// Load and render team
+document.addEventListener('DOMContentLoaded', () => {
+  const check = setInterval(async () => {
+    if(typeof loadTeam === 'function' && window.firebaseDB) {
+      clearInterval(check);
+      try {
+        await loadTeam();
+        renderTeamPage();
+      } catch(err) {
+        console.error("Team load error:", err);
+      }
+    }
+  }, 200);
+
+  // Fallback
+  setTimeout(() => {
+    const grid = document.getElementById('team-page-grid');
+    if(grid && grid.innerHTML === '') {
+      grid.innerHTML = `<div class="team-empty"><div class="icon">👥</div><h3>Team Loading...</h3><p>Please wait or refresh the page.</p></div>`;
+    }
+  }, 8000);
+});
+
+function renderTeamPage() {
+  const grid = document.getElementById('team-page-grid');
+  if(!grid) return;
+  
+  const team = getTeam();
+  
+  if(team.length === 0) {
+    grid.innerHTML = `<div class="team-empty" style="grid-column:1/-1;"><div class="icon">👥</div><h3>Coming Soon</h3><p>Our team information will be available soon. Stay tuned!</p></div>`;
+    return;
+  }
+  
+  grid.innerHTML = '';
+  team.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'team-card';
+    card.innerHTML = `
+      <div class="team-card-top">
+        ${m.photo 
+          ? `<img src="${m.photo}" class="team-avatar" alt="${m.name}">` 
+          : `<div class="team-avatar-ph">${(m.name || 'NA').substring(0,2).toUpperCase()}</div>`}
+        <h4>${m.name}</h4>
+        <p class="role">${m.role}</p>
+      </div>
+      <div class="team-card-body">
+        ${m.description ? `<p class="team-bio">${m.description}</p>` : ''}
+      </div>`;
+    grid.appendChild(card);
+  });
+}
 </script>
 </body>
 </html>

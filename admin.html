@@ -259,6 +259,7 @@ select.fi{cursor:pointer}
           <th>Photo</th>
           <th>Name</th>
           <th>Role</th>
+          <th>Department</th>
           <th>Description</th>
           <th>Actions</th>
         </tr>
@@ -637,6 +638,24 @@ select.fi{cursor:pointer}
     <div class="fg">
       <label>💼 Role / Position *</label>
       <input class="fi" id="tf-role" placeholder="e.g. President, CEO, Vice President">
+    </div>
+    
+    <div class="fg">
+      <label>🏷️ Department</label>
+      <input class="fi" id="tf-dept" list="tf-dept-list" placeholder="e.g. Leadership, Content, Graphics">
+      <datalist id="tf-dept-list">
+        <option value="Leadership">
+        <option value="Administration">
+        <option value="IT">
+        <option value="Content">
+        <option value="Graphics">
+        <option value="Marketing">
+        <option value="Cultural">
+        <option value="Other">
+      </datalist>
+      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
+        💡 Members with the same department will be grouped together on the Team page.
+      </p>
     </div>
     
     <div class="fg">

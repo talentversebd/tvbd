@@ -8,6 +8,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
+.dept-group{margin-bottom:44px;}
+.dept-group:last-child{margin-bottom:0;}
+.dept-header{
+  display:flex;align-items:center;gap:16px;
+  background:var(--card);border:1px solid var(--bdr);
+  border-radius:16px;padding:18px 22px;margin-bottom:22px;
+}
+.dept-icon{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue),var(--blue-dk));
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+  box-shadow:0 4px 14px rgba(37,99,235,.3);
+}
+.dept-name{font-family:Montserrat;font-weight:800;font-size:1.15rem;color:var(--txt);flex:1;}
+.dept-count{
+  background:rgba(37,99,235,.12);color:var(--lblue);
+  font-size:.78rem;font-weight:700;padding:6px 14px;border-radius:50px;
+  white-space:nowrap;
+}
+
 .team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;padding:0 16px;}
 @media(max-width:500px){.team-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}}
 
@@ -57,6 +77,11 @@
   font-weight:700;position:relative;z-index:1;
 }
 .team-card-body{padding:14px 16px 18px;}
+.dept-tag{
+  display:inline-block;background:rgba(37,99,235,.12);color:var(--lblue);
+  font-size:.7rem;font-weight:700;padding:3px 12px;border-radius:50px;
+  margin-bottom:10px;
+}
 .team-bio{
   font-size:.8rem;color:var(--muted);line-height:1.6;
   display:-webkit-box;-webkit-line-clamp:3;
@@ -103,7 +128,7 @@
 
 <!-- TEAM SECTION -->
 <section class="section">
-  <div id="team-page-grid" class="team-grid"></div>
+  <div id="team-page-grid"></div>
 </section>
 
 <!-- FOOTER -->
@@ -178,6 +203,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 8000);
 });
 
+const DEPT_ICONS = {
+  'leadership': '⭐', 'administration': '🗂️', 'it': '💻', 'content': '✍️',
+  'graphics': '🎨', 'marketing': '📣', 'cultural': '🎭', 'other': '👤'
+};
+function deptIcon(dept) {
+  return DEPT_ICONS[(dept || 'other').trim().toLowerCase()] || '👤';
+}
+
 function renderTeamPage() {
   const grid = document.getElementById('team-page-grid');
   if(!grid) return;
@@ -185,27 +218,48 @@ function renderTeamPage() {
   const team = getTeam();
   
   if(team.length === 0) {
-    grid.innerHTML = `<div class="team-empty" style="grid-column:1/-1;"><div class="icon">👥</div><h3>Coming Soon</h3><p>Our team information will be available soon. Stay tuned!</p></div>`;
+    grid.innerHTML = `<div class="team-empty"><div class="icon">👥</div><h3>Coming Soon</h3><p>Our team information will be available soon. Stay tuned!</p></div>`;
     return;
   }
   
-  grid.innerHTML = '';
+  // Group members by department (preserving overall order within each group)
+  const groups = {};
+  const groupOrder = {};
   team.forEach(m => {
-    const card = document.createElement('div');
-    card.className = 'team-card';
-    card.innerHTML = `
-      <div class="team-card-top">
-        ${m.photo 
-          ? `<img src="${m.photo}" class="team-avatar" alt="${m.name}">` 
-          : `<div class="team-avatar-ph">${(m.name || 'NA').substring(0,2).toUpperCase()}</div>`}
-        <h4>${m.name}</h4>
-        <p class="role">${m.role}</p>
-      </div>
-      <div class="team-card-body">
-        ${m.description ? `<p class="team-bio">${m.description}</p>` : ''}
-      </div>`;
-    grid.appendChild(card);
+    const dept = (m.department || 'Other').trim() || 'Other';
+    if(!groups[dept]) { groups[dept] = []; groupOrder[dept] = m.order || 999; }
+    groups[dept].push(m);
+    groupOrder[dept] = Math.min(groupOrder[dept], m.order || 999);
   });
+  
+  const deptNames = Object.keys(groups).sort((a, b) => groupOrder[a] - groupOrder[b]);
+  
+  grid.innerHTML = deptNames.map(dept => {
+    const members = groups[dept];
+    const cards = members.map(m => `
+      <div class="team-card">
+        <div class="team-card-top">
+          ${m.photo 
+            ? `<img src="${m.photo}" class="team-avatar" alt="${m.name}">` 
+            : `<div class="team-avatar-ph">${(m.name || 'NA').substring(0,2).toUpperCase()}</div>`}
+          <h4>${m.name}</h4>
+          <p class="role">${m.role}</p>
+        </div>
+        <div class="team-card-body">
+          <span class="dept-tag">${dept}</span>
+          ${m.description ? `<p class="team-bio">${m.description}</p>` : ''}
+        </div>
+      </div>`).join('');
+    return `
+      <div class="dept-group">
+        <div class="dept-header">
+          <div class="dept-icon">${deptIcon(dept)}</div>
+          <div class="dept-name">${dept}</div>
+          <div class="dept-count">${members.length} Member${members.length > 1 ? 's' : ''}</div>
+        </div>
+        <div class="team-grid">${cards}</div>
+      </div>`;
+  }).join('');
 }
 </script>
 </body>

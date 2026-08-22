@@ -626,7 +626,7 @@ function renderTeamTable() {
   
   const team = getTeam();
   if(team.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No team members yet. Click "+ Add Member" to start.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No team members yet. Click "+ Add Member" to start.</td></tr>`;
     return;
   }
   
@@ -642,6 +642,7 @@ function renderTeamTable() {
         </td>
         <td>${m.name}</td>
         <td><span class="bs bs-active">${m.role}</span></td>
+        <td style="color:var(--muted);font-size:.8rem;">${m.department || '—'}</td>
         <td style="color:var(--muted);font-size:.8rem;">${(m.description || '—').substring(0, 40)}${m.description && m.description.length > 40 ? '...' : ''}</td>
         <td class="tbl-acts">
           <button class="e-btn" onclick="editTeamMember('${m.id}')">Edit</button>
@@ -657,6 +658,7 @@ function openTeamForm() {
   document.getElementById('tf-eid').value = '';
   document.getElementById('tf-name').value = '';
   document.getElementById('tf-role').value = '';
+  document.getElementById('tf-dept').value = '';
   document.getElementById('tf-desc').value = '';
   document.getElementById('tf-order').value = '';
   document.getElementById('tf-photo').value = '';
@@ -672,6 +674,7 @@ function editTeamMember(id) {
   document.getElementById('tf-eid').value = id;
   document.getElementById('tf-name').value = m.name || '';
   document.getElementById('tf-role').value = m.role || '';
+  document.getElementById('tf-dept').value = m.department || '';
   document.getElementById('tf-desc').value = m.description || '';
   document.getElementById('tf-order').value = m.order || '';
   document.getElementById('tf-photo').value = m.photo || '';
@@ -683,6 +686,7 @@ function editTeamMember(id) {
 async function saveTeamMember() {
   const name = document.getElementById('tf-name').value.trim();
   const role = document.getElementById('tf-role').value.trim();
+  const department = document.getElementById('tf-dept').value.trim() || 'Other';
   const description = document.getElementById('tf-desc').value.trim();
   const order = parseInt(document.getElementById('tf-order').value) || 999;
   const photo = document.getElementById('tf-photo').value.trim();
@@ -690,7 +694,7 @@ async function saveTeamMember() {
   if(!name) return toast("Name is required!", true);
   if(!role) return toast("Role is required!", true);
   
-  const member = { name, role, description, order, photo };
+  const member = { name, role, department, description, order, photo };
   const eid = document.getElementById('tf-eid').value;
   
   const btn = document.querySelector('#tfm .fs-btn');

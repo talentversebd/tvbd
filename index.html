@@ -14,7 +14,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TalentVerse Bangladesh</title>
 <meta name="description" content="Bangladesh's Premier Olympiad Hub — Connecting ambitious students with national & international olympiads.">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -29,14 +29,17 @@
     </div>
   </a>
   <nav class="h-nav" id="hnav">
-    <a href="index.html" class="active">Home</a>
-    <a href="olympiads.html">Olympiads</a>
-    <a href="team.html">Team</a>
-    <a href="news.html">News</a>
-    <a href="register.html">Register</a>
-    <a href="verify.html">Verify</a>
-    <a href="contact.html">Contact</a>
-    <button class="h-admin-btn" onclick="window.location.href='admin.html'">⚙ Admin</button>
+    <a href="index.html" class="active" data-i18n="nav_home">Home</a>
+    <a href="olympiads.html" data-i18n="nav_olympiads">Olympiads</a>
+    <a href="team.html" data-i18n="nav_team">Team</a>
+    <a href="news.html" data-i18n="nav_news">News</a>
+    <a href="register.html" data-i18n="nav_register">Register</a>
+    <a href="verify.html" data-i18n="nav_verify">Verify</a>
+    <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    <button class="h-admin-btn" onclick="window.location.href='admin.html'" data-i18n="nav_admin">⚙ Admin</button>
+    <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
+      🌐 <span class="lang-toggle-label">বাং</span>
+    </button>
   </nav>
   <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -50,18 +53,23 @@
   <div class="hero-c">
     <div class="hero-badge">
       <span class="hero-dot"></span>
-      <span id="hb-text">Bangladesh's Premier Olympiad Hub</span>
+      <span id="hb-text" data-i18n="hero_badge">Bangladesh's Premier Olympiad Hub</span>
     </div>
-    <h1 class="hero-title" id="ht-title">Where <span>Talent</span> Meets<br>Opportunity</h1>
-    <p class="hero-sub" id="ht-sub">Connecting ambitious students with national & international olympiads, competitions, and academic excellence programs across Bangladesh.</p>
+    <h1 class="hero-title" id="ht-title">
+      <span data-i18n="hero_title_1">Where</span>
+      <span class="hl" data-i18n="hero_title_2">Talent</span>
+      <span data-i18n="hero_title_3">Meets</span><br>
+      <span data-i18n="hero_title_4">Opportunity</span>
+    </h1>
+    <p class="hero-sub" id="ht-sub" data-i18n="hero_sub">Connecting ambitious students with national & international olympiads, competitions, and academic excellence programs across Bangladesh.</p>
     <div class="hero-btns">
-      <a href="olympiads.html" class="btn-pri" id="hb1">Explore Olympiads</a>
-      <a href="#about" class="btn-out" id="hb2">Learn More</a>
+      <a href="olympiads.html" class="btn-pri" id="hb1" data-i18n="hero_btn1">Explore Olympiads</a>
+      <a href="#about" class="btn-out" id="hb2" data-i18n="hero_btn2">Learn More</a>
     </div>
     <div class="hero-stats">
-      <div class="h-stat"><span class="num" id="hs1n">50+</span><span class="lbl" id="hs1l">Olympiads Listed</span></div>
-      <div class="h-stat"><span class="num" id="hs2n">10K+</span><span class="lbl" id="hs2l">Students Reached</span></div>
-      <div class="h-stat"><span class="num" id="hs3n">64</span><span class="lbl" id="hs3l">Districts Covered</span></div>
+      <div class="h-stat"><span class="num" id="hs1n">50+</span><span class="lbl" id="hs1l" data-i18n="hero_stat1_lbl">Olympiads Listed</span></div>
+      <div class="h-stat"><span class="num" id="hs2n">10K+</span><span class="lbl" id="hs2l" data-i18n="hero_stat2_lbl">Students Reached</span></div>
+      <div class="h-stat"><span class="num" id="hs3n">64</span><span class="lbl" id="hs3l" data-i18n="hero_stat3_lbl">Districts Covered</span></div>
     </div>
   </div>
 </section>
@@ -69,14 +77,14 @@
 <!-- FEATURED OLYMPIADS -->
 <section class="section" id="olympiads">
   <div class="sec-hd">
-    <span class="eyebrow">Competitions & Events</span>
-    <h2 class="sec-title">Featured <span>Olympiads</span></h2>
+    <span class="eyebrow" data-i18n="olymp_eyebrow">Competitions & Events</span>
+    <h2 class="sec-title"><span data-i18n="olymp_title_1">Featured</span> <span class="hl" data-i18n="olymp_title_2">Olympiads</span></h2>
     <div class="divider"></div>
-    <p class="sec-desc" id="olymp-sec-desc">Discover upcoming olympiads and competitions designed to elevate your potential.</p>
+    <p class="sec-desc" id="olymp-sec-desc" data-i18n="olymp_desc">Discover upcoming olympiads and competitions designed to elevate your potential.</p>
   </div>
   <div class="olympiad-grid" id="olymp-grid"></div>
   <div style="text-align:center;margin-top:36px;">
-    <a href="olympiads.html" class="btn-out">View All Olympiads →</a>
+    <a href="olympiads.html" class="btn-out" data-i18n="olymp_viewall">View All Olympiads →</a>
   </div>
 </section>
 
@@ -84,22 +92,22 @@
 <section class="section" id="about">
   <div class="about-grid">
     <div class="at">
-      <span class="eyebrow">Who We Are</span>
-      <h2 class="sec-title">Building <span>Champions</span><br>Across Bangladesh</h2>
+      <span class="eyebrow" data-i18n="about_eyebrow">Who We Are</span>
+      <h2 class="sec-title"><span data-i18n="about_title_1">Building</span> <span class="hl" data-i18n="about_title_2">Champions</span><br><span data-i18n="about_title_3">Across Bangladesh</span></h2>
       <div class="divider"></div>
-      <p>TalentVerse Bangladesh is the country's most dedicated platform for olympiad information, resources, and community — bridging the gap between aspiring students and world-class competition opportunities.</p>
-      <p>We curate, verify, and publish information on national and international olympiads so every talented student can discover competitions that match their strengths.</p>
+      <p data-i18n="about_p1">TalentVerse Bangladesh is the country's most dedicated platform for olympiad information, resources, and community — bridging the gap between aspiring students and world-class competition opportunities.</p>
+      <p data-i18n="about_p2">We curate, verify, and publish information on national and international olympiads so every talented student can discover competitions that match their strengths.</p>
       <div class="about-feats">
-        <div class="af"><div class="af-icon">🎯</div><div><h4>Verified Info</h4><p>All details rigorously checked</p></div></div>
-        <div class="af"><div class="af-icon">🗓️</div><div><h4>Timely Updates</h4><p>Never miss a deadline</p></div></div>
-        <div class="af"><div class="af-icon">🇧🇩</div><div><h4>All Bangladesh</h4><p>Covering all 64 districts</p></div></div>
-        <div class="af"><div class="af-icon">🌐</div><div><h4>International</h4><p>Global competition pathways</p></div></div>
+        <div class="af"><div class="af-icon">🎯</div><div><h4 data-i18n="about_f1_t">Verified Info</h4><p data-i18n="about_f1_d">All details rigorously checked</p></div></div>
+        <div class="af"><div class="af-icon">🗓️</div><div><h4 data-i18n="about_f2_t">Timely Updates</h4><p data-i18n="about_f2_d">Never miss a deadline</p></div></div>
+        <div class="af"><div class="af-icon">🇧🇩</div><div><h4 data-i18n="about_f3_t">All Bangladesh</h4><p data-i18n="about_f3_d">Covering all 64 districts</p></div></div>
+        <div class="af"><div class="af-icon">🌐</div><div><h4 data-i18n="about_f4_t">International</h4><p data-i18n="about_f4_d">Global competition pathways</p></div></div>
       </div>
     </div>
     <div class="about-vis">
       <img class="av-logo" src="logo.jpg" alt="Logo">
       <div class="av-name">Talent<span>Verse</span> Bangladesh</div>
-      <div class="av-quote" id="av-quote">"Every child in Bangladesh deserves to know about the opportunity that awaits their talent."</div>
+      <div class="av-quote" id="av-quote" data-i18n="about_quote">"Every child in Bangladesh deserves to know about the opportunity that awaits their talent."</div>
     </div>
   </div>
 </section>
@@ -107,27 +115,27 @@
 <!-- LATEST NEWS -->
 <section class="section" id="news" style="background:var(--card2);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);">
   <div class="sec-hd">
-    <span class="eyebrow">Updates</span>
-    <h2 class="sec-title">Latest <span>News</span></h2>
+    <span class="eyebrow" data-i18n="news_eyebrow">Updates</span>
+    <h2 class="sec-title"><span data-i18n="news_title_1">Latest</span> <span class="hl" data-i18n="news_title_2">News</span></h2>
     <div class="divider"></div>
   </div>
   <div class="news-grid" id="news-grid"></div>
   <div style="text-align:center;margin-top:36px;">
-    <a href="news.html" class="btn-out">View All News →</a>
+    <a href="news.html" class="btn-out" data-i18n="news_viewall">View All News →</a>
   </div>
 </section>
 
 <!-- TEAM PREVIEW -->
 <section class="section" id="team-preview">
   <div class="sec-hd">
-    <span class="eyebrow">Our Team</span>
-    <h2 class="sec-title">Executive <span>Panel</span></h2>
+    <span class="eyebrow" data-i18n="team_eyebrow">Our Team</span>
+    <h2 class="sec-title"><span data-i18n="team_title_1">Executive</span> <span class="hl" data-i18n="team_title_2">Panel</span></h2>
     <div class="divider"></div>
-    <p class="sec-desc">Meet the leaders driving TalentVerse Bangladesh forward.</p>
+    <p class="sec-desc" data-i18n="team_desc">Meet the leaders driving TalentVerse Bangladesh forward.</p>
   </div>
   <div id="team-home-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;max-width:900px;margin:0 auto;padding:0 16px;"></div>
   <div style="text-align:center;margin-top:36px;">
-    <a href="team.html" class="btn-out">See All Members →</a>
+    <a href="team.html" class="btn-out" data-i18n="team_viewall">See All Members →</a>
   </div>
 </section>
   
@@ -142,27 +150,27 @@
           <div class="sub">Bangladesh</div>
         </div>
       </a>
-      <p id="f-desc">TalentVerse Bangladesh is the country's most dedicated platform for olympiad information, resources, and community.</p>
+      <p id="f-desc" data-i18n="f_desc">TalentVerse Bangladesh is the country's most dedicated platform for olympiad information, resources, and community.</p>
     </div>
     <div class="f-col">
-      <h4>Quick Links</h4>
-      <a href="index.html">Home</a>
-      <a href="olympiads.html">Olympiads</a>
-      <a href="team.html">Team</a>
-      <a href="news.html">News</a>
-      <a href="register.html">Register</a>
-      <a href="verify.html">Verify Certificate</a>
-      <a href="contact.html">Contact</a>
+      <h4 data-i18n="f_quicklinks">Quick Links</h4>
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="olympiads.html" data-i18n="nav_olympiads">Olympiads</a>
+      <a href="team.html" data-i18n="nav_team">Team</a>
+      <a href="news.html" data-i18n="nav_news">News</a>
+      <a href="register.html" data-i18n="nav_register">Register</a>
+      <a href="verify.html" data-i18n="nav_verify">Verify Certificate</a>
+      <a href="contact.html" data-i18n="nav_contact">Contact</a>
     </div>
     <div class="f-col">
-      <h4>Contact</h4>
+      <h4 data-i18n="f_contact">Contact</h4>
       <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
       <a id="f-phone" href="#">+880 1634-428536</a>
       <a id="f-addr" href="#">Dhaka, Bangladesh</a>
     </div>
   </div>
   <div class="f-bottom">
-    <p>© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Numexis.</p>
+    <p data-i18n="f_bottom">© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Numexis.</p>
   </div>
 </footer>
 
@@ -200,6 +208,7 @@
 <!-- Site Scripts -->
 <script src="data.js"></script>
 <script src="render.js"></script>
+<script src="lang.js"></script>
 <script src="main.js"></script>
 <!-- ═══════════════════════════════════ -->
 <!-- 🔔 NOTICE BAR (Top) -->
@@ -223,19 +232,19 @@
     <div class="popup-countdown" id="popup-countdown">
       <div class="popup-count-item">
         <div class="popup-count-num" id="pc-days">00</div>
-        <div class="popup-count-label">Days</div>
+        <div class="popup-count-label" data-i18n="days">Days</div>
       </div>
       <div class="popup-count-item">
         <div class="popup-count-num" id="pc-hours">00</div>
-        <div class="popup-count-label">Hours</div>
+        <div class="popup-count-label" data-i18n="hours">Hours</div>
       </div>
       <div class="popup-count-item">
         <div class="popup-count-num" id="pc-mins">00</div>
-        <div class="popup-count-label">Mins</div>
+        <div class="popup-count-label" data-i18n="mins">Mins</div>
       </div>
       <div class="popup-count-item">
         <div class="popup-count-num" id="pc-secs">00</div>
-        <div class="popup-count-label">Secs</div>
+        <div class="popup-count-label" data-i18n="secs">Secs</div>
       </div>
     </div>
     
@@ -250,7 +259,7 @@
     
     <label class="popup-dontshow">
       <input type="checkbox" id="popup-dontshow">
-      Don't show again today
+      <span data-i18n="popup_dontshow">Don't show again today</span>
     </label>
   </div>
 </div>
@@ -279,9 +288,10 @@ function renderTeamHome() {
   const preview = team.slice(0, 6); // First 6 members only
   
   if(preview.length === 0) {
+    const dict = translations[getLang()];
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);">
       <div style="font-size:2.5rem;margin-bottom:10px;">👥</div>
-      <p>Team info coming soon!</p>
+      <p>${dict.team_role_fallback}</p>
     </div>`;
     return;
   }
@@ -402,7 +412,7 @@ function showPopup() {
   if(!popup || !popupSettings) return;
   
   // Set content
-  document.getElementById('popup-title').textContent = popupSettings.title || 'Important Notice';
+  document.getElementById('popup-title').textContent = popupSettings.title || translations[getLang()].popup_title_default;
   document.getElementById('popup-msg').textContent = popupSettings.message || '';
   
   const btn = document.getElementById('popup-btn');
@@ -437,7 +447,9 @@ function updatePopupCountdown() {
   if(diff <= 0) {
     // Registration closed
     document.getElementById('popup-countdown').style.display = 'none';
-    document.getElementById('popup-closed').style.display = 'block';
+    const closedEl = document.getElementById('popup-closed');
+    closedEl.style.display = 'block';
+    closedEl.textContent = translations[getLang()].popup_closed;
     const btn = document.getElementById('popup-btn');
     btn.classList.add('disabled');
     btn.onclick = (e) => e.preventDefault();

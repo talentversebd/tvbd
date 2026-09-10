@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
+  <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-S7D7S2G08K"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -13,7 +13,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quiz / Exam — TalentVerse Bangladesh</title>
 <meta name="description" content="Take an online quiz or exam at TalentVerse Bangladesh.">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
 .qz-container{max-width:820px;margin:0 auto;padding:0 16px;}
@@ -83,7 +83,9 @@
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- HEADER (matches the rest of the site — no separate "Quiz" nav item;
+     this page is reached only via the "📝 Take Quiz Now" button on a
+     linked event in Events) -->
 <header id="site-header">
   <a class="h-logo" href="index.html">
     <img class="h-logo-img" src="logo.jpg" alt="TalentVerse Logo">
@@ -93,15 +95,17 @@
     </div>
   </a>
   <nav class="h-nav" id="hnav">
-    <a href="index.html">Home</a>
-    <a href="olympiads.html">Olympiads</a>
-    <a href="team.html">Team</a>
-    <a href="news.html">News</a>
-    <a href="quiz.html" class="active">Quiz</a>
-    <a href="register.html">Register</a>
-    <a href="verify.html">Verify</a>
-    <a href="contact.html">Contact</a>
-    <button class="h-admin-btn" onclick="window.location.href='admin.html'">⚙ Admin</button>
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <a href="events.html" data-i18n="nav_olympiads">Events</a>
+    <a href="team.html" data-i18n="nav_team">Team</a>
+    <a href="news.html" data-i18n="nav_news">News</a>
+    <a href="register.html" data-i18n="nav_register">Register</a>
+    <a href="verify.html" data-i18n="nav_verify">Verify</a>
+    <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    <button class="h-admin-btn" onclick="window.location.href='admin.html'" data-i18n="nav_admin">⚙ Admin</button>
+    <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
+      🌐 <span class="lang-toggle-label">বাং</span>
+    </button>
   </nav>
   <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -118,14 +122,14 @@
 <section class="section">
   <div class="qz-container">
 
-    <!-- VIEW: Listing -->
+    <!-- VIEW: Listing (shown only if someone lands here without a quiz id) -->
     <div id="qz-view-list">
       <div id="qz-list-loading" style="text-align:center;padding:50px 20px;color:var(--muted);">⏳ Loading quizzes...</div>
       <div class="qz-grid" id="qz-grid" style="display:none;"></div>
       <div class="qz-empty" id="qz-empty" style="display:none;">
         <div class="ei">📋</div>
         <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:8px;">No quizzes available right now</h3>
-        <p>Check back soon — new quizzes are added regularly.</p>
+        <p>Head back to the <a href="events.html" style="color:var(--lblue);">Events</a> page and look for the "📝 Take Quiz Now" button on an event.</p>
       </div>
     </div>
 
@@ -144,7 +148,7 @@
         <div class="qz-fg"><label>Phone *</label><input class="qz-fi" id="qz-in-phone" placeholder="01XXXXXXXXX"></div>
 
         <button class="qz-btn" style="margin-top:8px;" onclick="startQuiz()">Start Quiz →</button>
-        <p style="text-align:center;margin-top:14px;"><a href="quiz.html" style="color:var(--muted);font-size:.82rem;">← Back to all quizzes</a></p>
+        <p style="text-align:center;margin-top:14px;"><a href="events.html" style="color:var(--muted);font-size:.82rem;">← Back to Events</a></p>
       </div>
     </div>
 
@@ -179,28 +183,27 @@
           <div class="sub">Bangladesh</div>
         </div>
       </a>
-      <p id="f-desc">TalentVerse Bangladesh is the country's most dedicated platform for olympiad information.</p>
+      <p id="f-desc" data-i18n="f_desc">TalentVerse Bangladesh is the country's most dedicated platform for event information.</p>
     </div>
     <div class="f-col">
-      <h4>Quick Links</h4>
-      <a href="index.html">Home</a>
-      <a href="olympiads.html">Olympiads</a>
-      <a href="team.html">Team</a>
-      <a href="news.html">News</a>
-      <a href="quiz.html">Quiz</a>
-      <a href="register.html">Register</a>
-      <a href="verify.html">Verify Certificate</a>
-      <a href="contact.html">Contact</a>
+      <h4 data-i18n="f_quicklinks">Quick Links</h4>
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="events.html" data-i18n="nav_olympiads">Events</a>
+      <a href="team.html" data-i18n="nav_team">Team</a>
+      <a href="news.html" data-i18n="nav_news">News</a>
+      <a href="register.html" data-i18n="nav_register">Register</a>
+      <a href="verify.html" data-i18n="nav_verify">Verify Certificate</a>
+      <a href="contact.html" data-i18n="nav_contact">Contact</a>
     </div>
     <div class="f-col">
-      <h4>Contact</h4>
+      <h4 data-i18n="f_contact">Contact</h4>
       <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
       <a id="f-phone" href="#">+880 1634-428536</a>
       <a id="f-addr" href="#">Dhaka, Bangladesh</a>
     </div>
   </div>
   <div class="f-bottom">
-    <p>© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Numexis.</p>
+    <p data-i18n="f_bottom">© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Numexis.</p>
   </div>
 </footer>
 
@@ -217,6 +220,7 @@
 <!-- Site Scripts -->
 <script src="data.js"></script>
 <script src="render.js"></script>
+<script src="lang.js"></script>
 <script src="main.js"></script>
 
 <script>
@@ -301,7 +305,7 @@ async function showQuizEntry(id) {
       <div class="ei">⚠️</div>
       <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:8px;">Quiz not found</h3>
       <p>This quiz may have been removed or is not published yet.</p>
-      <a href="quiz.html" style="color:var(--lblue);font-size:.85rem;">← Back to all quizzes</a>`;
+      <a href="events.html" style="color:var(--lblue);font-size:.85rem;">← Back to Events</a>`;
     return;
   }
 
@@ -339,7 +343,7 @@ function qzShowBlockedScreen(icon, title, msg) {
     <div class="ei">${icon}</div>
     <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:8px;">${title}</h3>
     <p>${msg}</p>
-    <a href="quiz.html" style="color:var(--lblue);font-size:.85rem;">← Back to all quizzes</a>`;
+    <a href="events.html" style="color:var(--lblue);font-size:.85rem;">← Back to Events</a>`;
 }
 
 async function startQuiz() {
@@ -479,7 +483,7 @@ async function submitQuiz(auto) {
         <div class="ri">✅</div>
         <h2>Already Submitted</h2>
         <p style="color:var(--muted);">This email has already submitted this exam. Each participant can take it only once.</p>
-        <a href="quiz.html" class="qz-btn" style="display:inline-flex;margin-top:16px;width:auto;padding:12px 28px;">Back to Quizzes</a>`;
+        <a href="events.html" class="qz-btn" style="display:inline-flex;margin-top:16px;width:auto;padding:12px 28px;">Back to Events</a>`;
       return;
     }
     box.innerHTML = `
@@ -502,7 +506,7 @@ async function submitQuiz(auto) {
         <div class="qz-score-label">Your Score</div>
       </div>
       <p style="color:var(--muted);font-size:.85rem;">A copy of your result has been saved. Thank you for participating!</p>
-      <a href="quiz.html" class="qz-btn" style="display:inline-flex;margin-top:16px;width:auto;padding:12px 28px;">Back to Quizzes</a>
+      <a href="events.html" class="qz-btn" style="display:inline-flex;margin-top:16px;width:auto;padding:12px 28px;">Back to Events</a>
       ${reviewHtml}`;
   } else {
     box.innerHTML = `
@@ -514,7 +518,7 @@ async function submitQuiz(auto) {
         <div class="qz-score-label">MCQ Score (auto-graded)</div>
       </div>
       <p style="color:var(--muted);font-size:.85rem;">Your final score (including short answers) will be announced after admin review.</p>
-      <a href="quiz.html" class="qz-btn" style="display:inline-flex;margin-top:16px;width:auto;padding:12px 28px;">Back to Quizzes</a>
+      <a href="events.html" class="qz-btn" style="display:inline-flex;margin-top:16px;width:auto;padding:12px 28px;">Back to Events</a>
       ${reviewHtml}`;
   }
 }

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S7D7S2G08K"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-S7D7S2G08K');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz / Exam — TalentVerse Bangladesh</title>
+<meta name="description" content="Take an online quiz or exam at TalentVerse Bangladesh.">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.qz-container{max-width:820px;margin:0 auto;padding:0 16px;}
+
+/* Listing */
+.qz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;}
+.qz-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:22px;transition:transform .2s,box-shadow .2s,border-color .2s;}
+.qz-card:hover{transform:translateY(-4px);box-shadow:0 8px 32px rgba(37,99,235,.18);border-color:var(--bdr2);}
+.qz-card h3{font-family:Montserrat;font-size:1.05rem;font-weight:800;margin-bottom:8px;}
+.qz-card p{color:var(--muted);font-size:.85rem;line-height:1.6;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.qz-meta{display:flex;gap:14px;font-size:.75rem;color:var(--lblue);margin-bottom:16px;flex-wrap:wrap;}
+.qz-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;text-decoration:none;padding:12px 20px;border-radius:9px;font-weight:700;font-size:.88rem;border:none;cursor:pointer;transition:opacity .2s;}
+.qz-btn:hover{opacity:.88;}
+.qz-empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.qz-empty .ei{font-size:3.5rem;margin-bottom:14px;}
+
+/* Entry form */
+.qz-card-lg{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:32px;box-shadow:var(--glow);}
+@media(max-width:500px){.qz-card-lg{padding:22px 18px;}}
+.qz-card-lg h2{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:8px;}
+.qz-card-lg h2 span{color:var(--blue-br);}
+.qz-fg{margin-bottom:15px;}
+.qz-fg label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:6px;}
+.qz-fi{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:11px 14px;border-radius:8px;font-size:.9rem;outline:none;transition:border-color .2s;}
+.qz-fi:focus{border-color:var(--blue-br);}
+
+/* Taking quiz */
+.qz-timer-bar{position:sticky;top:0;z-index:50;background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,.25);}
+.qz-timer{font-family:Montserrat;font-size:1.3rem;font-weight:800;color:var(--blue-br);}
+.qz-timer.low{color:#f87171;animation:qzPulse 1s infinite;}
+@keyframes qzPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.qz-progress{font-size:.8rem;color:var(--muted);}
+
+.qz-qcard{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:22px;margin-bottom:16px;}
+.qz-qcard .qz-qnum{font-size:.72rem;font-weight:700;color:var(--lblue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.qz-qcard .qz-qtext{font-size:1rem;font-weight:600;margin-bottom:16px;line-height:1.5;}
+.qz-opt{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:12px 15px;margin-bottom:9px;cursor:pointer;transition:border-color .15s,background .15s;}
+.qz-opt:hover{border-color:var(--bdr2);}
+.qz-opt.selected{border-color:var(--blue-br);background:rgba(37,99,235,.1);}
+.qz-opt input{accent-color:var(--blue-br);width:17px;height:17px;flex-shrink:0;}
+.qz-short-input{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:12px 14px;border-radius:9px;font-size:.9rem;min-height:100px;resize:vertical;font-family:inherit;}
+
+/* Result */
+.qz-result{text-align:center;padding:20px;}
+.qz-result .ri{font-size:4rem;margin-bottom:16px;}
+.qz-result h2{font-family:Montserrat;font-size:1.5rem;font-weight:800;margin-bottom:10px;}
+.qz-score-box{background:linear-gradient(135deg,rgba(37,99,235,.14),rgba(37,99,235,.04));border:1px solid var(--bdr2);border-radius:14px;padding:24px;margin:20px 0;}
+.qz-score-num{font-family:Montserrat;font-size:2.4rem;font-weight:900;color:var(--blue-br);}
+.qz-score-label{color:var(--muted);font-size:.85rem;margin-top:4px;}
+
+.qz-hidden{display:none;}
+
+/* Review (answer breakdown) */
+.qz-review{text-align:left;margin-top:22px;}
+.qz-review h3{font-family:Montserrat;font-size:1rem;font-weight:800;margin-bottom:14px;}
+.qz-rev-item{background:var(--card2);border:1px solid var(--bdr);border-radius:12px;padding:16px;margin-bottom:10px;}
+.qz-rev-q{font-weight:600;font-size:.92rem;margin-bottom:8px;}
+.qz-rev-line{font-size:.83rem;margin-bottom:3px;}
+.qz-rev-correct{color:#4ade80;}
+.qz-rev-wrong{color:#f87171;}
+.qz-rev-badge{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:20px;margin-left:6px;}
+.qz-rev-badge.ok{background:rgba(74,222,128,.15);color:#4ade80;}
+.qz-rev-badge.no{background:rgba(248,113,113,.15);color:#f87171;}
+.qz-rev-badge.pending{background:rgba(250,204,21,.15);color:#facc15;}
+.qz-sched{font-size:.75rem;color:var(--lblue);margin-top:6px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="site-header">
+  <a class="h-logo" href="index.html">
+    <img class="h-logo-img" src="logo.jpg" alt="TalentVerse Logo">
+    <div class="h-logo-text">
+      <div class="name">Talent<span>Verse</span></div>
+      <div class="sub">Bangladesh</div>
+    </div>
+  </a>
+  <nav class="h-nav" id="hnav">
+    <a href="index.html">Home</a>
+    <a href="olympiads.html">Olympiads</a>
+    <a href="team.html">Team</a>
+    <a href="news.html">News</a>
+    <a href="quiz.html" class="active">Quiz</a>
+    <a href="register.html">Register</a>
+    <a href="verify.html">Verify</a>
+    <a href="contact.html">Contact</a>
+    <button class="h-admin-btn" onclick="window.location.href='admin.html'">⚙ Admin</button>
+  </nav>
+  <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <span class="eyebrow">Exam</span>
+  <h1>Quiz <span>Zone</span></h1>
+  <p>Test your knowledge with our timed olympiad-style quizzes.</p>
+</div>
+
+<section class="section">
+  <div class="qz-container">
+
+    <!-- VIEW: Listing -->
+    <div id="qz-view-list">
+      <div id="qz-list-loading" style="text-align:center;padding:50px 20px;color:var(--muted);">⏳ Loading quizzes...</div>
+      <div class="qz-grid" id="qz-grid" style="display:none;"></div>
+      <div class="qz-empty" id="qz-empty" style="display:none;">
+        <div class="ei">📋</div>
+        <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:8px;">No quizzes available right now</h3>
+        <p>Check back soon — new quizzes are added regularly.</p>
+      </div>
+    </div>
+
+    <!-- VIEW: Entry form -->
+    <div id="qz-view-entry" class="qz-hidden">
+      <div class="qz-card-lg">
+        <h2 id="qz-e-title">Quiz <span>Title</span></h2>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:6px;" id="qz-e-desc"></p>
+        <div class="qz-meta" style="margin-bottom:20px;">
+          <span id="qz-e-duration">⏱ -- min</span>
+          <span id="qz-e-qcount">📋 -- questions</span>
+        </div>
+
+        <div class="qz-fg"><label>Full Name *</label><input class="qz-fi" id="qz-in-name" placeholder="e.g. Abdur Rahman"></div>
+        <div class="qz-fg"><label>Email *</label><input class="qz-fi" type="email" id="qz-in-email" placeholder="you@email.com"></div>
+        <div class="qz-fg"><label>Phone *</label><input class="qz-fi" id="qz-in-phone" placeholder="01XXXXXXXXX"></div>
+
+        <button class="qz-btn" style="margin-top:8px;" onclick="startQuiz()">Start Quiz →</button>
+        <p style="text-align:center;margin-top:14px;"><a href="quiz.html" style="color:var(--muted);font-size:.82rem;">← Back to all quizzes</a></p>
+      </div>
+    </div>
+
+    <!-- VIEW: Taking quiz -->
+    <div id="qz-view-taking" class="qz-hidden">
+      <div class="qz-timer-bar">
+        <div>
+          <div class="qz-progress" id="qz-progress-text">0 / 0 answered</div>
+        </div>
+        <div class="qz-timer" id="qz-timer-display">--:--</div>
+      </div>
+      <div id="qz-questions-container"></div>
+      <button class="qz-btn" onclick="submitQuiz()">✅ Submit Quiz</button>
+    </div>
+
+    <!-- VIEW: Result -->
+    <div id="qz-view-result" class="qz-hidden">
+      <div class="qz-card-lg qz-result" id="qz-result-content"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-grid">
+    <div class="f-brand">
+      <a class="h-logo" href="index.html" style="text-decoration:none;">
+        <img class="h-logo-img" src="logo.jpg" alt="Logo">
+        <div class="h-logo-text">
+          <div class="name">Talent<span>Verse</span></div>
+          <div class="sub">Bangladesh</div>
+        </div>
+      </a>
+      <p id="f-desc">TalentVerse Bangladesh is the country's most dedicated platform for olympiad information.</p>
+    </div>
+    <div class="f-col">
+      <h4>Quick Links</h4>
+      <a href="index.html">Home</a>
+      <a href="olympiads.html">Olympiads</a>
+      <a href="team.html">Team</a>
+      <a href="news.html">News</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="register.html">Register</a>
+      <a href="verify.html">Verify Certificate</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="f-col">
+      <h4>Contact</h4>
+      <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
+      <a id="f-phone" href="#">+880 1634-428536</a>
+      <a id="f-addr" href="#">Dhaka, Bangladesh</a>
+    </div>
+  </div>
+  <div class="f-bottom">
+    <p>© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Numexis.</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<!-- Firebase & EmailJS -->
+<script type="module" src="firebase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<!-- Site Scripts -->
+<script src="data.js"></script>
+<script src="render.js"></script>
+<script src="main.js"></script>
+
+<script>
+let qzCurrentQuiz = null;
+let qzAnswers = {};
+let qzTimerInterval = null;
+let qzSecondsLeft = 0;
+
+function qzWaitForData() {
+  return new Promise((resolve) => {
+    const check = setInterval(() => {
+      if(typeof loadQuizzes === 'function' && window.firebaseDB) {
+        clearInterval(check);
+        resolve();
+      }
+    }, 100);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await qzWaitForData();
+  await loadQuizzes();
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if(id) {
+    showQuizEntry(id);
+  } else {
+    showQuizList();
+  }
+});
+
+function showQuizList() {
+  const quizzes = (typeof getPublishedQuizzes === 'function') ? getPublishedQuizzes() : [];
+  document.getElementById('qz-list-loading').style.display = 'none';
+
+  if(!quizzes.length) {
+    document.getElementById('qz-empty').style.display = 'block';
+    return;
+  }
+
+  const grid = document.getElementById('qz-grid');
+  grid.style.display = 'grid';
+  grid.innerHTML = quizzes.map(q => {
+    const avail = getQuizAvailability(q);
+    const done = hasLocalQuizAttempt(q.id);
+    let btn = `<button class="qz-btn" onclick="window.location.href='quiz.html?id=${q.id}'">Start Quiz →</button>`;
+    let sched = '';
+    if (done) {
+      btn = `<button class="qz-btn" style="opacity:.5;cursor:not-allowed;" disabled>✅ Already Submitted</button>`;
+    } else if (!avail.open && avail.reason === 'not_started') {
+      btn = `<button class="qz-btn" style="opacity:.5;cursor:not-allowed;" disabled>🔒 Not Open Yet</button>`;
+      sched = `<div class="qz-sched">⏳ Opens ${new Date(avail.at).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`;
+    } else if (!avail.open && avail.reason === 'ended') {
+      btn = `<button class="qz-btn" style="opacity:.5;cursor:not-allowed;" disabled>⌛ Closed</button>`;
+      sched = `<div class="qz-sched">⌛ Closed ${new Date(avail.at).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`;
+    } else if (q.endAt) {
+      sched = `<div class="qz-sched">⏳ Closes ${new Date(q.endAt).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`;
+    }
+    return `
+    <div class="qz-card">
+      <h3>${q.title}</h3>
+      <p>${q.description || 'No description provided.'}</p>
+      <div class="qz-meta">
+        <span>⏱ ${q.duration} min</span>
+        <span>📋 ${(q.questions || []).length} questions</span>
+      </div>
+      ${sched}
+      <div style="margin-top:14px;">${btn}</div>
+    </div>`;
+  }).join('');
+}
+
+async function showQuizEntry(id) {
+  const quiz = await getQuizById(id);
+  if(!quiz || quiz.status !== 'published') {
+    document.getElementById('qz-view-list').classList.remove('qz-hidden');
+    document.getElementById('qz-list-loading').style.display = 'none';
+    document.getElementById('qz-empty').style.display = 'block';
+    document.getElementById('qz-empty').innerHTML = `
+      <div class="ei">⚠️</div>
+      <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:8px;">Quiz not found</h3>
+      <p>This quiz may have been removed or is not published yet.</p>
+      <a href="quiz.html" style="color:var(--lblue);font-size:.85rem;">← Back to all quizzes</a>`;
+    return;
+  }
+
+  qzCurrentQuiz = quiz;
+
+  // Already taken on this device?
+  if (hasLocalQuizAttempt(quiz.id)) {
+    return qzShowBlockedScreen('✅', 'Already Submitted', 'You have already completed this exam. Each participant can take it only once.');
+  }
+
+  // Outside the scheduled window?
+  const avail = getQuizAvailability(quiz);
+  if (!avail.open) {
+    const when = new Date(avail.at).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    if (avail.reason === 'not_started') {
+      return qzShowBlockedScreen('🔒', 'Not Open Yet', `This exam opens on ${when}. Please check back then.`);
+    } else {
+      return qzShowBlockedScreen('⌛', 'Exam Closed', `This exam closed on ${when} and is no longer accepting submissions.`);
+    }
+  }
+
+  document.getElementById('qz-view-list').classList.add('qz-hidden');
+  document.getElementById('qz-view-entry').classList.remove('qz-hidden');
+  document.getElementById('qz-e-title').innerHTML = quiz.title;
+  document.getElementById('qz-e-desc').textContent = quiz.description || '';
+  document.getElementById('qz-e-duration').textContent = `⏱ ${quiz.duration} min`;
+  document.getElementById('qz-e-qcount').textContent = `📋 ${(quiz.questions || []).length} questions`;
+}
+
+function qzShowBlockedScreen(icon, title, msg) {
+  document.getElementById('qz-view-list').classList.remove('qz-hidden');
+  document.getElementById('qz-list-loading').style.display = 'none';
+  document.getElementById('qz-empty').style.display = 'block';
+  document.getElementById('qz-empty').innerHTML = `
+    <div class="ei">${icon}</div>
+    <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:8px;">${title}</h3>
+    <p>${msg}</p>
+    <a href="quiz.html" style="color:var(--lblue);font-size:.85rem;">← Back to all quizzes</a>`;
+}
+
+async function startQuiz() {
+  const name = document.getElementById('qz-in-name').value.trim();
+  const email = document.getElementById('qz-in-email').value.trim();
+  const phone = document.getElementById('qz-in-phone').value.trim();
+
+  if(!name || !email || !phone) return toast("Name, email and phone are required!", true);
+
+  // Re-check the schedule window right before starting (it may have changed
+  // since the entry page loaded).
+  const avail = getQuizAvailability(qzCurrentQuiz);
+  if (!avail.open) {
+    toast(avail.reason === 'not_started' ? "This exam hasn't opened yet." : "This exam is now closed.", true);
+    return showQuizEntry(qzCurrentQuiz.id);
+  }
+
+  const startBtn = document.querySelector('#qz-view-entry .qz-btn');
+  if (startBtn) { startBtn.disabled = true; startBtn.textContent = 'Checking...'; }
+  const alreadyDone = await hasAlreadyAttemptedQuiz(qzCurrentQuiz.id, email);
+  if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Start Quiz →'; }
+
+  if (alreadyDone) {
+    return qzShowBlockedScreen('✅', 'Already Submitted', 'This email has already submitted this exam. Each participant can take it only once.');
+  }
+
+  qzCurrentQuiz._student = { name, email, phone };
+  qzCurrentQuiz._startedAt = Date.now();
+  qzAnswers = {};
+  qzSecondsLeft = qzCurrentQuiz.duration * 60;
+
+  document.getElementById('qz-view-entry').classList.add('qz-hidden');
+  document.getElementById('qz-view-taking').classList.remove('qz-hidden');
+
+  renderQuizQuestions();
+  startQzTimer();
+}
+
+function renderQuizQuestions() {
+  const container = document.getElementById('qz-questions-container');
+  container.innerHTML = qzCurrentQuiz.questions.map((q, i) => {
+    if(q.type === 'mcq') {
+      return `
+      <div class="qz-qcard">
+        <div class="qz-qnum">Question ${i + 1} of ${qzCurrentQuiz.questions.length} · ${q.points} pt${q.points > 1 ? 's' : ''}</div>
+        <div class="qz-qtext">${q.text}</div>
+        ${q.options.map((opt, oi) => `
+          <label class="qz-opt" id="qz-opt-${q.id}-${oi}" onclick="qzSelectMcq('${q.id}', ${oi})">
+            <input type="radio" name="qz-${q.id}" value="${oi}">
+            <span>${opt}</span>
+          </label>`).join('')}
+      </div>`;
+    } else {
+      return `
+      <div class="qz-qcard">
+        <div class="qz-qnum">Question ${i + 1} of ${qzCurrentQuiz.questions.length} · ${q.points} pt${q.points > 1 ? 's' : ''} · Short Answer</div>
+        <div class="qz-qtext">${q.text}</div>
+        <textarea class="qz-short-input" placeholder="Type your answer..." onblur="qzSaveShort('${q.id}', this.value)"></textarea>
+      </div>`;
+    }
+  }).join('');
+  updateQzProgress();
+}
+
+function qzSelectMcq(qid, oi) {
+  qzAnswers[qid] = oi;
+  document.querySelectorAll(`[id^="qz-opt-${qid}-"]`).forEach(el => el.classList.remove('selected'));
+  document.getElementById(`qz-opt-${qid}-${oi}`).classList.add('selected');
+  updateQzProgress();
+}
+
+function qzSaveShort(qid, val) {
+  if(val.trim()) qzAnswers[qid] = val.trim();
+  else delete qzAnswers[qid];
+  updateQzProgress();
+}
+
+function updateQzProgress() {
+  const answered = Object.keys(qzAnswers).length;
+  document.getElementById('qz-progress-text').textContent = `${answered} / ${qzCurrentQuiz.questions.length} answered`;
+}
+
+function startQzTimer() {
+  updateQzTimerDisplay();
+  qzTimerInterval = setInterval(() => {
+    qzSecondsLeft--;
+    updateQzTimerDisplay();
+    if(qzSecondsLeft <= 0) {
+      clearInterval(qzTimerInterval);
+      toast("Time's up! Submitting your quiz...");
+      submitQuiz(true);
+      return;
+    }
+    // Admin-set deadline reached mid-exam — auto-submit too.
+    if(qzCurrentQuiz.endAt && Date.now() > qzCurrentQuiz.endAt) {
+      clearInterval(qzTimerInterval);
+      toast("Exam deadline reached! Submitting your quiz...");
+      submitQuiz(true);
+    }
+  }, 1000);
+}
+
+function updateQzTimerDisplay() {
+  const m = Math.floor(qzSecondsLeft / 60);
+  const s = qzSecondsLeft % 60;
+  const el = document.getElementById('qz-timer-display');
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('low', qzSecondsLeft <= 60);
+}
+
+async function submitQuiz(auto) {
+  if(!auto) {
+    const unanswered = qzCurrentQuiz.questions.length - Object.keys(qzAnswers).length;
+    if(unanswered > 0 && !confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
+  }
+
+  if(qzTimerInterval) clearInterval(qzTimerInterval);
+
+  const submission = {
+    quizId: qzCurrentQuiz.id,
+    name: qzCurrentQuiz._student.name,
+    email: qzCurrentQuiz._student.email,
+    phone: qzCurrentQuiz._student.phone,
+    answers: qzAnswers,
+    startedAt: qzCurrentQuiz._startedAt || null
+  };
+
+  const result = await addQuizSubmission(submission, qzCurrentQuiz);
+
+  document.getElementById('qz-view-taking').classList.add('qz-hidden');
+  document.getElementById('qz-view-result').classList.remove('qz-hidden');
+
+  const box = document.getElementById('qz-result-content');
+  if(!result.success) {
+    if(result.alreadySubmitted) {
+      box.innerHTML = `
+        <div class="ri">✅</div>
+        <h2>Already Submitted</h2>
+        <p style="color:var(--muted);">This email has already submitted this exam. Each participant can take it only once.</p>
+        <a href="quiz.html" class="qz-btn" style="display:inline-flex;margin-top:16px;width:auto;padding:12px 28px;">Back to Quizzes</a>`;
+      return;
+    }
+    box.innerHTML = `
+      <div class="ri">⚠️</div>
+      <h2>Submission Failed</h2>
+      <p style="color:var(--muted);">Something went wrong while submitting your quiz. Please try again or contact us.</p>`;
+    return;
+  }
+
+  const r = result.result;
+  const reviewHtml = qzBuildReviewHtml(qzCurrentQuiz, r);
+
+  if(r.status === 'reviewed') {
+    box.innerHTML = `
+      <div class="ri">🎉</div>
+      <h2>Quiz Submitted!</h2>
+      <p style="color:var(--muted);">Here's your result, ${r.name}:</p>
+      <div class="qz-score-box">
+        <div class="qz-score-num">${r.totalScore} / ${r.totalPossible}</div>
+        <div class="qz-score-label">Your Score</div>
+      </div>
+      <p style="color:var(--muted);font-size:.85rem;">A copy of your result has been saved. Thank you for participating!</p>
+      <a href="quiz.html" class="qz-btn" style="display:inline-flex;margin-top:16px;width:auto;padding:12px 28px;">Back to Quizzes</a>
+      ${reviewHtml}`;
+  } else {
+    box.innerHTML = `
+      <div class="ri">📝</div>
+      <h2>Quiz Submitted!</h2>
+      <p style="color:var(--muted);">Thanks, ${r.name}! Your quiz has short-answer questions that need manual review.</p>
+      <div class="qz-score-box">
+        <div class="qz-score-num">${r.mcqScore} / ${r.mcqTotal}</div>
+        <div class="qz-score-label">MCQ Score (auto-graded)</div>
+      </div>
+      <p style="color:var(--muted);font-size:.85rem;">Your final score (including short answers) will be announced after admin review.</p>
+      <a href="quiz.html" class="qz-btn" style="display:inline-flex;margin-top:16px;width:auto;padding:12px 28px;">Back to Quizzes</a>
+      ${reviewHtml}`;
+  }
+}
+
+// Builds the "which questions were right/wrong" breakdown shown to the
+// participant right after they submit.
+function qzBuildReviewHtml(quiz, r) {
+  const items = (quiz.questions || []).map((q, i) => {
+    if(q.type === 'mcq') {
+      const given = r.answers[q.id];
+      const correct = given !== undefined && Number(given) === Number(q.correctIndex);
+      const givenText = given !== undefined ? q.options[given] : '(no answer)';
+      return `
+        <div class="qz-rev-item">
+          <div class="qz-rev-q">${i + 1}. ${q.text} <span class="qz-rev-badge ${correct ? 'ok' : 'no'}">${correct ? 'Correct' : 'Incorrect'}</span></div>
+          <div class="qz-rev-line ${correct ? 'qz-rev-correct' : 'qz-rev-wrong'}">Your answer: ${givenText}</div>
+          ${!correct ? `<div class="qz-rev-line qz-rev-correct">Correct answer: ${q.options[q.correctIndex]}</div>` : ''}
+        </div>`;
+    } else {
+      const given = r.answers[q.id] || '(no answer)';
+      return `
+        <div class="qz-rev-item">
+          <div class="qz-rev-q">${i + 1}. ${q.text} <span class="qz-rev-badge pending">Pending review</span></div>
+          <div class="qz-rev-line">Your answer: ${given}</div>
+        </div>`;
+    }
+  }).join('');
+
+  return `<div class="qz-review"><h3>📋 Answer Review</h3>${items}</div>`;
+}
+</script>
+</body>
+</html>

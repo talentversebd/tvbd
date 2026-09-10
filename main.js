@@ -294,6 +294,7 @@ function filterOlympiads(query, status) {
         </div>
         <p class="o-card-desc">${o.desc}</p>
         <button class="rm-btn">Read More</button>
+        ${(typeof quizTakeButtonHtml === 'function') ? quizTakeButtonHtml(o) : ''}
       </div>`;
     grid.appendChild(card);
   });
@@ -328,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(typeof renderOlympiads === 'function') renderOlympiads();
         if(typeof renderGallery === 'function') renderGallery();
         if(typeof renderNews === 'function') renderNews();
-      } else if(page === 'olympiads.html') {
+      } else if(page === 'olympiads.html' || page === 'events.html') {
         if(typeof renderOlympiads === 'function') renderOlympiads();
       } else if(page === 'gallery.html') {
         if(typeof renderGallery === 'function') renderGallery();

@@ -190,6 +190,7 @@ function filterByCategory(cat) {
         </div>
         <p class="o-card-desc">${o.desc}</p>
         <button class="rm-btn">${readMoreTxt}</button>
+        ${(typeof quizTakeButtonHtml === 'function') ? quizTakeButtonHtml(o) : ''}
       </div>`;
     grid.appendChild(card);
   });

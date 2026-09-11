@@ -14,7 +14,7 @@ const translations = {
   en: {
     // Nav
     nav_home: "Home",
-    nav_olympiads: "Events",
+    nav_olympiads: "Events & Quiz",
     nav_team: "Team",
     nav_news: "News",
     nav_register: "Register",
@@ -77,7 +77,7 @@ const translations = {
     f_desc: "TalentVerse Bangladesh is the country's most dedicated platform for event information, resources, and community.",
     f_quicklinks: "Quick Links",
     f_contact: "Contact",
-    f_bottom: "© 2026 TalentVerse Bangladesh. All rights reserved | Developed By Numexis.",
+    f_bottom: "© 2026 TalentVerse Bangladesh. All rights reserved | Developed By Samin & Fahad.",
 
     // Popup / Notice (fallback defaults — admin text still overrides these)
     popup_title_default: "Important Notice",
@@ -193,7 +193,7 @@ const translations = {
   bn: {
     // Nav
     nav_home: "হোম",
-    nav_olympiads: "ইভেন্ট",
+    nav_olympiads: "ইভেন্ট & কুইজ",
     nav_team: "টিম",
     nav_news: "নিউজ",
     nav_register: "রেজিস্টার",
@@ -256,7 +256,7 @@ const translations = {
     f_desc: "TalentVerse Bangladesh দেশের সবচেয়ে নিবেদিতপ্রাণ ইভেন্ট তথ্য, রিসোর্স ও কমিউনিটি প্ল্যাটফর্ম।",
     f_quicklinks: "দ্রুত লিংক",
     f_contact: "যোগাযোগ",
-    f_bottom: "© ২০২৬ TalentVerse Bangladesh. সর্বস্বত্ব সংরক্ষিত | ডেভেলপড বাই Numexis.",
+    f_bottom: "© ২০২৬ TalentVerse Bangladesh. সর্বস্বত্ব সংরক্ষিত | ডেভেলপড বাই Samin & Fahad.",
 
     // Popup / Notice
     popup_title_default: "গুরুত্বপূর্ণ নোটিশ",

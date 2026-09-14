@@ -72,7 +72,13 @@ function renderOlympiads() {
   const grid = document.getElementById('olymp-grid');
   if(!grid) return;
 
-  const olympiads = getOlympiads();
+  // Home page shows only the 3 most recently published events (data is
+  // already ordered newest-first); the Events page shows all of them.
+  const page = window.location.pathname.split('/').pop() || 'index.html';
+  const isHome = (page === 'index.html' || page === '');
+  const all = getOlympiads();
+  const olympiads = isHome ? all.slice(0, 3) : all;
+
   grid.innerHTML = '';
 
   if(olympiads.length === 0) {
@@ -84,7 +90,8 @@ function renderOlympiads() {
     return;
   }
 
-  olympiads.forEach((o, i) => {
+  olympiads.forEach((o) => {
+    const i = all.indexOf(o);
     const card = document.createElement('div');
     card.className = 'o-card';
     card.onclick = () => openModal(i);

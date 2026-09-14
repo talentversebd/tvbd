@@ -576,7 +576,7 @@ async function deleteCertificateAction(id) { if(!confirm("Delete?")) return; if(
 
 function viewCertificate(id) {
   const c = getCertificates().find(x => x.id === id); if(!c) return;
-  const verifyUrl = `https://talentversebd.github.io/TVBD/verify.html?id=${encodeURIComponent(c.certId)}`;
+  const verifyUrl = `https://talentversebd.github.io/tvbd/verify.html?id=${encodeURIComponent(c.certId)}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verifyUrl)}`;
   document.getElementById('cv-content').innerHTML = `
     <div style="text-align:center;padding:10px;">

@@ -103,8 +103,28 @@
 .team-empty h3{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;color:var(--txt);}
 .team-empty p{font-size:.95rem;line-height:1.7;max-width:400px;margin:0 auto;}
 </style>
+<link rel="stylesheet" href="loader.css">
 </head>
 <body>
+<div id="tvbd-loader" class="tvbd-loader">
+  <div class="tvbd-loader-ring-wrap">
+    <svg class="tvbd-ring-svg" viewBox="0 0 160 160">
+      <circle class="tvbd-ring-bg" cx="80" cy="80" r="72"></circle>
+      <circle class="tvbd-ring-fg" cx="80" cy="80" r="72"></circle>
+    </svg>
+    <img src="logo.jpg" class="tvbd-loader-logo" alt="TalentVerse Bangladesh">
+  </div>
+  <div class="tvbd-loader-text">
+    <h1>TALENTVERSE <span>BANGLADESH</span></h1>
+    <p class="tvbd-loader-estd">ESTD 2026</p>
+  </div>
+  <div class="tvbd-loader-progress">
+    <div class="tvbd-loader-bar"><div class="tvbd-loader-fill" id="tvbd-loader-fill"></div></div>
+    <span class="tvbd-loader-pct" id="tvbd-loader-pct">Loading... 0%</span>
+  </div>
+</div>
+<script src="loader.js"></script>
+
 
 <!-- HEADER -->
 <header id="site-header">

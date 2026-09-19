@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Election Panel — TalentVerse Bangladesh</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+#adm-wrap{position:fixed;inset:0;z-index:4000;display:flex;flex-direction:column;background:var(--bg)}
+.adm-login{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(37,99,235,.12) 0%,transparent 70%),var(--bg)}
+.login-box{background:var(--card);border:1px solid var(--bdr2);border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:var(--glow);text-align:center}
+@media(max-width:440px){.login-box{padding:28px 20px;margin:0 12px}}
+.login-box img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-br);margin-bottom:14px;background:#fff}
+.login-box h2{font-family:Montserrat;font-size:1.3rem;font-weight:800;margin-bottom:5px}
+.login-box .ls{color:var(--muted);font-size:.83rem;margin-bottom:22px}
+.lbl{display:block;font-size:.77rem;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.05em;text-align:left}
+.inp{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:10px 13px;border-radius:8px;font-size:.9rem;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:14px}
+.inp:focus{border-color:var(--blue-br);box-shadow:0 0 0 3px rgba(59,130,246,.13)}
+.login-err{color:#f87171;font-size:.8rem;margin:-8px 0 10px;display:none;text-align:left}
+.login-err.show{display:block}
+.adm-shell{display:flex;flex:1;height:100%;overflow:hidden}
+.adm-sb{width:220px;flex-shrink:0;background:var(--card);border-right:1px solid var(--bdr);display:flex;flex-direction:column;height:100%;overflow-y:auto;transition:transform .3s}
+.adm-sb-head{padding:18px 16px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px}
+.adm-sb-head span{font-family:Montserrat;font-size:.88rem;font-weight:800}
+.adm-nav{flex:1;padding:14px 10px;overflow-y:auto}
+.adm-nb{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;color:var(--muted);padding:9px 10px;border-radius:7px;cursor:pointer;font-size:.85rem;font-weight:500;transition:background .15s,color .15s;text-align:left;white-space:nowrap}
+.adm-nb:hover,.adm-nb.active{background:rgba(59,130,246,.1);color:var(--txt)}
+.adm-nb.active{color:var(--blue-br)}
+.adm-nb .ico{width:17px;text-align:center}
+.adm-sb-footer{padding:14px 10px;border-top:1px solid var(--bdr);display:flex;gap:8px;flex-shrink:0}
+.adm-sb-footer button{flex:1;background:none;border:1px solid var(--bdr);color:var(--muted);padding:8px 4px;border-radius:7px;cursor:pointer;font-size:.78rem;font-weight:600}
+.adm-sb-footer .lb-btn:hover{background:rgba(239,68,68,.08);color:#f87171;border-color:rgba(239,68,68,.28)}
+.sb-overlay{display:none;position:fixed;inset:0;z-index:4001;background:rgba(0,0,0,.5)}
+.sb-overlay.open{display:block}
+.adm-main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.adm-topbar{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--bdr);background:var(--card);flex-shrink:0;flex-wrap:wrap}
+.menu-toggle-btn{background:none;border:1px solid var(--bdr);color:var(--txt);padding:7px 10px;border-radius:7px;cursor:pointer;font-size:1rem;flex-shrink:0;display:none}
+.adm-page-title{font-family:Montserrat;font-size:1.2rem;font-weight:800;flex:1}
+.add-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:.83rem;font-weight:700;cursor:pointer;box-shadow:var(--glow);white-space:nowrap}
+.save-btn{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:.83rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.adm-sec{display:none;padding:20px;flex:1}
+.adm-sec.active{display:block}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:22px}
+.stat-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r2);padding:18px}
+.stat-card .sl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:7px}
+.stat-card .sv{font-family:Montserrat;font-size:1.9rem;font-weight:800;color:var(--blue-br)}
+.tbl-wrap{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;min-width:480px}
+.tbl th{background:var(--card2);color:var(--muted);font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:11px 14px;text-align:left;border-bottom:1px solid var(--bdr);white-space:nowrap}
+.tbl td{padding:13px 14px;border-bottom:1px solid var(--bdr);font-size:.85rem;color:var(--txt);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.thumb{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid var(--bdr)}
+.tbl-acts{display:flex;gap:7px}
+.tbl-acts button{background:none;border:1px solid var(--bdr);color:var(--muted);padding:5px 11px;border-radius:5px;cursor:pointer;font-size:.75rem;font-weight:600}
+.tbl-acts .e-btn:hover{background:rgba(59,130,246,.1);color:var(--blue-br)}
+.tbl-acts .d-btn:hover{background:rgba(239,68,68,.1);color:#f87171}
+.empty-row td{text-align:center;color:var(--muted);padding:32px!important}
+.set-wrap{max-width:640px}
+.fm-ov{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.fm-ov.open{opacity:1;pointer-events:all}
+.fm{background:var(--card);border:1px solid var(--bdr2);border-radius:15px;width:100%;max-width:560px;max-height:93vh;overflow-y:auto;transform:translateY(18px);transition:transform .2s;padding:28px}
+@media(max-width:500px){.fm{padding:18px 14px;border-radius:10px}}
+.fm-ov.open .fm{transform:translateY(0)}
+.fm-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.fm-head h3{font-family:Montserrat;font-size:1.1rem;font-weight:800}
+.fm-head button{background:none;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer}
+.fg{margin-bottom:15px}
+.fg label{display:block;font-size:.76rem;font-weight:600;color:var(--muted);margin-bottom:6px}
+.fi{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:10px 13px;border-radius:8px;font-size:.88rem;outline:none}
+.fi:focus{border-color:var(--blue-br);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+textarea.fi{min-height:80px;resize:vertical}
+.fm-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.fc-btn{background:none;border:1px solid var(--bdr);color:var(--muted);padding:10px 20px;border-radius:8px;font-size:.87rem;font-weight:600;cursor:pointer}
+.fs-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:10px 26px;border-radius:8px;font-size:.87rem;font-weight:700;cursor:pointer}
+.up-area{border:2px dashed var(--bdr2);border-radius:9px;padding:18px;text-align:center;cursor:pointer;background:rgba(59,130,246,.03)}
+.up-prev{margin-top:12px}
+.up-prev img{max-height:100px;border-radius:7px;border:1px solid var(--bdr)}
+.chk-wrap{display:flex;align-items:center;gap:8px;padding:12px;background:rgba(37,99,235,.05);border:1px solid var(--bdr);border-radius:8px}
+.chk-wrap input[type="checkbox"]{width:18px;height:18px;cursor:pointer;accent-color:var(--blue-br)}
+.chk-wrap label{margin:0;font-size:.85rem;color:var(--txt);cursor:pointer}
+.res-group{margin-bottom:26px}
+.res-pos{font-family:Montserrat;font-weight:800;font-size:1rem;margin-bottom:12px;color:var(--blue-br)}
+.res-row{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:10px 14px;margin-bottom:8px}
+.res-row img{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.res-name{flex:1;font-weight:600;font-size:.88rem}
+.res-bar-wrap{flex:2;background:var(--card);border-radius:6px;height:8px;overflow:hidden;min-width:80px}
+.res-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-br));border-radius:6px}
+.res-count{font-family:Montserrat;font-weight:800;color:var(--blue-br);min-width:70px;text-align:right;font-size:.85rem}
+@media(max-width:700px){
+  .adm-sb{position:fixed;left:0;top:0;bottom:0;z-index:4002;transform:translateX(-100%);width:220px}
+  .adm-sb.open{transform:translateX(0)}
+  .menu-toggle-btn{display:block}
+  .adm-sec{padding:14px}
+  .adm-topbar{padding:12px 14px}
+}
+@media(min-width:701px){.sb-overlay{display:none!important}}
+</style>
+</head>
+<body>
+
+<div id="adm-wrap">
+
+  <!-- LOGIN -->
+  <div class="adm-login" id="adm-login">
+    <div class="login-box">
+      <img src="logo.jpg" alt="Logo">
+      <h2>Election Panel</h2>
+      <p class="ls">TalentVerse Bangladesh — EC Only</p>
+      <label class="lbl">EMAIL</label>
+      <input class="inp" type="email" id="lu" placeholder="ec@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+      <label class="lbl">PASSWORD</label>
+      <input class="inp" type="password" id="lp" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="login-err" id="lerr">Incorrect email or password.</div>
+      <button class="btn-pri" style="width:100%;margin-top:4px;" onclick="doLogin()">Login</button>
+    </div>
+  </div>
+
+  <!-- SHELL -->
+  <div class="adm-shell" id="adm-shell" style="display:none;">
+    <div class="sb-overlay" id="sb-ov" onclick="closeSidebar()"></div>
+
+    <div class="adm-sb" id="adm-sb">
+      <div class="adm-sb-head">
+        <img src="logo.jpg" alt="Logo" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+        <span>Election Panel</span>
+      </div>
+      <nav class="adm-nav">
+        <button class="adm-nb active" data-sec="dash" onclick="goSec(this)"><span class="ico">📊</span>Dashboard</button>
+        <button class="adm-nb" data-sec="cand-adm" onclick="goSec(this)"><span class="ico">🧑‍🤝‍🧑</span>Candidates</button>
+        <button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
+        <button class="adm-nb" data-sec="res-adm" onclick="goSec(this)"><span class="ico">📈</span>Results</button>
+      </nav>
+      <div class="adm-sb-footer">
+        <button onclick="window.location.href='index.html'">← Site</button>
+        <button class="lb-btn" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="adm-main">
+      <div class="adm-topbar" id="adm-topbar">
+        <button class="menu-toggle-btn" onclick="openSidebar()">☰</button>
+        <span class="adm-page-title" id="adm-ptitle">Dashboard</span>
+        <div id="adm-topbar-actions"></div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div class="adm-sec active" id="dash">
+        <div class="stats-row" id="db-stats"></div>
+        <div style="background:var(--card2);border:1px dashed var(--bdr2);border-radius:10px;padding:16px;font-size:.83rem;color:var(--lblue);line-height:1.7;">
+          🔒 <strong style="color:var(--txt);">This election is a secret ballot.</strong> This panel can only show turnout (who voted) and the tallied results — it never stores or shows which candidate any individual voter chose.
+        </div>
+      </div>
+
+      <!-- CANDIDATES -->
+      <div class="adm-sec" id="cand-adm">
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Photo</th><th>Name</th><th>Position</th><th>Ballot No.</th><th>Order</th><th>Actions</th></tr></thead>
+            <tbody id="ctbl"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="adm-sec" id="set-adm">
+        <div class="set-wrap">
+          <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;">
+            <h3 style="font-family:Montserrat;font-size:1.1rem;font-weight:800;margin-bottom:6px;">🗳️ Election Settings</h3>
+            <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">Control when the public voting link (vote.html) is open.</p>
+
+            <div class="chk-wrap" style="margin-bottom:16px;">
+              <input type="checkbox" id="es-active">
+              <label for="es-active">✅ Voting is Currently Open</label>
+            </div>
+
+            <div class="fg"><label>Election Title *</label><input class="fi" id="es-title" placeholder="e.g. TVBD Committee Election 2026"></div>
+            <div class="fg"><label>Description (shown to voters)</label><textarea class="fi" id="es-desc" placeholder="Short instructions for voters..."></textarea></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="fg"><label>Voting Start (optional)</label><input class="fi" type="datetime-local" id="es-start"></div>
+              <div class="fg"><label>Voting End (optional)</label><input class="fi" type="datetime-local" id="es-end"></div>
+            </div>
+            <p style="font-size:.72rem;color:var(--muted);margin:-8px 0 14px;">Leave blank to keep voting open any time it's active. If set, voting auto-opens/closes at these times.</p>
+
+            <button class="fs-btn" style="width:100%;" onclick="saveElectionSettings()">💾 Save Settings</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="adm-sec" id="res-adm">
+        <div id="res-content"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CANDIDATE FORM -->
+<div class="fm-ov" id="cfm" onclick="if(event.target===this)closeFM('cfm')">
+  <div class="fm">
+    <div class="fm-head">
+      <h3 id="cfm-title">Add Candidate</h3>
+      <button onclick="closeFM('cfm')">✕</button>
+    </div>
+    <input type="hidden" id="cf-eid">
+    <div class="fg"><label>👤 Name *</label><input class="fi" id="cf-name" placeholder="e.g. Abdur Rahman"></div>
+    <div class="fg">
+      <label>🏷️ Position *</label>
+      <input class="fi" id="cf-position" list="cf-pos-list" placeholder="e.g. President, Vice President...">
+      <datalist id="cf-pos-list"></datalist>
+      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">Candidates with the same position are grouped together on the ballot.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="fg"><label>🎫 Ballot No. (optional)</label><input class="fi" id="cf-ballotno" placeholder="e.g. 1"></div>
+      <div class="fg"><label>🔢 Display Order</label><input class="fi" type="number" id="cf-order" min="1" placeholder="1, 2, 3..."></div>
+    </div>
+    <div class="fg"><label>📝 Short Manifesto</label><textarea class="fi" id="cf-manifesto" placeholder="A few lines about this candidate's plans..."></textarea></div>
+    <div class="fg">
+      <label>📸 Photo (Auto-uploads to ImgBB)</label>
+      <input class="fi" id="cf-photo" placeholder="Or paste image URL..." style="margin-bottom:10px;">
+      <div class="up-area" onclick="document.getElementById('cf-file').click()">
+        <div style="font-size:1.6rem;">📷</div>
+        <p style="font-size:.8rem;color:var(--muted);">Tap to upload photo</p>
+        <input type="file" id="cf-file" accept="image/*" style="display:none" onchange="prevCandPhoto(this)">
+      </div>
+      <div class="up-prev" id="cf-prev"></div>
+    </div>
+    <div class="fm-foot">
+      <button class="fc-btn" onclick="closeFM('cfm')">Cancel</button>
+      <button class="fs-btn" onclick="saveCandidate()">Save Candidate</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<script type="module" src="firebase-config.js"></script>
+<script src="data.js"></script>
+
+<script>
+/*===== EC CREDENTIALS — CHANGE THESE BEFORE PUBLISHING ===== */
+const EC_EMAIL = "ec@talentversebangladesh.com";
+const EC_PASS = "Ch@ngeThisEC2026";
+
+function toast(msg, isErr=false){
+  const t=document.getElementById('toast'),ico=document.getElementById('t-ico'),m=document.getElementById('t-msg');
+  ico.textContent = isErr?'❌':'✅'; m.textContent = msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  const err=document.getElementById('lerr');
+  if(!u||!p){ err.textContent="Please enter both email and password!"; err.classList.add('show'); setTimeout(()=>err.classList.remove('show'),3000); return; }
+  if(u===EC_EMAIL && p===EC_PASS){
+    sessionStorage.setItem('tvbd_ec_admin','true');
+    document.getElementById('adm-login').style.display='none';
+    document.getElementById('adm-shell').style.display='flex';
+    initPanel();
+    toast("Welcome, EC! 👋");
+  } else {
+    err.textContent="❌ Incorrect email or password!"; err.classList.add('show'); setTimeout(()=>err.classList.remove('show'),4000);
+  }
+}
+function doLogout(){ sessionStorage.removeItem('tvbd_ec_admin'); window.location.href='index.html'; }
+function checkAuth(){
+  if(sessionStorage.getItem('tvbd_ec_admin')==='true'){
+    document.getElementById('adm-login').style.display='none';
+    document.getElementById('adm-shell').style.display='flex';
+    initPanel();
+  }
+}
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter'){
+    const lu=document.getElementById('lu'), lp=document.getElementById('lp');
+    if(document.activeElement===lu || document.activeElement===lp) doLogin();
+  }
+});
+
+function openSidebar(){ document.getElementById('adm-sb').classList.add('open'); document.getElementById('sb-ov').classList.add('open'); }
+function closeSidebar(){ document.getElementById('adm-sb').classList.remove('open'); document.getElementById('sb-ov').classList.remove('open'); }
+
+function goSec(btn){
+  const secId=btn.getAttribute('data-sec');
+  document.querySelectorAll('.adm-sec').forEach(s=>s.classList.remove('active'));
+  document.getElementById(secId).classList.add('active');
+  document.querySelectorAll('.adm-nb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const titles={dash:'Dashboard',['cand-adm']:'Candidates','set-adm':'Election Settings','res-adm':'Results (EC Only)'};
+  document.getElementById('adm-ptitle').textContent = titles[secId]||secId;
+
+  const actions=document.getElementById('adm-topbar-actions');
+  actions.innerHTML='';
+  if(secId==='cand-adm') actions.innerHTML=`<button class="add-btn" onclick="openCandidateForm()">+ Add Candidate</button>`;
+
+  if(secId==='res-adm') loadAndRenderResults();
+  if(secId==='set-adm') loadElectionSettingsForm();
+  if(window.innerWidth<=700) closeSidebar();
+}
+
+function openFM(id){ document.getElementById(id).classList.add('open'); }
+function closeFM(id){ document.getElementById(id).classList.remove('open'); }
+
+async function initPanel(){
+  await loadElectionCandidates();
+  await loadElectionVoters();
+  renderCandidatesTable();
+  renderDashboard();
+}
+
+function renderDashboard(){
+  const candidates=getElectionCandidates();
+  const voters=getElectionVoters();
+  const positions=new Set(candidates.map(c=>c.position||'—'));
+  document.getElementById('db-stats').innerHTML = `
+    <div class="stat-card"><div class="sl">Total Candidates</div><div class="sv">${candidates.length}</div></div>
+    <div class="stat-card"><div class="sl">Positions</div><div class="sv">${positions.size}</div></div>
+    <div class="stat-card"><div class="sl">Voters (Turnout)</div><div class="sv" style="color:#4ade80;">${voters.length}</div></div>`;
+}
+
+/*===== CANDIDATES =====*/
+function renderCandidatesTable(){
+  const tbody=document.getElementById('ctbl');
+  const data=getElectionCandidates().slice().sort((a,b)=>(a.order||999)-(b.order||999));
+  if(!data.length){ tbody.innerHTML=`<tr class="empty-row"><td colspan="6">No candidates yet.</td></tr>`; return; }
+  tbody.innerHTML='';
+  data.forEach(c=>{
+    tbody.innerHTML += `<tr>
+      <td>${c.photo?`<img src="${c.photo}" class="thumb">`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;background:var(--card2);font-size:.7rem;color:var(--blue-br);font-weight:700;">${(c.name||'NA').substring(0,2).toUpperCase()}</div>`}</td>
+      <td>${c.name}</td><td>${c.position||'—'}</td><td>${c.ballotNo||'—'}</td><td>${c.order||'—'}</td>
+      <td class="tbl-acts"><button class="e-btn" onclick="editCandidate('${c.id}')">Edit</button><button class="d-btn" onclick="deleteCandidateAction('${c.id}')">Delete</button></td></tr>`;
+  });
+}
+
+function populatePositionList(){
+  const list=document.getElementById('cf-pos-list');
+  const positions=[...new Set(getElectionCandidates().map(c=>c.position).filter(Boolean))];
+  list.innerHTML = positions.map(p=>`<option value="${p}">`).join('');
+}
+
+function openCandidateForm(){
+  document.getElementById('cfm-title').textContent="Add Candidate";
+  document.getElementById('cf-eid').value='';
+  ['cf-name','cf-position','cf-ballotno','cf-order','cf-manifesto','cf-photo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cf-prev').innerHTML='';
+  populatePositionList();
+  openFM('cfm');
+}
+function editCandidate(id){
+  const c=getElectionCandidates().find(x=>x.id===id); if(!c) return;
+  document.getElementById('cfm-title').textContent="Edit Candidate";
+  document.getElementById('cf-eid').value=id;
+  document.getElementById('cf-name').value=c.name||'';
+  document.getElementById('cf-position').value=c.position||'';
+  document.getElementById('cf-ballotno').value=c.ballotNo||'';
+  document.getElementById('cf-order').value=c.order||'';
+  document.getElementById('cf-manifesto').value=c.manifesto||'';
+  document.getElementById('cf-photo').value=c.photo||'';
+  document.getElementById('cf-prev').innerHTML=c.photo?`<img src="${c.photo}">`:'';
+  populatePositionList();
+  openFM('cfm');
+}
+async function saveCandidate(){
+  const name=document.getElementById('cf-name').value.trim();
+  const position=document.getElementById('cf-position').value.trim();
+  if(!name) return toast("Name is required!", true);
+  if(!position) return toast("Position is required!", true);
+  const c={
+    name, position,
+    ballotNo: document.getElementById('cf-ballotno').value.trim(),
+    order: parseInt(document.getElementById('cf-order').value)||999,
+    manifesto: document.getElementById('cf-manifesto').value.trim(),
+    photo: document.getElementById('cf-photo').value.trim()
+  };
+  const eid=document.getElementById('cf-eid').value;
+  const ok = eid==='' ? await addElectionCandidate(c) : await updateElectionCandidate(eid,c);
+  if(ok){ renderCandidatesTable(); renderDashboard(); closeFM('cfm'); toast("Candidate saved! ✅"); }
+  else toast("Save failed!", true);
+}
+async function deleteCandidateAction(id){
+  if(!confirm("Delete this candidate?")) return;
+  if(await deleteElectionCandidate(id)){ renderCandidatesTable(); renderDashboard(); toast("Deleted."); }
+}
+async function prevCandPhoto(input){
+  if(!input.files?.[0]) return;
+  const prev=document.getElementById('cf-prev');
+  prev.innerHTML=`<div style="padding:10px;color:var(--muted)">⏳ Uploading...</div>`;
+  const result=await uploadToImgBB(input.files[0]);
+  if(result.success){
+    document.getElementById('cf-photo').value=result.url;
+    prev.innerHTML=`<img src="${result.url}">`;
+    toast("Uploaded! ✅");
+  } else { prev.innerHTML=`<div style="color:#f87171">❌ Failed</div>`; toast("Failed!", true); }
+}
+
+/*===== SETTINGS =====*/
+function tsToLocal(ts){
+  if(!ts) return '';
+  const d=new Date(ts), p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function localToTs(v){ if(!v) return null; const t=new Date(v).getTime(); return isNaN(t)?null:t; }
+
+async function loadElectionSettingsForm(){
+  const s=await getElectionSettings();
+  document.getElementById('es-active').checked = s.active||false;
+  document.getElementById('es-title').value = s.title||'';
+  document.getElementById('es-desc').value = s.description||'';
+  document.getElementById('es-start').value = tsToLocal(s.startAt);
+  document.getElementById('es-end').value = tsToLocal(s.endAt);
+}
+async function saveElectionSettings(){
+  const title=document.getElementById('es-title').value.trim();
+  if(!title) return toast("Title is required!", true);
+  const data={
+    active: document.getElementById('es-active').checked,
+    title,
+    description: document.getElementById('es-desc').value.trim(),
+    startAt: localToTs(document.getElementById('es-start').value),
+    endAt: localToTs(document.getElementById('es-end').value)
+  };
+  if(data.startAt && data.endAt && data.endAt<=data.startAt) return toast("End time must be after start time!", true);
+  if(await updateElectionSettings(data)) toast("Settings saved! ✅");
+  else toast("Failed!", true);
+}
+
+/*===== RESULTS =====*/
+async function loadAndRenderResults(){
+  document.getElementById('res-content').innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;">⏳ Loading results...</p>`;
+  await Promise.all([loadElectionVotes(), loadElectionCandidates(), loadElectionVoters()]);
+  renderResults();
+}
+function renderResults(){
+  const votes=getElectionVotes();
+  const candidates=getElectionCandidates();
+  const voters=getElectionVoters();
+  const container=document.getElementById('res-content');
+
+  if(!votes.length){
+    container.innerHTML = `<div style="text-align:center;padding:50px;color:var(--muted);"><div style="font-size:3rem;margin-bottom:12px;">📭</div><p>No votes cast yet.</p></div>`;
+    return;
+  }
+
+  const positions=[...new Set(candidates.map(c=>c.position).filter(Boolean))];
+  // Also include positions that only exist in votes (candidate later deleted)
+  votes.forEach(v=>{ if(v.position && !positions.includes(v.position)) positions.push(v.position); });
+
+  let html = `<div class="stats-row"><div class="stat-card"><div class="sl">Total Voters</div><div class="sv" style="color:#4ade80;">${voters.length}</div></div><div class="stat-card"><div class="sl">Total Ballots Cast (all positions)</div><div class="sv">${votes.length}</div></div></div>`;
+
+  positions.forEach(pos=>{
+    const posVotes = votes.filter(v=>v.position===pos);
+    const total = posVotes.length || 1;
+    const posCandidates = candidates.filter(c=>c.position===pos).sort((a,b)=>(a.order||999)-(b.order||999));
+    const tally = posCandidates.map(c=>({
+      c, count: posVotes.filter(v=>v.candidateId===c.id).length
+    })).sort((a,b)=>b.count-a.count);
+    const abstainCount = posVotes.filter(v=>v.abstain).length;
+
+    html += `<div class="res-group"><div class="res-pos">🏷️ ${pos}</div>`;
+    tally.forEach(({c,count})=>{
+      const pct = Math.round((count/total)*100);
+      html += `<div class="res-row">
+        ${c.photo?`<img src="${c.photo}">`:''}
+        <span class="res-name">${c.name}</span>
+        <div class="res-bar-wrap"><div class="res-bar" style="width:${pct}%;"></div></div>
+        <span class="res-count">${count} (${pct}%)</span>
+      </div>`;
+    });
+    if(abstainCount>0){
+      const pct = Math.round((abstainCount/total)*100);
+      html += `<div class="res-row" style="opacity:.7;">
+        <span class="res-name">Abstain</span>
+        <div class="res-bar-wrap"><div class="res-bar" style="width:${pct}%;background:var(--muted);"></div></div>
+        <span class="res-count">${abstainCount} (${pct}%)</span>
+      </div>`;
+    }
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+document.addEventListener('DOMContentLoaded', checkAuth);
+</script>
+</body>
+</html>

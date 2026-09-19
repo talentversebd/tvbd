@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vote — TalentVerse Bangladesh</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Cast your vote in the TalentVerse Bangladesh committee election.">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.vt-container{max-width:720px;margin:0 auto;padding:0 16px;}
+.vt-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:32px;box-shadow:var(--glow);}
+@media(max-width:500px){.vt-card{padding:22px 18px;}}
+.vt-card h2{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:8px;}
+.vt-card h2 span{color:var(--blue-br);}
+.vt-fg{margin-bottom:15px;}
+.vt-fg label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:6px;}
+.vt-fi{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:11px 14px;border-radius:8px;font-size:.9rem;outline:none;transition:border-color .2s;}
+.vt-fi:focus{border-color:var(--blue-br);}
+.vt-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;text-decoration:none;padding:14px 20px;border-radius:9px;font-weight:700;font-size:.92rem;border:none;cursor:pointer;transition:opacity .2s;}
+.vt-btn:hover{opacity:.88;}
+.vt-btn:disabled{opacity:.5;cursor:not-allowed;}
+.vt-btn.secondary{background:var(--card2);color:var(--txt);border:1px solid var(--bdr);}
+.vt-empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.vt-empty .ei{font-size:3.5rem;margin-bottom:14px;}
+
+.vt-hidden{display:none;}
+
+.vt-pos-group{margin-bottom:26px;}
+.vt-pos-title{font-family:Montserrat;font-weight:800;font-size:1.05rem;margin-bottom:4px;color:var(--blue-br);}
+.vt-pos-hint{font-size:.78rem;color:var(--muted);margin-bottom:14px;}
+.vt-opt{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--bdr);border-radius:11px;padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:border-color .15s,background .15s;}
+.vt-opt:hover{border-color:var(--bdr2);}
+.vt-opt.selected{border-color:var(--blue-br);background:rgba(37,99,235,.1);}
+.vt-opt input{accent-color:var(--blue-br);width:18px;height:18px;flex-shrink:0;}
+.vt-opt img{width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+.vt-opt-ph{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.8rem;flex-shrink:0;}
+.vt-opt-body{flex:1;}
+.vt-opt-name{font-weight:700;font-size:.9rem;}
+.vt-opt-manifesto{font-size:.76rem;color:var(--muted);margin-top:2px;line-height:1.4;}
+.vt-opt.abstain{border-style:dashed;}
+
+.vt-confirm-item{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.vt-confirm-pos{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.vt-confirm-choice{font-weight:700;font-size:.92rem;}
+
+.vt-result{text-align:center;padding:20px;}
+.vt-result .ri{font-size:4rem;margin-bottom:16px;}
+.vt-result h2{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;}
+.vt-sched{font-size:.78rem;color:var(--lblue);margin-top:10px;}
+</style>
+</head>
+<body>
+
+<!-- No shared site header/footer on purpose — this page is link-only and
+     is not linked from the site navigation. -->
+<div class="page-header">
+  <span class="eyebrow">🗳️ Secret Ballot</span>
+  <h1 id="vt-page-title">Committee <span>Election</span></h1>
+  <p id="vt-page-desc">Cast your vote below. Your vote is completely anonymous.</p>
+</div>
+
+<section class="section">
+  <div class="vt-container">
+
+    <!-- VIEW: Loading -->
+    <div id="vt-view-loading" style="text-align:center;padding:60px 20px;color:var(--muted);">⏳ Loading...</div>
+
+    <!-- VIEW: Closed / not available -->
+    <div id="vt-view-closed" class="vt-hidden">
+      <div class="vt-card vt-empty">
+        <div class="ei" id="vt-closed-icon">🔒</div>
+        <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:8px;color:var(--txt);" id="vt-closed-title">Voting Not Open</h3>
+        <p id="vt-closed-msg">Voting is not currently open. Please check back later.</p>
+      </div>
+    </div>
+
+    <!-- VIEW: Entry form -->
+    <div id="vt-view-entry" class="vt-hidden">
+      <div class="vt-card">
+        <h2 id="vt-e-title">Committee <span>Election</span></h2>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px;" id="vt-e-desc"></p>
+
+        <div class="vt-fg"><label>Full Name *</label><input class="vt-fi" id="vt-in-name" placeholder="e.g. Abdur Rahman"></div>
+        <div class="vt-fg"><label>Email *</label><input class="vt-fi" type="email" id="vt-in-email" placeholder="you@email.com"></div>
+        <div class="vt-fg"><label>Phone *</label><input class="vt-fi" id="vt-in-phone" placeholder="01XXXXXXXXX"></div>
+        <p style="font-size:.75rem;color:var(--muted);margin-bottom:16px;">💡 Your name/email/phone are only used to make sure each person votes once. They are never linked to your ballot choices — the vote itself is completely anonymous.</p>
+
+        <button class="vt-btn" onclick="startVoting()">Continue to Ballot →</button>
+      </div>
+    </div>
+
+    <!-- VIEW: Ballot -->
+    <div id="vt-view-ballot" class="vt-hidden">
+      <div class="vt-card">
+        <h2 style="margin-bottom:4px;">Cast Your <span>Vote</span></h2>
+        <p style="color:var(--muted);font-size:.85rem;margin-bottom:22px;">Select one option for each position below.</p>
+        <div id="vt-positions-container"></div>
+        <button class="vt-btn" id="vt-review-btn" onclick="reviewBallot()" disabled>Review My Ballot →</button>
+      </div>
+    </div>
+
+    <!-- VIEW: Confirm -->
+    <div id="vt-view-confirm" class="vt-hidden">
+      <div class="vt-card">
+        <h2 style="margin-bottom:4px;">Confirm Your <span>Ballot</span></h2>
+        <p style="color:var(--muted);font-size:.85rem;margin-bottom:20px;">Please review carefully — once submitted, your vote cannot be changed.</p>
+        <div id="vt-confirm-list"></div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button class="vt-btn secondary" onclick="backToBallot()">← Edit</button>
+          <button class="vt-btn" id="vt-submit-btn" onclick="finalSubmitVote()">✅ Submit My Vote</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: Result -->
+    <div id="vt-view-result" class="vt-hidden">
+      <div class="vt-card vt-result" id="vt-result-content"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<script type="module" src="firebase-config.js"></script>
+<script src="data.js"></script>
+
+<script>
+function toast(msg, isErr=false){
+  const t=document.getElementById('toast'),ico=document.getElementById('t-ico'),m=document.getElementById('t-msg');
+  ico.textContent = isErr?'❌':'✅'; m.textContent = msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+let vtSettings=null, vtCandidates=[], vtPositions=[], vtSelections={}, vtVoter=null;
+
+function vtWaitForFirebase(){
+  return new Promise(resolve=>{
+    const check=setInterval(()=>{
+      if(window.firebaseDB && window.firebaseFunctions){ clearInterval(check); resolve(); }
+    },100);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await vtWaitForFirebase();
+  vtSettings = await getElectionSettings();
+  vtCandidates = await loadElectionCandidates();
+
+  document.getElementById('vt-view-loading').classList.add('vt-hidden');
+
+  if(vtSettings.title){
+    document.getElementById('vt-page-title').innerHTML = `${vtSettings.title.split(' ')[0]||''} <span>${vtSettings.title.split(' ').slice(1).join(' ')}</span>`;
+    document.getElementById('vt-page-desc').textContent = vtSettings.description || 'Cast your vote below. Your vote is completely anonymous.';
+    document.getElementById('vt-e-title').innerHTML = vtSettings.title;
+  }
+  if(vtSettings.description) document.getElementById('vt-e-desc').textContent = vtSettings.description;
+
+  const avail = getElectionAvailability(vtSettings);
+  if(!avail.open){
+    showClosed(avail);
+    return;
+  }
+
+  if(!vtCandidates.length){
+    showClosed({ reason:'no_candidates' });
+    return;
+  }
+
+  document.getElementById('vt-view-entry').classList.remove('vt-hidden');
+});
+
+function showClosed(avail){
+  document.getElementById('vt-view-closed').classList.remove('vt-hidden');
+  const fmt = ts => new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const icon = document.getElementById('vt-closed-icon');
+  const title = document.getElementById('vt-closed-title');
+  const msg = document.getElementById('vt-closed-msg');
+  if(avail.reason==='not_started'){
+    icon.textContent='⏳'; title.textContent='Voting Has Not Started Yet';
+    msg.textContent = `Voting opens on ${fmt(avail.at)}. Please come back then.`;
+  } else if(avail.reason==='ended'){
+    icon.textContent='⌛'; title.textContent='Voting Has Closed';
+    msg.textContent = `Voting closed on ${fmt(avail.at)} and is no longer accepting ballots.`;
+  } else if(avail.reason==='no_candidates'){
+    icon.textContent='🗳️'; title.textContent='Not Ready Yet';
+    msg.textContent = `The election has not been set up with candidates yet.`;
+  } else {
+    icon.textContent='🔒'; title.textContent='Voting Not Open';
+    msg.textContent = `Voting is not currently open. Please check back later.`;
+  }
+}
+
+function vtGroupCandidates(){
+  const groups={}, order={};
+  vtCandidates.forEach(c=>{
+    const pos=(c.position||'Other').trim()||'Other';
+    if(!groups[pos]){ groups[pos]=[]; order[pos]=c.order||999; }
+    groups[pos].push(c);
+    order[pos]=Math.min(order[pos], c.order||999);
+  });
+  Object.values(groups).forEach(arr=>arr.sort((a,b)=>(a.order||999)-(b.order||999)));
+  vtPositions = Object.keys(groups).sort((a,b)=>order[a]-order[b]).map(pos=>({ position:pos, candidates:groups[pos] }));
+}
+
+async function startVoting(){
+  const name=document.getElementById('vt-in-name').value.trim();
+  const email=document.getElementById('vt-in-email').value.trim();
+  const phone=document.getElementById('vt-in-phone').value.trim();
+  if(!name || !email || !phone) return toast("Name, email and phone are required!", true);
+
+  const btn=document.querySelector('#vt-view-entry .vt-btn');
+  btn.disabled=true; btn.textContent='Checking...';
+  const already = await hasAlreadyVoted(email);
+  btn.disabled=false; btn.textContent='Continue to Ballot →';
+
+  if(already){
+    showClosed({ reason:'already' });
+    document.getElementById('vt-closed-icon').textContent='✅';
+    document.getElementById('vt-closed-title').textContent='Already Voted';
+    document.getElementById('vt-closed-msg').textContent='You have already cast your vote in this election. Each person can only vote once.';
+    return;
+  }
+
+  vtVoter = { name, email, phone };
+  vtGroupCandidates();
+  renderBallot();
+  document.getElementById('vt-view-entry').classList.add('vt-hidden');
+  document.getElementById('vt-view-ballot').classList.remove('vt-hidden');
+}
+
+function renderBallot(){
+  const container=document.getElementById('vt-positions-container');
+  vtSelections={};
+  container.innerHTML = vtPositions.map(group => `
+    <div class="vt-pos-group">
+      <div class="vt-pos-title">🏷️ ${group.position}</div>
+      <div class="vt-pos-hint">Choose one</div>
+      ${group.candidates.map(c => `
+        <label class="vt-opt" id="vt-opt-${group.position}-${c.id}" onclick="vtSelect('${group.position}','${c.id}')">
+          <input type="radio" name="vt-${group.position}" value="${c.id}">
+          ${c.photo ? `<img src="${c.photo}">` : `<div class="vt-opt-ph">${(c.name||'NA').substring(0,2).toUpperCase()}</div>`}
+          <div class="vt-opt-body">
+            <div class="vt-opt-name">${c.name}${c.ballotNo?` <span style="color:var(--muted);font-weight:400;">#${c.ballotNo}</span>`:''}</div>
+            ${c.manifesto ? `<div class="vt-opt-manifesto">${c.manifesto}</div>` : ''}
+          </div>
+        </label>`).join('')}
+      <label class="vt-opt abstain" id="vt-opt-${group.position}-abstain" onclick="vtSelect('${group.position}','')">
+        <input type="radio" name="vt-${group.position}" value="">
+        <div class="vt-opt-body"><div class="vt-opt-name">Abstain (no vote for this position)</div></div>
+      </label>
+    </div>`).join('');
+  updateReviewBtn();
+}
+
+function vtSelect(position, candidateId){
+  vtSelections[position]=candidateId;
+  document.querySelectorAll(`[id^="vt-opt-${position}-"]`).forEach(el=>el.classList.remove('selected'));
+  const id = candidateId ? `vt-opt-${position}-${candidateId}` : `vt-opt-${position}-abstain`;
+  document.getElementById(id).classList.add('selected');
+  document.querySelector(`input[name="vt-${position}"][value="${candidateId}"]`).checked = true;
+  updateReviewBtn();
+}
+
+function updateReviewBtn(){
+  const allChosen = vtPositions.every(g => vtSelections.hasOwnProperty(g.position));
+  document.getElementById('vt-review-btn').disabled = !allChosen;
+}
+
+function reviewBallot(){
+  const list=document.getElementById('vt-confirm-list');
+  list.innerHTML = vtPositions.map(g=>{
+    const cid=vtSelections[g.position];
+    const cand = cid ? g.candidates.find(c=>c.id===cid) : null;
+    return `<div class="vt-confirm-item">
+      <div><div class="vt-confirm-pos">${g.position}</div><div class="vt-confirm-choice">${cand ? cand.name : 'Abstain'}</div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('vt-view-ballot').classList.add('vt-hidden');
+  document.getElementById('vt-view-confirm').classList.remove('vt-hidden');
+}
+
+function backToBallot(){
+  document.getElementById('vt-view-confirm').classList.add('vt-hidden');
+  document.getElementById('vt-view-ballot').classList.remove('vt-hidden');
+}
+
+async function finalSubmitVote(){
+  const btn=document.getElementById('vt-submit-btn');
+  btn.disabled=true; btn.textContent='Submitting...';
+
+  const selections = vtPositions.map(g => ({ position: g.position, candidateId: vtSelections[g.position] || null }));
+  const result = await submitVote(vtVoter, selections);
+
+  document.getElementById('vt-view-confirm').classList.add('vt-hidden');
+  document.getElementById('vt-view-result').classList.remove('vt-hidden');
+  const box=document.getElementById('vt-result-content');
+
+  if(!result.success){
+    if(result.alreadyVoted){
+      box.innerHTML = `<div class="ri">✅</div><h2>Already Voted</h2><p style="color:var(--muted);">You have already cast your vote in this election.</p>`;
+    } else {
+      box.innerHTML = `<div class="ri">⚠️</div><h2>Submission Failed</h2><p style="color:var(--muted);">Something went wrong while submitting your vote. Please try again.</p>`;
+      btn.disabled=false; btn.textContent='✅ Submit My Vote';
+      document.getElementById('vt-view-result').classList.add('vt-hidden');
+      document.getElementById('vt-view-confirm').classList.remove('vt-hidden');
+    }
+    return;
+  }
+
+  box.innerHTML = `<div class="ri">🎉</div><h2>Thank You for Voting!</h2><p style="color:var(--muted);">Your ballot has been securely and anonymously recorded. Results will be announced by the Election Committee once voting closes.</p>`;
+}
+</script>
+</body>
+</html>

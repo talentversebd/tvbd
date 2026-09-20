@@ -939,10 +939,10 @@ async function getElectionSettings() {
   try {
     const snap = await getDoc(doc(db, "settings", "election"));
     if(snap.exists()) return snap.data();
-    return { active:false, title:"Committee Election", description:"", startAt:null, endAt:null };
+    return { active:false, title:"Committee Election", description:"", startAt:null, endAt:null, electionId:null };
   } catch(err) {
     console.error("Get election settings error:", err);
-    return { active:false, title:"Committee Election", description:"", startAt:null, endAt:null };
+    return { active:false, title:"Committee Election", description:"", startAt:null, endAt:null, electionId:null };
   }
 }
 
@@ -969,23 +969,23 @@ function getElectionAvailability(settings) {
 }
 
 /*----- Voter de-duplication (attendance only, never tied to a choice) -----*/
-function evMakeVoterId(email) {
+function evMakeVoterId(electionId, email) {
   const clean = (email || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '') || 'noemail';
-  return clean;
+  return `${electionId || 'default'}__${clean}`;
 }
-function hasLocalVoteAttempt() {
-  try { return !!localStorage.getItem('tvbd_election_voted'); } catch(e) { return false; }
+function hasLocalVoteAttempt(electionId) {
+  try { return !!localStorage.getItem('tvbd_election_voted_' + (electionId || 'default')); } catch(e) { return false; }
 }
-function markLocalVoteAttempt() {
-  try { localStorage.setItem('tvbd_election_voted', String(Date.now())); } catch(e) {}
+function markLocalVoteAttempt(electionId) {
+  try { localStorage.setItem('tvbd_election_voted_' + (electionId || 'default'), String(Date.now())); } catch(e) {}
 }
-async function hasAlreadyVoted(email) {
-  if(hasLocalVoteAttempt()) return true;
+async function hasAlreadyVoted(electionId, email) {
+  if(hasLocalVoteAttempt(electionId)) return true;
   await waitForFirebase();
   const { doc, getDoc } = window.firebaseFunctions;
   const db = window.firebaseDB;
   try {
-    const id = evMakeVoterId(email);
+    const id = evMakeVoterId(electionId, email);
     const d = await getDoc(doc(db, "election_voters", id));
     return d.exists();
   } catch(err) {
@@ -999,20 +999,21 @@ async function hasAlreadyVoted(email) {
 // Writes the anonymous vote documents FIRST (carrying no voter info at
 // all), then a separate attendance record (carrying no candidate choice)
 // so the two can never be joined back together.
-async function submitVote(voter, selections) {
+async function submitVote(electionId, voter, selections) {
   await waitForFirebase();
   const { doc, getDoc, setDoc, collection, addDoc } = window.firebaseFunctions;
   const db = window.firebaseDB;
   try {
-    const voterId = evMakeVoterId(voter.email);
+    const voterId = evMakeVoterId(electionId, voter.email);
     const existing = await getDoc(doc(db, "election_voters", voterId)).catch(() => null);
     if(existing && existing.exists()) {
-      markLocalVoteAttempt();
+      markLocalVoteAttempt(electionId);
       return { success:false, alreadyVoted:true, error:"You have already voted." };
     }
 
     for(const sel of selections) {
       await addDoc(collection(db, "election_votes"), {
+        electionId: electionId || 'default',
         position: sel.position,
         candidateId: sel.candidateId || null,
         abstain: !sel.candidateId,
@@ -1021,10 +1022,11 @@ async function submitVote(voter, selections) {
     }
 
     await setDoc(doc(db, "election_voters", voterId), {
+      electionId: electionId || 'default',
       name: voter.name, email: voter.email, phone: voter.phone, votedAt: Date.now()
     });
 
-    markLocalVoteAttempt();
+    markLocalVoteAttempt(electionId);
     return { success:true };
   } catch(err) {
     console.error("Submit vote error:", err);

@@ -247,13 +247,22 @@ textarea.fi{min-height:80px;resize:vertical}
 <script>
 /*===== EC CREDENTIALS — CHANGE THESE BEFORE PUBLISHING ===== */
 const EC_EMAIL = "ec@talentversebangladesh.com";
-const EC_PASS = "TVBD2026ec";
+const EC_PASS = "TVBD@EC2026";
 
 function toast(msg, isErr=false){
   const t=document.getElementById('toast'),ico=document.getElementById('t-ico'),m=document.getElementById('t-msg');
   ico.textContent = isErr?'❌':'✅'; m.textContent = msg;
-  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),5000);
 }
+
+// Surface any otherwise-silent JS error as a toast — mobile Chrome has no
+// easy console access, so this is the only way to see what's failing.
+window.addEventListener('error', e => {
+  toast('JS Error: ' + e.message, true);
+});
+window.addEventListener('unhandledrejection', e => {
+  toast('Error: ' + (e.reason?.message || e.reason || 'unknown'), true);
+});
 
 function doLogin(){
   const u=document.getElementById('lu').value.trim();
@@ -418,18 +427,24 @@ async function loadElectionSettingsForm(){
   document.getElementById('es-end').value = tsToLocal(s.endAt);
 }
 async function saveElectionSettings(){
-  const title=document.getElementById('es-title').value.trim();
-  if(!title) return toast("Title is required!", true);
-  const data={
-    active: document.getElementById('es-active').checked,
-    title,
-    description: document.getElementById('es-desc').value.trim(),
-    startAt: localToTs(document.getElementById('es-start').value),
-    endAt: localToTs(document.getElementById('es-end').value)
-  };
-  if(data.startAt && data.endAt && data.endAt<=data.startAt) return toast("End time must be after start time!", true);
-  if(await updateElectionSettings(data)) toast("Settings saved! ✅");
-  else toast("Failed!", true);
+  try {
+    const title=document.getElementById('es-title').value.trim();
+    if(!title) return toast("Title is required!", true);
+    const data={
+      active: document.getElementById('es-active').checked,
+      title,
+      description: document.getElementById('es-desc').value.trim(),
+      startAt: localToTs(document.getElementById('es-start').value),
+      endAt: localToTs(document.getElementById('es-end').value)
+    };
+    if(data.startAt && data.endAt && data.endAt<=data.startAt) return toast("End time must be after start time!", true);
+    const ok = await updateElectionSettings(data);
+    if(ok) toast("Settings saved! ✅");
+    else toast("Failed to save — check Firestore rules for 'settings' collection.", true);
+  } catch(err) {
+    console.error(err);
+    toast("Error: " + err.message, true);
+  }
 }
 
 /*===== RESULTS =====*/

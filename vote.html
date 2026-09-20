@@ -129,7 +129,7 @@
 </div>
 
 <script type="module" src="firebase-config.js"></script>
-<script src="data.js?v=2"></script>
+<script src="data.js?v=3"></script>
 
 <script>
 function toast(msg, isErr=false){
@@ -217,7 +217,7 @@ async function startVoting(){
 
   const btn=document.querySelector('#vt-view-entry .vt-btn');
   btn.disabled=true; btn.textContent='Checking...';
-  const already = await hasAlreadyVoted(email);
+  const already = await hasAlreadyVoted(vtSettings.electionId, email);
   btn.disabled=false; btn.textContent='Continue to Ballot →';
 
   if(already){
@@ -296,7 +296,7 @@ async function finalSubmitVote(){
   btn.disabled=true; btn.textContent='Submitting...';
 
   const selections = vtPositions.map(g => ({ position: g.position, candidateId: vtSelections[g.position] || null }));
-  const result = await submitVote(vtVoter, selections);
+  const result = await submitVote(vtSettings.electionId, vtVoter, selections);
 
   document.getElementById('vt-view-confirm').classList.add('vt-hidden');
   document.getElementById('vt-view-result').classList.remove('vt-hidden');

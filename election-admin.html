@@ -200,6 +200,15 @@ textarea.fi{min-height:80px;resize:vertical}
 
             <button class="fs-btn" style="width:100%;" onclick="saveElectionSettings()">💾 Save Settings</button>
           </div>
+
+          <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-top:20px;">
+            <h3 style="font-family:Montserrat;font-size:1rem;font-weight:800;margin-bottom:6px;">🔄 Election Rounds</h3>
+            <p style="color:var(--muted);font-size:.83rem;margin-bottom:14px;line-height:1.6;">
+              This election's current round: <strong style="color:var(--txt);" id="es-round-id">—</strong><br>
+              Running a brand new election later (e.g. next year, or a different vote)? Starting a new round lets <strong style="color:var(--txt);">everyone vote again</strong> — including people who already voted this round. Nothing is deleted; past voter lists and results stay saved under their own round and simply stop showing here once you start a new one.
+            </p>
+            <button class="fc-btn" style="width:100%;color:#f87171;border-color:rgba(239,68,68,.35);" onclick="startNewElectionRound()">🆕 Start a New Election Round</button>
+          </div>
         </div>
       </div>
 
@@ -256,12 +265,12 @@ textarea.fi{min-height:80px;resize:vertical}
 </div>
 
 <script type="module" src="firebase-config.js"></script>
-<script src="data.js?v=2"></script>
+<script src="data.js?v=3"></script>
 
 <script>
 /*===== EC CREDENTIALS — CHANGE THESE BEFORE PUBLISHING ===== */
 const EC_EMAIL = "ec@talentversebangladesh.com";
-const EC_PASS = "TVBD@EC2026";
+const EC_PASS = "Ch@ngeThisEC2026";
 
 function toast(msg, isErr=false){
   const t=document.getElementById('toast'),ico=document.getElementById('t-ico'),m=document.getElementById('t-msg');
@@ -333,7 +342,11 @@ function goSec(btn){
 function openFM(id){ document.getElementById(id).classList.add('open'); }
 function closeFM(id){ document.getElementById(id).classList.remove('open'); }
 
+let ecElectionId = null;
+
 async function initPanel(){
+  const s = await getElectionSettings();
+  ecElectionId = s.electionId || null;
   await loadElectionCandidates();
   await loadElectionVoters();
   renderCandidatesTable();
@@ -342,12 +355,12 @@ async function initPanel(){
 
 function renderDashboard(){
   const candidates=getElectionCandidates();
-  const voters=getElectionVoters();
+  const voters=getElectionVoters().filter(v => (v.electionId||null) === ecElectionId);
   const positions=new Set(candidates.map(c=>c.position||'—'));
   document.getElementById('db-stats').innerHTML = `
     <div class="stat-card"><div class="sl">Total Candidates</div><div class="sv">${candidates.length}</div></div>
     <div class="stat-card"><div class="sl">Positions</div><div class="sv">${positions.size}</div></div>
-    <div class="stat-card"><div class="sl">Voters (Turnout)</div><div class="sv" style="color:#4ade80;">${voters.length}</div></div>`;
+    <div class="stat-card"><div class="sl">Voters This Round (Turnout)</div><div class="sv" style="color:#4ade80;">${voters.length}</div></div>`;
 }
 
 /*===== CANDIDATES =====*/
@@ -433,8 +446,10 @@ async function loadAndRenderVoters(){
 }
 function renderVotersTable(){
   const tbody=document.getElementById('votbl');
-  const voters=getElectionVoters().slice().sort((a,b)=>(b.votedAt||0)-(a.votedAt||0));
-  if(!voters.length){ tbody.innerHTML=`<tr class="empty-row"><td colspan="4">No one has voted yet.</td></tr>`; return; }
+  const voters=getElectionVoters()
+    .filter(v => (v.electionId||null) === ecElectionId)
+    .sort((a,b)=>(b.votedAt||0)-(a.votedAt||0));
+  if(!voters.length){ tbody.innerHTML=`<tr class="empty-row"><td colspan="4">No one has voted in this round yet.</td></tr>`; return; }
   tbody.innerHTML = voters.map(v => {
     const when = v.votedAt ? new Date(v.votedAt).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
     return `<tr><td>${v.name||'—'}</td><td>${v.email||'—'}</td><td>${v.phone||'—'}</td><td>${when}</td></tr>`;
@@ -451,11 +466,13 @@ function localToTs(v){ if(!v) return null; const t=new Date(v).getTime(); return
 
 async function loadElectionSettingsForm(){
   const s=await getElectionSettings();
+  ecElectionId = s.electionId || null;
   document.getElementById('es-active').checked = s.active||false;
   document.getElementById('es-title').value = s.title||'';
   document.getElementById('es-desc').value = s.description||'';
   document.getElementById('es-start').value = tsToLocal(s.startAt);
   document.getElementById('es-end').value = tsToLocal(s.endAt);
+  document.getElementById('es-round-id').textContent = s.electionId || '(no round started yet)';
 }
 async function saveElectionSettings(){
   try {
@@ -466,12 +483,34 @@ async function saveElectionSettings(){
       title,
       description: document.getElementById('es-desc').value.trim(),
       startAt: localToTs(document.getElementById('es-start').value),
-      endAt: localToTs(document.getElementById('es-end').value)
+      endAt: localToTs(document.getElementById('es-end').value),
+      electionId: ecElectionId
     };
     if(data.startAt && data.endAt && data.endAt<=data.startAt) return toast("End time must be after start time!", true);
     const ok = await updateElectionSettings(data);
     if(ok) toast("Settings saved! ✅");
     else toast("Failed to save — check Firestore rules for 'settings' collection.", true);
+  } catch(err) {
+    console.error(err);
+    toast("Error: " + err.message, true);
+  }
+}
+
+async function startNewElectionRound(){
+  if(!confirm("Start a brand new election round? Everyone (including people who already voted this round) will be able to vote again once you activate it. Past voter lists and results are kept in Firestore but will no longer show here.")) return;
+  try {
+    const s = await getElectionSettings();
+    const newId = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    s.electionId = newId;
+    s.active = false; // force EC to review title/dates and explicitly re-activate
+    const ok = await updateElectionSettings(s);
+    if(ok){
+      toast("New round started! Review the settings below, then activate voting.");
+      loadElectionSettingsForm();
+      renderDashboard();
+    } else {
+      toast("Failed to start new round.", true);
+    }
   } catch(err) {
     console.error(err);
     toast("Error: " + err.message, true);
@@ -485,13 +524,13 @@ async function loadAndRenderResults(){
   renderResults();
 }
 function renderResults(){
-  const votes=getElectionVotes();
+  const votes=getElectionVotes().filter(v => (v.electionId||null) === ecElectionId);
   const candidates=getElectionCandidates();
-  const voters=getElectionVoters();
+  const voters=getElectionVoters().filter(v => (v.electionId||null) === ecElectionId);
   const container=document.getElementById('res-content');
 
   if(!votes.length){
-    container.innerHTML = `<div style="text-align:center;padding:50px;color:var(--muted);"><div style="font-size:3rem;margin-bottom:12px;">📭</div><p>No votes cast yet.</p></div>`;
+    container.innerHTML = `<div style="text-align:center;padding:50px;color:var(--muted);"><div style="font-size:3rem;margin-bottom:12px;">📭</div><p>No votes cast in this round yet.</p></div>`;
     return;
   }
 

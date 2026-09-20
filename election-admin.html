@@ -129,6 +129,7 @@ textarea.fi{min-height:80px;resize:vertical}
       <nav class="adm-nav">
         <button class="adm-nb active" data-sec="dash" onclick="goSec(this)"><span class="ico">📊</span>Dashboard</button>
         <button class="adm-nb" data-sec="cand-adm" onclick="goSec(this)"><span class="ico">🧑‍🤝‍🧑</span>Candidates</button>
+        <button class="adm-nb" data-sec="voters-adm" onclick="goSec(this)"><span class="ico">📋</span>Voters</button>
         <button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
         <button class="adm-nb" data-sec="res-adm" onclick="goSec(this)"><span class="ico">📈</span>Results</button>
       </nav>
@@ -159,6 +160,19 @@ textarea.fi{min-height:80px;resize:vertical}
           <table class="tbl">
             <thead><tr><th>Photo</th><th>Name</th><th>Position</th><th>Ballot No.</th><th>Order</th><th>Actions</th></tr></thead>
             <tbody id="ctbl"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VOTERS -->
+      <div class="adm-sec" id="voters-adm">
+        <div style="background:var(--card2);border:1px dashed var(--bdr2);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:.82rem;color:var(--lblue);">
+          🔒 This is attendance only — who voted. Their choices are never stored here.
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Voted At</th></tr></thead>
+            <tbody id="votbl"></tbody>
           </table>
         </div>
       </div>
@@ -247,7 +261,7 @@ textarea.fi{min-height:80px;resize:vertical}
 <script>
 /*===== EC CREDENTIALS — CHANGE THESE BEFORE PUBLISHING ===== */
 const EC_EMAIL = "ec@talentversebangladesh.com";
-const EC_PASS = "TVBD@EC2026";
+const EC_PASS = "Ch@ngeThisEC2026";
 
 function toast(msg, isErr=false){
   const t=document.getElementById('toast'),ico=document.getElementById('t-ico'),m=document.getElementById('t-msg');
@@ -303,7 +317,7 @@ function goSec(btn){
   document.getElementById(secId).classList.add('active');
   document.querySelectorAll('.adm-nb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const titles={dash:'Dashboard',['cand-adm']:'Candidates','set-adm':'Election Settings','res-adm':'Results (EC Only)'};
+  const titles={dash:'Dashboard',['cand-adm']:'Candidates','voters-adm':'Voters (Attendance)','set-adm':'Election Settings','res-adm':'Results (EC Only)'};
   document.getElementById('adm-ptitle').textContent = titles[secId]||secId;
 
   const actions=document.getElementById('adm-topbar-actions');
@@ -312,6 +326,7 @@ function goSec(btn){
 
   if(secId==='res-adm') loadAndRenderResults();
   if(secId==='set-adm') loadElectionSettingsForm();
+  if(secId==='voters-adm') loadAndRenderVoters();
   if(window.innerWidth<=700) closeSidebar();
 }
 
@@ -408,6 +423,22 @@ async function prevCandPhoto(input){
     prev.innerHTML=`<img src="${result.url}">`;
     toast("Uploaded! ✅");
   } else { prev.innerHTML=`<div style="color:#f87171">❌ Failed</div>`; toast("Failed!", true); }
+}
+
+/*===== VOTERS (attendance only) =====*/
+async function loadAndRenderVoters(){
+  document.getElementById('votbl').innerHTML = `<tr class="empty-row"><td colspan="4">⏳ Loading...</td></tr>`;
+  await loadElectionVoters();
+  renderVotersTable();
+}
+function renderVotersTable(){
+  const tbody=document.getElementById('votbl');
+  const voters=getElectionVoters().slice().sort((a,b)=>(b.votedAt||0)-(a.votedAt||0));
+  if(!voters.length){ tbody.innerHTML=`<tr class="empty-row"><td colspan="4">No one has voted yet.</td></tr>`; return; }
+  tbody.innerHTML = voters.map(v => {
+    const when = v.votedAt ? new Date(v.votedAt).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    return `<tr><td>${v.name||'—'}</td><td>${v.email||'—'}</td><td>${v.phone||'—'}</td><td>${when}</td></tr>`;
+  }).join('');
 }
 
 /*===== SETTINGS =====*/

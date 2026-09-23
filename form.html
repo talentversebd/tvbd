@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Form — TalentVerse Bangladesh</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+body{background:var(--bg);min-height:100vh}
+.pf-wrap{max-width:640px;margin:0 auto;padding:32px 18px 60px;}
+.pf-head{background:var(--card);border:1px solid var(--bdr2);border-top:6px solid var(--blue-br);border-radius:14px;padding:26px 24px;margin-bottom:18px;text-align:center}
+.pf-head img{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#fff;margin-bottom:10px}
+.pf-head h1{font-family:Montserrat;font-weight:800;font-size:1.4rem;margin-bottom:6px}
+.pf-head p{color:var(--muted);font-size:.9rem;white-space:pre-line}
+.pf-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:20px;margin-bottom:14px}
+.pf-q-label{font-size:.95rem;font-weight:700;margin-bottom:4px;}
+.pf-req{color:#f87171;margin-left:3px;}
+.pf-input{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:11px 13px;border-radius:8px;font-size:.9rem;outline:none;margin-top:10px;transition:border-color .2s,box-shadow .2s}
+.pf-input:focus{border-color:var(--blue-br);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+textarea.pf-input{min-height:90px;resize:vertical}
+.pf-opt{display:flex;align-items:center;gap:10px;padding:9px 4px;cursor:pointer}
+.pf-opt input{width:17px;height:17px;accent-color:var(--blue-br);cursor:pointer;flex-shrink:0}
+.pf-opt span{font-size:.88rem}
+.pf-err{color:#f87171;font-size:.76rem;margin-top:6px;display:none}
+.pf-err.show{display:block}
+.pf-submit{width:100%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:14px;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:var(--glow);transition:opacity .2s}
+.pf-submit:hover{opacity:.88}
+.pf-submit:disabled{opacity:.6;cursor:not-allowed}
+.pf-state{text-align:center;padding:70px 20px;color:var(--muted)}
+.pf-state .ei{font-size:2.8rem;margin-bottom:14px}
+.pf-state h2{font-family:Montserrat;font-weight:800;color:var(--txt);margin-bottom:8px;font-size:1.25rem}
+.pf-hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="pf-wrap">
+  <div id="pf-loading" class="pf-state"><div class="ei">⏳</div><p>Loading form…</p></div>
+
+  <div id="pf-notfound" class="pf-state pf-hidden">
+    <div class="ei">⚠️</div>
+    <h2>Form Not Available</h2>
+    <p>This form doesn't exist or isn't accepting responses right now.</p>
+  </div>
+
+  <div id="pf-thanks" class="pf-state pf-hidden">
+    <div class="ei">🎉</div>
+    <h2>Response Submitted!</h2>
+    <p>Thank you — your response has been recorded.</p>
+  </div>
+
+  <div id="pf-form-view" class="pf-hidden">
+    <div class="pf-head">
+      <img src="logo.jpg" alt="Logo">
+      <h1 id="pf-title"></h1>
+      <p id="pf-desc"></p>
+    </div>
+    <div id="pf-fields"></div>
+    <button class="pf-submit" id="pf-submit-btn" onclick="submitCustomForm()">Submit</button>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--bdr2);color:var(--txt);padding:12px 20px;border-radius:10px;font-size:.85rem;display:flex;align-items:center;gap:9px;box-shadow:0 10px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:9999">
+  <span id="t-ico">✅</span><span id="t-msg"></span>
+</div>
+
+<script src="firebase-config.js" type="module"></script>
+<script src="data.js"></script>
+<script>
+function toast(msg, isErr = false) {
+  const t = document.getElementById('toast');
+  const ico = document.getElementById('t-ico');
+  const tmsg = document.getElementById('t-msg');
+  if(!t) return;
+  if(ico) ico.textContent = isErr ? '❌' : '✅';
+  if(tmsg) tmsg.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+let pfForm = null;
+
+function showPfState(id) {
+  ['pf-loading', 'pf-notfound', 'pf-thanks', 'pf-form-view'].forEach(s => {
+    document.getElementById(s).classList.toggle('pf-hidden', s !== id);
+  });
+}
+
+async function initPublicForm() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if(!id) return showPfState('pf-notfound');
+
+  const form = await getCustomFormById(id);
+  if(!form || form.status !== 'published') return showPfState('pf-notfound');
+
+  pfForm = form;
+  document.getElementById('pf-title').textContent = form.title;
+  document.getElementById('pf-desc').textContent = form.description || '';
+  renderPfFields();
+  showPfState('pf-form-view');
+}
+
+function renderPfFields() {
+  const wrap = document.getElementById('pf-fields');
+  wrap.innerHTML = (pfForm.fields || []).map((f, i) => {
+    const req = f.required ? '<span class="pf-req">*</span>' : '';
+    let control = '';
+    if(f.type === 'short') {
+      control = `<input class="pf-input" type="text" id="pf-in-${f.id}" placeholder="Your answer">`;
+    } else if(f.type === 'paragraph') {
+      control = `<textarea class="pf-input" id="pf-in-${f.id}" placeholder="Your answer"></textarea>`;
+    } else if(f.type === 'mcq') {
+      control = (f.options || []).map((opt, oi) => `
+        <label class="pf-opt">
+          <input type="radio" name="pf-in-${f.id}" value="${(opt || '').replace(/"/g, '&quot;')}">
+          <span>${opt}</span>
+        </label>`).join('');
+    } else if(f.type === 'checkbox') {
+      control = (f.options || []).map((opt, oi) => `
+        <label class="pf-opt">
+          <input type="checkbox" data-group="pf-in-${f.id}" value="${(opt || '').replace(/"/g, '&quot;')}">
+          <span>${opt}</span>
+        </label>`).join('');
+    } else if(f.type === 'dropdown') {
+      control = `<select class="pf-input" id="pf-in-${f.id}">
+        <option value="">Select…</option>
+        ${(f.options || []).map(opt => `<option value="${(opt || '').replace(/"/g, '&quot;')}">${opt}</option>`).join('')}
+      </select>`;
+    }
+    return `
+      <div class="pf-card" data-field="${f.id}">
+        <div class="pf-q-label">${i + 1}. ${f.label}${req}</div>
+        ${control}
+        <div class="pf-err" id="pf-err-${f.id}">This question is required.</div>
+      </div>`;
+  }).join('');
+}
+
+function getPfFieldValue(f) {
+  if(f.type === 'short' || f.type === 'paragraph' || f.type === 'dropdown') {
+    return document.getElementById(`pf-in-${f.id}`).value.trim();
+  }
+  if(f.type === 'mcq') {
+    const sel = document.querySelector(`input[name="pf-in-${f.id}"]:checked`);
+    return sel ? sel.value : '';
+  }
+  if(f.type === 'checkbox') {
+    const sels = document.querySelectorAll(`input[data-group="pf-in-${f.id}"]:checked`);
+    return Array.from(sels).map(s => s.value);
+  }
+  return '';
+}
+
+async function submitCustomForm() {
+  const answers = {};
+  let hasError = false;
+
+  (pfForm.fields || []).forEach(f => {
+    const val = getPfFieldValue(f);
+    const isEmpty = Array.isArray(val) ? val.length === 0 : !val;
+    const errEl = document.getElementById(`pf-err-${f.id}`);
+    if(f.required && isEmpty) {
+      errEl.classList.add('show');
+      hasError = true;
+    } else {
+      errEl.classList.remove('show');
+    }
+    answers[f.id] = val;
+  });
+
+  if(hasError) return toast("Please answer all required questions.", true);
+
+  const btn = document.getElementById('pf-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  const result = await addFormResponse({ formId: pfForm.id, answers });
+
+  btn.disabled = false;
+  btn.textContent = 'Submit';
+
+  if(result.success) {
+    showPfState('pf-thanks');
+  } else {
+    toast("Something went wrong. Please try again.", true);
+  }
+}
+
+initPublicForm();
+</script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Form Builder Admin — TalentVerse Bangladesh</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+body{background:var(--bg)}
+#fadm-wrap{position:fixed;inset:0;z-index:4000;display:flex;flex-direction:column;background:var(--bg);overflow-y:auto}
+.adm-login{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(37,99,235,.12) 0%,transparent 70%),var(--bg)}
+.adm-login.hidden{display:none}
+.login-box{background:var(--card);border:1px solid var(--bdr2);border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:var(--glow);text-align:center}
+@media(max-width:440px){.login-box{padding:28px 20px;margin:0 12px}}
+.login-box img{width:68px;height:68px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-br);margin-bottom:16px;background:#fff}
+.login-box h2{font-family:Montserrat;font-size:1.35rem;font-weight:800;margin-bottom:5px}
+.login-box .ls{color:var(--muted);font-size:.85rem;margin-bottom:24px}
+.lbl{display:block;font-size:.77rem;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.05em;text-align:left}
+.inp{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:10px 13px;border-radius:8px;font-size:.9rem;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:14px}
+.inp:focus{border-color:var(--blue-br);box-shadow:0 0 0 3px rgba(59,130,246,.13)}
+.login-err{color:#f87171;font-size:.8rem;margin:-8px 0 10px;display:none;text-align:left}
+.login-err.show{display:block}
+.fadm-shell{display:none;flex-direction:column;flex:1;min-height:100vh}
+.fadm-top{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid var(--bdr);background:var(--card);flex-wrap:wrap;position:sticky;top:0;z-index:10}
+.fadm-top img{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#fff}
+.fadm-top .ttl{font-family:Montserrat;font-weight:800;font-size:1.05rem;flex:1}
+.fadm-top .sub{font-size:.72rem;color:var(--muted);display:block;font-weight:500}
+.fadm-body{flex:1;padding:22px;max-width:1100px;margin:0 auto;width:100%}
+.add-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:.83rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:var(--glow);transition:opacity .2s;white-space:nowrap}
+.add-btn:hover{opacity:.85}
+.lb-btn{background:none;border:1px solid var(--bdr);color:var(--muted);padding:8px 16px;border-radius:7px;cursor:pointer;font-size:.8rem;font-weight:600}
+.lb-btn:hover{background:rgba(239,68,68,.08);color:#f87171;border-color:rgba(239,68,68,.28)}
+.tbl-wrap{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;overflow-x:auto;margin-top:18px}
+.tbl{width:100%;border-collapse:collapse;min-width:560px}
+.tbl th{background:var(--card2);color:var(--muted);font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:11px 14px;text-align:left;border-bottom:1px solid var(--bdr);white-space:nowrap}
+.tbl td{padding:13px 14px;border-bottom:1px solid var(--bdr);font-size:.85rem;color:var(--txt);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(59,130,246,.03)}
+.tbl-acts{display:flex;gap:7px;flex-wrap:wrap}
+.tbl-acts button{background:none;border:1px solid var(--bdr);color:var(--muted);padding:5px 11px;border-radius:5px;cursor:pointer;font-size:.75rem;font-weight:600;transition:background .15s,color .15s;white-space:nowrap}
+.tbl-acts .e-btn:hover{background:rgba(59,130,246,.1);color:var(--blue-br);border-color:var(--bdr2)}
+.tbl-acts .r-btn:hover{background:rgba(34,197,94,.1);color:#4ade80;border-color:rgba(34,197,94,.28)}
+.tbl-acts .l-btn:hover{background:rgba(250,204,21,.1);color:#facc15;border-color:rgba(250,204,21,.28)}
+.tbl-acts .d-btn:hover{background:rgba(239,68,68,.1);color:#f87171;border-color:rgba(239,68,68,.28)}
+.bs{padding:3px 9px;border-radius:4px;font-size:.68rem;font-weight:700;letter-spacing:.05em}
+.bs-active{background:rgba(34,197,94,.14);color:#4ade80;border:1px solid rgba(34,197,94,.22)}
+.bs-past{background:rgba(107,114,128,.14);color:#9ca3af;border:1px solid rgba(107,114,128,.18)}
+.empty-row td{text-align:center;color:var(--muted);padding:32px!important}
+.fm-ov{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.fm-ov.open{opacity:1;pointer-events:all}
+.fm{background:var(--card);border:1px solid var(--bdr2);border-radius:15px;width:100%;max-width:680px;max-height:93vh;overflow-y:auto;transform:translateY(18px);transition:transform .2s;padding:28px}
+@media(max-width:500px){.fm{padding:18px 14px;border-radius:10px}}
+.fm-ov.open .fm{transform:translateY(0)}
+.fm-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.fm-head h3{font-family:Montserrat;font-size:1.1rem;font-weight:800}
+.fm-head button{background:none;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer;line-height:1}
+.fg{margin-bottom:15px}
+.fg label{display:block;font-size:.76rem;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.04em}
+.fi{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:10px 13px;border-radius:8px;font-size:.88rem;outline:none;transition:border-color .2s,box-shadow .2s}
+.fi:focus{border-color:var(--blue-br);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+textarea.fi{min-height:70px;resize:vertical}
+select.fi{cursor:pointer}
+.fm-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+.fc-btn{background:none;border:1px solid var(--bdr);color:var(--muted);padding:10px 20px;border-radius:8px;font-size:.87rem;font-weight:600;cursor:pointer;transition:background .15s}
+.fc-btn:hover{background:rgba(255,255,255,.04);color:var(--txt)}
+.fs-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:10px 26px;border-radius:8px;font-size:.87rem;font-weight:700;cursor:pointer}
+.fs-btn:disabled{opacity:.6;cursor:not-allowed}
+.qf-qrow{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:12px}
+.qf-qrow-head{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.qf-qrow-head select{flex-shrink:0;width:auto}
+.qf-qrow-head .qf-qnum{font-size:.75rem;font-weight:700;color:var(--muted);flex-shrink:0}
+.qf-qrow-head .qf-qdel{margin-left:auto;background:none;border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:6px;padding:5px 10px;font-size:.72rem;cursor:pointer;flex-shrink:0}
+.qf-qrow-head .qf-qdel:hover{background:rgba(239,68,68,.1)}
+.qf-opt-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.qf-opt-row span{width:16px;text-align:center;color:var(--muted);flex-shrink:0;font-size:.8rem}
+.qf-opt-row input[type="text"]{flex:1}
+.qf-opt-del{background:none;border:none;color:#f87171;cursor:pointer;font-size:.9rem;flex-shrink:0}
+.qf-addopt{background:none;border:1px dashed var(--bdr2);color:var(--blue-br);border-radius:6px;padding:5px 12px;font-size:.75rem;cursor:pointer;margin-top:2px}
+.chk-wrap{display:flex;align-items:center;gap:8px;margin-top:8px}
+.chk-wrap input[type="checkbox"]{width:16px;height:16px;cursor:pointer;accent-color:var(--blue-br)}
+.chk-wrap label{margin:0;font-size:.8rem;color:var(--muted);cursor:pointer}
+.share-box{display:flex;gap:8px;align-items:center;background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;margin-top:10px;flex-wrap:wrap}
+.share-box input{flex:1;min-width:160px;background:none;border:none;color:var(--txt);font-size:.8rem;outline:none}
+.pg-empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.pg-empty .ei{font-size:2.6rem;margin-bottom:10px}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--bdr2);color:var(--txt);padding:12px 20px;border-radius:10px;font-size:.85rem;display:flex;align-items:center;gap:9px;box-shadow:0 10px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:9999}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:700px){.fadm-top{padding:12px 14px}.fadm-body{padding:14px}}
+</style>
+</head>
+<body>
+
+<div id="fadm-wrap">
+
+  <!-- LOGIN -->
+  <div class="adm-login" id="fadm-login">
+    <div class="login-box">
+      <img src="logo.jpg" alt="Logo">
+      <h2>Form Builder</h2>
+      <p class="ls">TalentVerse Bangladesh — Staff Only</p>
+      <label class="lbl">EMAIL</label>
+      <input class="inp" type="email" id="flu" placeholder="admin@email.com" onkeydown="if(event.key==='Enter')doFormAdminLogin()">
+      <label class="lbl">PASSWORD</label>
+      <input class="inp" type="password" id="flp" placeholder="Password" onkeydown="if(event.key==='Enter')doFormAdminLogin()">
+      <div class="login-err" id="flerr">Incorrect email or password.</div>
+      <button class="btn-pri" style="width:100%;margin-top:4px;" onclick="doFormAdminLogin()">Login</button>
+    </div>
+  </div>
+
+  <!-- SHELL -->
+  <div class="fadm-shell" id="fadm-shell">
+    <div class="fadm-top">
+      <img src="logo.jpg" alt="Logo">
+      <span class="ttl">Form Builder<span class="sub">Custom forms — separate from the main site admin</span></span>
+      <button class="add-btn" onclick="openFormBuilder()">+ New Form</button>
+      <button class="lb-btn" onclick="doFormAdminLogout()">Logout</button>
+    </div>
+
+    <div class="fadm-body">
+      <!-- LIST VIEW -->
+      <div id="fadm-list-view">
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Title</th><th>Fields</th><th>Status</th><th>Responses</th><th>Actions</th></tr></thead>
+            <tbody id="fadm-tbl"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RESPONSES VIEW -->
+      <div id="fadm-resp-view" style="display:none;">
+        <button class="fc-btn" onclick="closeResponsesView()">← Back to Forms</button>
+        <h3 id="fadm-resp-title" style="font-family:Montserrat;font-weight:800;margin:16px 0 4px;"></h3>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+          <button class="add-btn" onclick="downloadFormResponsesCSV()">⬇️ Download CSV</button>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead id="fadm-resp-thead"></thead>
+            <tbody id="fadm-resp-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORM BUILDER MODAL -->
+<div class="fm-ov" id="ffm">
+  <div class="fm">
+    <div class="fm-head">
+      <h3 id="ffm-title">Create Form</h3>
+      <button onclick="closeFM('ffm')">✕</button>
+    </div>
+    <input type="hidden" id="ff-eid">
+
+    <div class="fg"><label>Form Title *</label><input class="fi" type="text" id="ff-title" placeholder="e.g. Volunteer Sign-up"></div>
+    <div class="fg"><label>Description</label><textarea class="fi" id="ff-desc" placeholder="Shown at the top of the form"></textarea></div>
+    <div class="fg"><label>Status</label>
+      <select class="fi" id="ff-status">
+        <option value="draft">Draft (not accepting responses)</option>
+        <option value="published">Published (open to the public)</option>
+      </select>
+    </div>
+
+    <div id="ff-share-wrap" style="display:none;">
+      <label class="lbl" style="margin-bottom:6px;display:block;">Public Link</label>
+      <div class="share-box">
+        <input type="text" id="ff-share-url" readonly>
+        <button class="fc-btn" style="padding:6px 14px;" onclick="copyFormLink()">Copy</button>
+      </div>
+    </div>
+
+    <label class="lbl" style="margin:18px 0 8px;display:block;">Questions</label>
+    <div id="ff-fields"></div>
+    <button class="qf-addopt" style="margin-top:4px;" onclick="addFormFieldRow()">+ Add Question</button>
+
+    <div class="fm-foot">
+      <button class="fc-btn" onclick="closeFM('ffm')">Cancel</button>
+      <button class="fs-btn" onclick="saveCustomForm()">Save Form</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><span id="t-ico">✅</span><span id="t-msg"></span></div>
+
+<script src="firebase-config.js" type="module"></script>
+<script src="data.js"></script>
+<script src="form-admin.js"></script>
+</body>
+</html>

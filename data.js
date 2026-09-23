@@ -26,6 +26,8 @@ let cache = {
   registrations: [],
   quizzes: [],
   quizSubmissions: [],
+  customForms: [],
+  formResponses: {},
   loaded: false
 };
 
@@ -1066,3 +1068,140 @@ async function loadElectionVoters() {
   }
 }
 function getElectionVoters() { return cache.electionVoters || []; }
+
+/*===== CUSTOM FORMS (Google-Forms-style builder) =====*/
+// Separate from the quiz system — no scoring, no correct answers, just
+// arbitrary fields that collect free-form responses. Used by the standalone
+// form-admin.html panel and filled in by the public via form.html.
+
+async function loadCustomForms() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "custom_forms"), orderBy("createdAt", "desc")));
+    cache.customForms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return cache.customForms;
+  } catch(err) {
+    console.error("Load custom forms error:", err);
+    cache.customForms = cache.customForms || [];
+    return cache.customForms;
+  }
+}
+function getCustomForms() { return cache.customForms || []; }
+function getPublishedCustomForms() { return (cache.customForms || []).filter(f => f.status === 'published'); }
+
+async function getCustomFormById(id) {
+  if(cache.customForms) {
+    const found = cache.customForms.find(f => f.id === id);
+    if(found) return found;
+  }
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const d = await getDoc(doc(db, "custom_forms", id));
+    if(d.exists()) return { id: d.id, ...d.data() };
+    return null;
+  } catch(err) {
+    console.error("Get custom form error:", err);
+    return null;
+  }
+}
+
+async function addCustomForm(form) {
+  await waitForFirebase();
+  const { collection, addDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    form.createdAt = Date.now();
+    const ref = await addDoc(collection(db, "custom_forms"), form);
+    if(!cache.customForms) cache.customForms = [];
+    cache.customForms.unshift({ id: ref.id, ...form });
+    return { success: true, id: ref.id };
+  } catch(err) {
+    console.error("Add custom form error:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+async function updateCustomForm(id, form) {
+  await waitForFirebase();
+  const { doc, updateDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    form.updatedAt = Date.now();
+    await updateDoc(doc(db, "custom_forms", id), form);
+    if(cache.customForms) {
+      const idx = cache.customForms.findIndex(x => x.id === id);
+      if(idx > -1) cache.customForms[idx] = { id, ...cache.customForms[idx], ...form };
+    }
+    return { success: true };
+  } catch(err) {
+    console.error("Update custom form error:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+async function deleteCustomForm(id) {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await deleteDoc(doc(db, "custom_forms", id));
+    if(cache.customForms) cache.customForms = cache.customForms.filter(x => x.id !== id);
+    return true;
+  } catch(err) {
+    console.error("Delete custom form error:", err);
+    return false;
+  }
+}
+
+/*----- FORM RESPONSES -----*/
+async function loadFormResponses(formId) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "form_responses"), where("formId", "==", formId)));
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    list.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+    if(!cache.formResponses) cache.formResponses = {};
+    cache.formResponses[formId] = list;
+    return list;
+  } catch(err) {
+    console.error("Load form responses error:", err);
+    return (cache.formResponses && cache.formResponses[formId]) || [];
+  }
+}
+function getFormResponses(formId) { return (cache.formResponses && cache.formResponses[formId]) || []; }
+
+async function addFormResponse(resp) {
+  await waitForFirebase();
+  const { collection, addDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    resp.submittedAt = Date.now();
+    const ref = await addDoc(collection(db, "form_responses"), resp);
+    return { success: true, id: ref.id };
+  } catch(err) {
+    console.error("Add form response error:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+async function deleteFormResponse(formId, id) {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await deleteDoc(doc(db, "form_responses", id));
+    if(cache.formResponses && cache.formResponses[formId]) {
+      cache.formResponses[formId] = cache.formResponses[formId].filter(x => x.id !== id);
+    }
+    return true;
+  } catch(err) {
+    console.error("Delete form response error:", err);
+    return false;
+  }
+}

@@ -32,6 +32,15 @@ textarea.pf-input{min-height:90px;resize:vertical}
 .pf-state .ei{font-size:2.8rem;margin-bottom:14px}
 .pf-state h2{font-family:Montserrat;font-weight:800;color:var(--txt);margin-bottom:8px;font-size:1.25rem}
 .pf-hidden{display:none}
+.pf-rev-item{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:10px}
+.pf-rev-q{font-size:.85rem;font-weight:700;margin-bottom:6px;color:var(--txt)}
+.pf-rev-badge{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:6px}
+.pf-rev-badge.ok{background:rgba(34,197,94,.14);color:#4ade80}
+.pf-rev-badge.no{background:rgba(239,68,68,.14);color:#f87171}
+.pf-rev-line{font-size:.8rem;color:var(--muted);margin-top:2px}
+.pf-rev-correct{color:#4ade80}
+.pf-timer{position:sticky;top:0;z-index:20;background:var(--card);border:1px solid var(--bdr2);border-radius:10px;padding:10px 16px;margin-bottom:14px;text-align:center;font-weight:700;font-size:.95rem;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.pf-timer.pf-warn{color:#f87171;border-color:rgba(239,68,68,.35)}
 </style>
 </head>
 <body>
@@ -45,13 +54,25 @@ textarea.pf-input{min-height:90px;resize:vertical}
     <p>This form doesn't exist or isn't accepting responses right now.</p>
   </div>
 
+  <div id="pf-closed" class="pf-state pf-hidden">
+    <img id="pf-closed-logo" src="logo.jpg" alt="Logo" style="width:44px;height:44px;border-radius:50%;object-fit:cover;background:#fff;margin-bottom:14px;">
+    <h2 id="pf-closed-title"></h2>
+    <p id="pf-closed-msg"></p>
+  </div>
+
   <div id="pf-thanks" class="pf-state pf-hidden">
     <div class="ei">🎉</div>
     <h2>Response Submitted!</h2>
-    <p>Thank you — your response has been recorded.</p>
+    <p id="pf-thanks-sub">Thank you — your response has been recorded.</p>
+    <div id="pf-score-box" class="pf-hidden" style="margin:18px 0;">
+      <div style="font-family:Montserrat;font-weight:800;font-size:2rem;color:var(--blue-br);" id="pf-score-num"></div>
+      <div style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Your Score</div>
+    </div>
+    <div id="pf-review" style="text-align:left;margin-top:10px;"></div>
   </div>
 
   <div id="pf-form-view" class="pf-hidden">
+    <div id="pf-timer" class="pf-timer pf-hidden">⏱ Time Left: <span id="pf-timer-text">--:--</span></div>
     <div class="pf-head">
       <img src="logo.jpg" alt="Logo">
       <h1 id="pf-title"></h1>
@@ -81,11 +102,19 @@ function toast(msg, isErr = false) {
 }
 
 let pfForm = null;
+let pfTimerInterval = null;
+let pfSecondsLeft = 0;
+let pfAutoSubmitting = false;
 
 function showPfState(id) {
-  ['pf-loading', 'pf-notfound', 'pf-thanks', 'pf-form-view'].forEach(s => {
+  ['pf-loading', 'pf-notfound', 'pf-closed', 'pf-thanks', 'pf-form-view'].forEach(s => {
     document.getElementById(s).classList.toggle('pf-hidden', s !== id);
   });
+}
+
+function fmtPfDate(ts) {
+  if(!ts) return '';
+  return new Date(ts).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
 async function initPublicForm() {
@@ -94,13 +123,49 @@ async function initPublicForm() {
   if(!id) return showPfState('pf-notfound');
 
   const form = await getCustomFormById(id);
-  if(!form || form.status !== 'published') return showPfState('pf-notfound');
+  if(!form) return showPfState('pf-notfound');
+
+  const avail = getFormAvailability(form);
+  if(avail.state !== 'open') {
+    const defaultMsg = avail.state === 'scheduled'
+      ? `This form will open on ${fmtPfDate(avail.startAt)}.`
+      : avail.state === 'closed'
+        ? `This form closed on ${fmtPfDate(avail.endAt)}.`
+        : `This form is not accepting responses right now.`;
+    document.getElementById('pf-closed-title').textContent = form.title;
+    document.getElementById('pf-closed-msg').textContent = form.closedMessage ? form.closedMessage : defaultMsg;
+    return showPfState('pf-closed');
+  }
 
   pfForm = form;
   document.getElementById('pf-title').textContent = form.title;
   document.getElementById('pf-desc').textContent = form.description || '';
   renderPfFields();
   showPfState('pf-form-view');
+
+  if(form.isQuiz && form.duration) {
+    pfSecondsLeft = form.duration * 60;
+    document.getElementById('pf-timer').classList.remove('pf-hidden');
+    updatePfTimerText();
+    pfTimerInterval = setInterval(() => {
+      pfSecondsLeft--;
+      updatePfTimerText();
+      if(pfSecondsLeft <= 0) {
+        clearInterval(pfTimerInterval);
+        toast("Time's up — submitting your answers…", true);
+        pfAutoSubmitting = true;
+        submitCustomForm();
+      }
+    }, 1000);
+  }
+}
+
+function updatePfTimerText() {
+  const m = Math.floor(pfSecondsLeft / 60);
+  const s = pfSecondsLeft % 60;
+  const el = document.getElementById('pf-timer');
+  document.getElementById('pf-timer-text').textContent = `${m}:${String(s).padStart(2, '0')}`;
+  el.classList.toggle('pf-warn', pfSecondsLeft <= 60);
 }
 
 function renderPfFields() {
@@ -154,7 +219,38 @@ function getPfFieldValue(f) {
   return '';
 }
 
+function arraysEqualUnordered(a, b) {
+  if(!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+  const sa = [...a].sort(), sb = [...b].sort();
+  return sa.every((v, i) => v === sb[i]);
+}
+
+function gradePfSubmission(answers) {
+  let score = 0, totalPossible = 0;
+  const review = [];
+  (pfForm.fields || []).forEach(f => {
+    const gradable = ['mcq', 'dropdown', 'checkbox'].includes(f.type);
+    if(!gradable) return;
+    const pts = f.points ?? 1;
+    totalPossible += pts;
+    const given = answers[f.id];
+    let correct;
+    if(f.type === 'checkbox') correct = arraysEqualUnordered(given || [], f.correctAnswers || []);
+    else correct = given === f.correctAnswer;
+    if(correct) score += pts;
+    review.push({
+      label: f.label, correct,
+      given: Array.isArray(given) ? (given.join(', ') || '(no answer)') : (given || '(no answer)'),
+      correctAnswer: Array.isArray(f.correctAnswers) ? f.correctAnswers.join(', ') : f.correctAnswer
+    });
+  });
+  return { score, totalPossible, review };
+}
+
 async function submitCustomForm() {
+  const btnCheck = document.getElementById('pf-submit-btn');
+  if(btnCheck.disabled) return; // already submitting (e.g. timer fired at the same moment)
+
   const answers = {};
   let hasError = false;
 
@@ -162,7 +258,7 @@ async function submitCustomForm() {
     const val = getPfFieldValue(f);
     const isEmpty = Array.isArray(val) ? val.length === 0 : !val;
     const errEl = document.getElementById(`pf-err-${f.id}`);
-    if(f.required && isEmpty) {
+    if(f.required && isEmpty && !pfAutoSubmitting) {
       errEl.classList.add('show');
       hasError = true;
     } else {
@@ -173,16 +269,36 @@ async function submitCustomForm() {
 
   if(hasError) return toast("Please answer all required questions.", true);
 
+  if(pfTimerInterval) clearInterval(pfTimerInterval);
   const btn = document.getElementById('pf-submit-btn');
   btn.disabled = true;
   btn.textContent = 'Submitting…';
 
-  const result = await addFormResponse({ formId: pfForm.id, answers });
+  const resp = { formId: pfForm.id, answers };
+  let grading = null;
+  if(pfForm.isQuiz) {
+    grading = gradePfSubmission(answers);
+    resp.score = grading.score;
+    resp.totalPossible = grading.totalPossible;
+  }
+
+  const result = await addFormResponse(resp);
 
   btn.disabled = false;
   btn.textContent = 'Submit';
 
   if(result.success) {
+    if(pfForm.isQuiz && grading) {
+      document.getElementById('pf-thanks-sub').textContent = 'Here\'s how you did:';
+      document.getElementById('pf-score-box').classList.remove('pf-hidden');
+      document.getElementById('pf-score-num').textContent = `${grading.score} / ${grading.totalPossible}`;
+      document.getElementById('pf-review').innerHTML = grading.review.map(r => `
+        <div class="pf-rev-item">
+          <div class="pf-rev-q">${r.label}<span class="pf-rev-badge ${r.correct ? 'ok' : 'no'}">${r.correct ? 'Correct' : 'Incorrect'}</span></div>
+          <div class="pf-rev-line">Your answer: ${r.given}</div>
+          ${!r.correct ? `<div class="pf-rev-line pf-rev-correct">Correct answer: ${r.correctAnswer}</div>` : ''}
+        </div>`).join('');
+    }
     showPfState('pf-thanks');
   } else {
     toast("Something went wrong. Please try again.", true);

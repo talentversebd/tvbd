@@ -1205,3 +1205,14 @@ async function deleteFormResponse(formId, id) {
     return false;
   }
 }
+
+// Works out whether a custom form is currently open to the public, based on
+// its status plus the optional startAt / endAt schedule (epoch ms).
+// Returns one of: 'draft' | 'scheduled' | 'open' | 'closed'
+function getFormAvailability(form, now) {
+  now = now || Date.now();
+  if(!form || form.status !== 'published') return { state: 'draft' };
+  if(form.startAt && now < form.startAt) return { state: 'scheduled', startAt: form.startAt, endAt: form.endAt || null };
+  if(form.endAt && now > form.endAt) return { state: 'closed', startAt: form.startAt || null, endAt: form.endAt };
+  return { state: 'open', startAt: form.startAt || null, endAt: form.endAt || null };
+}

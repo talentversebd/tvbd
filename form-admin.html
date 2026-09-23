@@ -123,7 +123,7 @@ select.fi{cursor:pointer}
       <div id="fadm-list-view">
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Title</th><th>Fields</th><th>Status</th><th>Responses</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Title</th><th>Fields</th><th>Status</th><th>Availability</th><th>Responses</th><th>Actions</th></tr></thead>
             <tbody id="fadm-tbl"></tbody>
           </table>
         </div>
@@ -164,6 +164,24 @@ select.fi{cursor:pointer}
         <option value="published">Published (open to the public)</option>
       </select>
     </div>
+    <div class="chk-wrap" style="margin-bottom:15px;">
+      <input type="checkbox" id="ff-isquiz" onchange="onToggleQuizMode(this.checked)">
+      <label for="ff-isquiz">Make this a quiz (mark correct answers &amp; auto-score)</label>
+    </div>
+    <div class="fg" id="ff-duration-wrap" style="display:none;">
+      <label>Time Limit (minutes)</label>
+      <input class="fi" type="number" id="ff-duration" min="1" placeholder="Leave blank for no time limit">
+    </div>
+
+    <div class="f-row">
+      <div class="fg"><label>Opens At (optional)</label><input class="fi" type="datetime-local" id="ff-startat"></div>
+      <div class="fg"><label>Closes At (optional)</label><input class="fi" type="datetime-local" id="ff-endat"></div>
+    </div>
+    <div class="fg">
+      <label>Message when closed / not open yet</label>
+      <textarea class="fi" id="ff-closedmsg" placeholder="e.g. This form is no longer accepting responses. Thank you for your interest!"></textarea>
+    </div>
+    <p style="font-size:.72rem;color:var(--muted);margin:-8px 0 14px;">Leave the times blank for no schedule. The public link always works — before it opens or after it closes, visitors just see this message instead of the questions.</p>
 
     <div id="ff-share-wrap" style="display:none;">
       <label class="lbl" style="margin-bottom:6px;display:block;">Public Link</label>

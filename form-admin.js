@@ -73,7 +73,9 @@ const FIELD_TYPES = {
   paragraph: 'Paragraph',
   mcq: 'Multiple Choice',
   checkbox: 'Checkboxes',
-  dropdown: 'Dropdown'
+  dropdown: 'Dropdown',
+  file: '📎 File Upload (Image)',
+  section: '— Section Heading —'
 };
 
 let ffFields = []; // working list of fields while the builder modal is open
@@ -111,6 +113,8 @@ function openFormBuilder() {
   document.getElementById('ff-startat').value = '';
   document.getElementById('ff-endat').value = '';
   document.getElementById('ff-closedmsg').value = '';
+  document.getElementById('ff-thankyoutitle').value = '';
+  document.getElementById('ff-thankyoumsg').value = '';
   document.getElementById('ff-share-wrap').style.display = 'none';
   ffFields = [];
   addFormFieldRow();
@@ -135,6 +139,8 @@ function editCustomForm(id) {
   document.getElementById('ff-startat').value = ffTsToLocalInput(f.startAt);
   document.getElementById('ff-endat').value = ffTsToLocalInput(f.endAt);
   document.getElementById('ff-closedmsg').value = f.closedMessage || '';
+  document.getElementById('ff-thankyoutitle').value = f.thankYouTitle || '';
+  document.getElementById('ff-thankyoumsg').value = f.thankYouMessage || '';
 
   const shareWrap = document.getElementById('ff-share-wrap');
   if(f.status === 'published') {
@@ -152,7 +158,7 @@ function editCustomForm(id) {
 
 /*===== FIELD ROW MANAGEMENT =====*/
 function addFormFieldRow() {
-  ffFields.push({ id: genFieldId(), type: 'short', label: '', required: false, options: ['Option 1'], points: 1, correctAnswer: '', correctAnswers: [] });
+  ffFields.push({ id: genFieldId(), type: 'short', label: '', description: '', required: false, options: ['Option 1'], points: 1, correctAnswer: '', correctAnswers: [] });
   renderFieldRows();
 }
 
@@ -221,8 +227,27 @@ function toggleFieldCorrectMulti(fid, value, checked) {
 
 function renderFieldRows() {
   const wrap = document.getElementById('ff-fields');
+  let qNum = 0;
   wrap.innerHTML = ffFields.map((f, i) => {
+    if(f.type === 'section') {
+      return `
+      <div class="qf-qrow" style="border-left:3px solid var(--blue-br);">
+        <div class="qf-qrow-head">
+          <span class="qf-qnum">§</span>
+          <select class="fi" style="width:auto;" onchange="updateFieldProp('${f.id}', 'type', this.value)">
+            ${Object.entries(FIELD_TYPES).map(([val, lbl]) => `<option value="${val}" ${f.type === val ? 'selected' : ''}>${lbl}</option>`).join('')}
+          </select>
+          <button class="qf-qdel" onclick="removeFormFieldRow('${f.id}')">Delete</button>
+        </div>
+        <input class="fi" type="text" value="${(f.label || '').replace(/"/g, '&quot;')}"
+          placeholder="Section title" onchange="updateFieldProp('${f.id}', 'label', this.value)" style="margin-bottom:8px;font-weight:700;">
+        <textarea class="fi" placeholder="Optional description shown under the title" onchange="updateFieldProp('${f.id}', 'description', this.value)" style="min-height:50px;">${(f.description || '')}</textarea>
+        <p style="font-size:.7rem;color:var(--muted);margin-top:6px;">📄 This is just a heading — it doesn't collect an answer, only visually splits the form into parts.</p>
+      </div>`;
+    }
+
     const needsOptions = ['mcq', 'checkbox', 'dropdown'].includes(f.type);
+    qNum++;
     const gradable = ffIsQuiz && needsOptions;
     const optionsHtml = needsOptions ? `
       <div class="ff-opts">
@@ -247,7 +272,9 @@ function renderFieldRows() {
         }).join('')}
         <button class="qf-addopt" onclick="addFieldOption('${f.id}')">+ Add Option</button>
         ${gradable ? `<p style="font-size:.7rem;color:var(--muted);margin-top:6px;">✅ Tick/select the correct answer${f.type === 'checkbox' ? '(s)' : ''} above.</p>` : ''}
-      </div>` : (ffIsQuiz ? `<p style="font-size:.72rem;color:var(--muted);margin-top:4px;">This is a short/paragraph answer — it won't be auto-scored.</p>` : '');
+      </div>` : (f.type === 'file'
+        ? `<p style="font-size:.72rem;color:var(--muted);margin-top:4px;">📎 Respondents can upload one image (photo, screenshot, scanned doc as an image). PDFs/docs aren't supported — only image files.</p>`
+        : (ffIsQuiz ? `<p style="font-size:.72rem;color:var(--muted);margin-top:4px;">This is a short/paragraph answer — it won't be auto-scored.</p>` : ''));
 
     const pointsHtml = gradable ? `
       <div class="fg" style="max-width:120px;margin-top:10px;margin-bottom:0;">
@@ -258,7 +285,7 @@ function renderFieldRows() {
     return `
       <div class="qf-qrow">
         <div class="qf-qrow-head">
-          <span class="qf-qnum">Q${i + 1}</span>
+          <span class="qf-qnum">Q${qNum}</span>
           <select class="fi" style="width:auto;" onchange="updateFieldProp('${f.id}', 'type', this.value)">
             ${Object.entries(FIELD_TYPES).map(([val, lbl]) => `<option value="${val}" ${f.type === val ? 'selected' : ''}>${lbl}</option>`).join('')}
           </select>
@@ -290,10 +317,13 @@ async function saveCustomForm() {
   const startAt = startatVal ? new Date(startatVal).getTime() : null;
   const endAt = endatVal ? new Date(endatVal).getTime() : null;
   const closedMessage = document.getElementById('ff-closedmsg').value.trim();
+  const thankYouTitle = document.getElementById('ff-thankyoutitle').value.trim();
+  const thankYouMessage = document.getElementById('ff-thankyoumsg').value.trim();
 
   if(!title) return toast("Form title is required!", true);
   if(startAt && endAt && endAt <= startAt) return toast("Closing time must be after opening time!", true);
   if(!ffFields.length) return toast("Add at least one question!", true);
+  if(!ffFields.some(f => f.type !== 'section')) return toast("Add at least one real question (not just a section heading)!", true);
   for(const f of ffFields) {
     if(!f.label.trim()) return toast("Every question needs text!", true);
     if(['mcq', 'checkbox', 'dropdown'].includes(f.type) && (!f.options || f.options.filter(o => o.trim()).length < 2)) {
@@ -307,7 +337,7 @@ async function saveCustomForm() {
     }
   }
 
-  const formData = { title, description, status, isQuiz, duration, startAt, endAt, closedMessage, fields: ffFields };
+  const formData = { title, description, status, isQuiz, duration, startAt, endAt, closedMessage, thankYouTitle, thankYouMessage, fields: ffFields };
   const result = eid ? await updateCustomForm(eid, formData) : await addCustomForm(formData);
 
   if(result.success) {
@@ -342,7 +372,7 @@ function renderFormsTable() {
   const tbody = document.getElementById('fadm-tbl');
   const forms = getCustomForms();
   if(!forms.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No forms yet. Click "+ New Form" to create one.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No forms yet. Click "+ New Form" to create one.</td></tr>`;
     return;
   }
   tbody.innerHTML = forms.map(f => {
@@ -356,7 +386,8 @@ function renderFormsTable() {
     return `
     <tr>
       <td><strong>${f.title}</strong></td>
-      <td>${(f.fields || []).length}</td>
+      <td>${(f.fields || []).filter(fl => fl.type !== 'section').length}</td>
+      <td>${(f.fields || []).filter(fl => fl.type === 'section').length || '—'}</td>
       <td><span class="bs ${f.status === 'published' ? 'bs-active' : 'bs-past'}" style="cursor:pointer;" onclick="toggleFormStatus('${f.id}')" title="Click to toggle">${f.status === 'published' ? 'Published' : 'Draft'}</span></td>
       <td>${availBadge}</td>
       <td>${(getFormResponses(f.id) || []).length || '—'}</td>
@@ -378,6 +409,9 @@ function copyFormLink() {
 
 /*===== RESPONSES VIEW =====*/
 let fadmCurrentFormId = null;
+let fadmAllResponses = [];      // full, unfiltered list for the form currently being viewed
+let fadmFilteredResponses = []; // whatever's currently shown (after search)
+let fadmRespSearchQ = '';
 
 async function viewFormResponses(id) {
   fadmCurrentFormId = id;
@@ -389,9 +423,13 @@ async function viewFormResponses(id) {
   document.getElementById('fadm-resp-title').textContent = `Responses — ${f.title}`;
   document.getElementById('fadm-resp-thead').innerHTML = `<tr><th colspan="99">Loading…</th></tr>`;
   document.getElementById('fadm-resp-tbody').innerHTML = '';
+  document.getElementById('fadm-resp-search').value = '';
+  fadmRespSearchQ = '';
 
-  const responses = await loadFormResponses(id);
-  renderResponsesTable(f, responses);
+  fadmAllResponses = await loadFormResponses(id);
+  fadmFilteredResponses = fadmAllResponses;
+  renderResponsesTable(f, fadmFilteredResponses);
+  updateRespCount();
 }
 
 function closeResponsesView() {
@@ -400,8 +438,45 @@ function closeResponsesView() {
   renderFormsTable();
 }
 
-function fmtRespValue(val) {
+function updateRespCount() {
+  const el = document.getElementById('fadm-resp-count');
+  if(!el) return;
+  el.textContent = fadmRespSearchQ
+    ? `Showing ${fadmFilteredResponses.length} of ${fadmAllResponses.length}`
+    : `${fadmAllResponses.length} response${fadmAllResponses.length === 1 ? '' : 's'}`;
+}
+
+// Matches the search text against every answer value and the submitted date
+// (whatever's visible in the table), case-insensitive substring match.
+function filterResponsesTable(q) {
+  fadmRespSearchQ = (q || '').trim().toLowerCase();
+  const f = getCustomForms().find(x => x.id === fadmCurrentFormId);
+  if(!f) return;
+
+  if(!fadmRespSearchQ) {
+    fadmFilteredResponses = fadmAllResponses;
+  } else {
+    fadmFilteredResponses = fadmAllResponses.filter(r => {
+      const dateStr = new Date(r.submittedAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }).toLowerCase();
+      if(dateStr.includes(fadmRespSearchQ)) return true;
+      const answers = r.answers || {};
+      return Object.values(answers).some(v => {
+        const s = Array.isArray(v) ? v.join(', ') : String(v ?? '');
+        return s.toLowerCase().includes(fadmRespSearchQ);
+      });
+    });
+  }
+  renderResponsesTable(f, fadmFilteredResponses);
+  updateRespCount();
+}
+
+function fmtRespValue(val, fieldType) {
   if(val === undefined || val === null || val === '') return '<span style="color:var(--muted);">—</span>';
+  if(fieldType === 'file' && typeof val === 'string' && val.startsWith('http')) {
+    return `<a href="${val}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;color:var(--blue-br);text-decoration:none;">
+      <img src="${val}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;border:1px solid var(--bdr);" loading="lazy">📎 View
+    </a>`;
+  }
   if(Array.isArray(val)) return val.join(', ') || '<span style="color:var(--muted);">—</span>';
   return String(val);
 }
@@ -409,13 +484,14 @@ function fmtRespValue(val) {
 function renderResponsesTable(form, responses) {
   const thead = document.getElementById('fadm-resp-thead');
   const tbody = document.getElementById('fadm-resp-tbody');
-  const fields = form.fields || [];
+  const fields = (form.fields || []).filter(f => f.type !== 'section');
   const scoreCol = form.isQuiz ? '<th>Score</th>' : '';
 
   thead.innerHTML = `<tr><th>Submitted</th>${scoreCol}${fields.map(f => `<th>${f.label}</th>`).join('')}<th>Actions</th></tr>`;
 
   if(!responses.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="${fields.length + (form.isQuiz ? 3 : 2)}">No responses yet.</td></tr>`;
+    const msg = fadmRespSearchQ ? 'No responses match your search.' : 'No responses yet.';
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="${fields.length + (form.isQuiz ? 3 : 2)}">${msg}</td></tr>`;
     return;
   }
 
@@ -423,7 +499,7 @@ function renderResponsesTable(form, responses) {
     <tr>
       <td>${new Date(r.submittedAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}</td>
       ${form.isQuiz ? `<td><strong>${r.score ?? 0} / ${r.totalPossible ?? 0}</strong></td>` : ''}
-      ${fields.map(f => `<td>${fmtRespValue(r.answers ? r.answers[f.id] : undefined)}</td>`).join('')}
+      ${fields.map(f => `<td>${fmtRespValue(r.answers ? r.answers[f.id] : undefined, f.type)}</td>`).join('')}
       <td class="tbl-acts"><button class="d-btn" onclick="deleteResponseAction('${r.id}')">Delete</button></td>
     </tr>`).join('');
 }
@@ -433,21 +509,21 @@ async function deleteResponseAction(id) {
   const ok = await deleteFormResponse(fadmCurrentFormId, id);
   if(ok) {
     toast("Response deleted.");
-    const f = getCustomForms().find(x => x.id === fadmCurrentFormId);
-    renderResponsesTable(f, getFormResponses(fadmCurrentFormId));
+    fadmAllResponses = getFormResponses(fadmCurrentFormId);
+    filterResponsesTable(fadmRespSearchQ); // re-apply whatever search was active
   } else {
     toast("Failed to delete response.", true);
   }
 }
 
-/*===== CSV EXPORT =====*/
+/*===== CSV EXPORT (exports whatever's currently visible — respects an active search) =====*/
 function downloadFormResponsesCSV() {
   const f = getCustomForms().find(x => x.id === fadmCurrentFormId);
   if(!f) return;
-  const responses = getFormResponses(fadmCurrentFormId);
+  const responses = fadmFilteredResponses;
   if(!responses.length) return toast("No responses to export.", true);
 
-  const fields = f.fields || [];
+  const fields = (f.fields || []).filter(fl => fl.type !== 'section');
   const escCsv = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const header = ['Submitted', ...(f.isQuiz ? ['Score'] : []), ...fields.map(fl => fl.label)];
   const rows = responses.map(r => [

@@ -19,6 +19,9 @@ body{background:var(--bg);min-height:100vh}
 .pf-req{color:#f87171;margin-left:3px;}
 .pf-input{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:11px 13px;border-radius:8px;font-size:.9rem;outline:none;margin-top:10px;transition:border-color .2s,box-shadow .2s}
 .pf-input:focus{border-color:var(--blue-br);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.pf-file-btn{display:inline-block;margin-top:10px;padding:10px 18px;background:var(--card2);border:1px dashed var(--bdr);color:var(--blue-br);border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:border-color .2s,background .2s}
+.pf-file-btn:hover{border-color:var(--blue-br);background:rgba(59,130,246,.08)}
+.pf-file-status{margin-top:10px;font-size:.85rem;}
 textarea.pf-input{min-height:90px;resize:vertical}
 .pf-opt{display:flex;align-items:center;gap:10px;padding:9px 4px;cursor:pointer}
 .pf-opt input{width:17px;height:17px;accent-color:var(--blue-br);cursor:pointer;flex-shrink:0}
@@ -32,6 +35,10 @@ textarea.pf-input{min-height:90px;resize:vertical}
 .pf-state .ei{font-size:2.8rem;margin-bottom:14px}
 .pf-state h2{font-family:Montserrat;font-weight:800;color:var(--txt);margin-bottom:8px;font-size:1.25rem}
 .pf-hidden{display:none}
+.pf-section{padding:18px 4px 10px;margin-top:8px;border-top:1px solid var(--bdr);}
+.pf-section:first-child{border-top:none;margin-top:0;padding-top:0;}
+.pf-section h3{font-family:Montserrat;font-weight:800;font-size:1.05rem;color:var(--blue-br);margin-bottom:4px;}
+.pf-section p{color:var(--muted);font-size:.85rem;white-space:pre-line;}
 .pf-rev-item{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:10px}
 .pf-rev-q{font-size:.85rem;font-weight:700;margin-bottom:6px;color:var(--txt)}
 .pf-rev-badge{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:6px}
@@ -62,7 +69,7 @@ textarea.pf-input{min-height:90px;resize:vertical}
 
   <div id="pf-thanks" class="pf-state pf-hidden">
     <div class="ei">🎉</div>
-    <h2>Response Submitted!</h2>
+    <h2 id="pf-thanks-title">Response Submitted!</h2>
     <p id="pf-thanks-sub">Thank you — your response has been recorded.</p>
     <div id="pf-score-box" class="pf-hidden" style="margin:18px 0;">
       <div style="font-family:Montserrat;font-weight:800;font-size:2rem;color:var(--blue-br);" id="pf-score-num"></div>
@@ -170,7 +177,16 @@ function updatePfTimerText() {
 
 function renderPfFields() {
   const wrap = document.getElementById('pf-fields');
-  wrap.innerHTML = (pfForm.fields || []).map((f, i) => {
+  let qNum = 0;
+  wrap.innerHTML = (pfForm.fields || []).map((f) => {
+    if(f.type === 'section') {
+      return `
+        <div class="pf-section">
+          <h3>${f.label}</h3>
+          ${f.description ? `<p>${f.description}</p>` : ''}
+        </div>`;
+    }
+    qNum++;
     const req = f.required ? '<span class="pf-req">*</span>' : '';
     let control = '';
     if(f.type === 'short') {
@@ -194,10 +210,17 @@ function renderPfFields() {
         <option value="">Select…</option>
         ${(f.options || []).map(opt => `<option value="${(opt || '').replace(/"/g, '&quot;')}">${opt}</option>`).join('')}
       </select>`;
+    } else if(f.type === 'file') {
+      control = `
+        <input type="file" accept="image/*" id="pf-file-${f.id}" data-fid="${f.id}" style="display:none;" onchange="handlePfFileUpload(this)">
+        <input type="hidden" id="pf-in-${f.id}" value="">
+        <label class="pf-file-btn" id="pf-file-btn-${f.id}" for="pf-file-${f.id}">📎 Choose an image to upload</label>
+        <div class="pf-file-status" id="pf-file-status-${f.id}"></div>
+        <p style="font-size:.75rem;color:var(--muted);margin-top:6px;">Only image files (photo, screenshot). Max ~32MB.</p>`;
     }
     return `
       <div class="pf-card" data-field="${f.id}">
-        <div class="pf-q-label">${i + 1}. ${f.label}${req}</div>
+        <div class="pf-q-label">${qNum}. ${f.label}${req}</div>
         ${control}
         <div class="pf-err" id="pf-err-${f.id}">This question is required.</div>
       </div>`;
@@ -205,7 +228,7 @@ function renderPfFields() {
 }
 
 function getPfFieldValue(f) {
-  if(f.type === 'short' || f.type === 'paragraph' || f.type === 'dropdown') {
+  if(f.type === 'short' || f.type === 'paragraph' || f.type === 'dropdown' || f.type === 'file') {
     return document.getElementById(`pf-in-${f.id}`).value.trim();
   }
   if(f.type === 'mcq') {
@@ -217,6 +240,39 @@ function getPfFieldValue(f) {
     return Array.from(sels).map(s => s.value);
   }
   return '';
+}
+
+async function handlePfFileUpload(input) {
+  const fid = input.dataset.fid;
+  const file = input.files[0];
+  const statusEl = document.getElementById(`pf-file-status-${fid}`);
+  const btnEl = document.getElementById(`pf-file-btn-${fid}`);
+  const hiddenEl = document.getElementById(`pf-in-${fid}`);
+  if(!file) return;
+
+  if(!file.type.startsWith('image/')) {
+    statusEl.innerHTML = `<span style="color:#f87171;">❌ Only image files are supported.</span>`;
+    input.value = '';
+    return;
+  }
+
+  hiddenEl.value = '';
+  statusEl.innerHTML = `⏳ Uploading…`;
+  btnEl.style.pointerEvents = 'none';
+
+  const result = await uploadToImgBB(file);
+
+  btnEl.style.pointerEvents = '';
+  if(result.success) {
+    hiddenEl.value = result.url;
+    statusEl.innerHTML = `<img src="${result.url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px;border:1px solid var(--bdr);"><span style="color:#34d399;">✅ Uploaded</span>`;
+    btnEl.textContent = '📎 Change image';
+    const errEl = document.getElementById(`pf-err-${fid}`);
+    if(errEl) errEl.classList.remove('show');
+  } else {
+    statusEl.innerHTML = `<span style="color:#f87171;">❌ Upload failed — try again.</span>`;
+    input.value = '';
+  }
 }
 
 function arraysEqualUnordered(a, b) {
@@ -255,6 +311,7 @@ async function submitCustomForm() {
   let hasError = false;
 
   (pfForm.fields || []).forEach(f => {
+    if(f.type === 'section') return;
     const val = getPfFieldValue(f);
     const isEmpty = Array.isArray(val) ? val.length === 0 : !val;
     const errEl = document.getElementById(`pf-err-${f.id}`);
@@ -288,8 +345,10 @@ async function submitCustomForm() {
   btn.textContent = 'Submit';
 
   if(result.success) {
+    document.getElementById('pf-thanks-title').textContent = pfForm.thankYouTitle || 'Response Submitted!';
+    document.getElementById('pf-thanks-sub').textContent = pfForm.thankYouMessage || 'Thank you — your response has been recorded.';
     if(pfForm.isQuiz && grading) {
-      document.getElementById('pf-thanks-sub').textContent = 'Here\'s how you did:';
+      if(!pfForm.thankYouMessage) document.getElementById('pf-thanks-sub').textContent = 'Here\'s how you did:';
       document.getElementById('pf-score-box').classList.remove('pf-hidden');
       document.getElementById('pf-score-num').textContent = `${grading.score} / ${grading.totalPossible}`;
       document.getElementById('pf-review').innerHTML = grading.review.map(r => `

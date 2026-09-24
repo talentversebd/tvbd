@@ -123,7 +123,7 @@ select.fi{cursor:pointer}
       <div id="fadm-list-view">
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Title</th><th>Fields</th><th>Status</th><th>Availability</th><th>Responses</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Title</th><th>Fields</th><th>Sections</th><th>Status</th><th>Availability</th><th>Responses</th><th>Actions</th></tr></thead>
             <tbody id="fadm-tbl"></tbody>
           </table>
         </div>
@@ -133,8 +133,14 @@ select.fi{cursor:pointer}
       <div id="fadm-resp-view" style="display:none;">
         <button class="fc-btn" onclick="closeResponsesView()">← Back to Forms</button>
         <h3 id="fadm-resp-title" style="font-family:Montserrat;font-weight:800;margin:16px 0 4px;"></h3>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-          <button class="add-btn" onclick="downloadFormResponsesCSV()">⬇️ Download CSV</button>
+        <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+          <div style="position:relative;flex:1;min-width:200px;max-width:340px;">
+            <input class="fi" type="text" id="fadm-resp-search" placeholder="🔍 Search responses…" oninput="filterResponsesTable(this.value)" style="padding-right:30px;">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="fadm-resp-count" style="font-size:.78rem;color:var(--muted);white-space:nowrap;"></span>
+            <button class="add-btn" onclick="downloadFormResponsesCSV()">⬇️ Download CSV</button>
+          </div>
         </div>
         <div class="tbl-wrap">
           <table class="tbl">
@@ -182,6 +188,12 @@ select.fi{cursor:pointer}
       <textarea class="fi" id="ff-closedmsg" placeholder="e.g. This form is no longer accepting responses. Thank you for your interest!"></textarea>
     </div>
     <p style="font-size:.72rem;color:var(--muted);margin:-8px 0 14px;">Leave the times blank for no schedule. The public link always works — before it opens or after it closes, visitors just see this message instead of the questions.</p>
+
+    <div class="f-row">
+      <div class="fg"><label>Confirmation Title</label><input class="fi" type="text" id="ff-thankyoutitle" placeholder="Response Submitted!"></div>
+      <div class="fg"><label>Confirmation Message</label><input class="fi" type="text" id="ff-thankyoumsg" placeholder="Thank you — your response has been recorded."></div>
+    </div>
+    <p style="font-size:.72rem;color:var(--muted);margin:-8px 0 14px;">Shown right after someone submits the form. Leave blank to use the defaults above.</p>
 
     <div id="ff-share-wrap" style="display:none;">
       <label class="lbl" style="margin-bottom:6px;display:block;">Public Link</label>

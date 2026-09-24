@@ -161,6 +161,7 @@ select.fi{cursor:pointer}
         <button class="adm-nb" data-sec="home-ed" onclick="goSec(this)"><span class="ico">🏠</span>Home Page</button>
         <button class="adm-nb" data-sec="olymp-adm" onclick="goSec(this)"><span class="ico">🏆</span>Olympiads</button>
         <button class="adm-nb" data-sec="team-adm" onclick="goSec(this)"><span class="ico">👔</span>Team Members</button>
+        <button class="adm-nb" data-sec="network-adm" onclick="goSec(this)"><span class="ico">🌐</span>Our Network</button>
         <button class="adm-nb" data-sec="news-adm" onclick="goSec(this)"><span class="ico">📰</span>News</button>
         <div class="adm-ns">Exam</div>
         <button class="adm-nb" data-sec="quiz-adm" onclick="goSec(this)"><span class="ico">📋</span>Quizzes</button>
@@ -299,6 +300,41 @@ select.fi{cursor:pointer}
         </tr>
       </thead>
       <tbody id="ttbl"></tbody>
+    </table>
+  </div>
+</div>
+
+      <!-- OUR NETWORK -->
+<div class="adm-sec" id="network-adm">
+  
+  <!-- Info Card -->
+  <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+    <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">
+      🌐 Our Network / Affiliated Pages
+    </h3>
+    <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+      Add your other organizer pages here (Facebook pages, sister websites, branch pages, etc.).
+      They'll show up as a card grid on the homepage, positioning TalentVerse Bangladesh as the central hub.
+    </p>
+    <div style="margin-top:12px;padding:10px;background:rgba(37,99,235,.05);border-radius:8px;font-size:.78rem;color:var(--lblue);">
+      💡 <strong>Tip:</strong> The section is hidden automatically on the homepage until you add at least one page.
+    </div>
+  </div>
+  
+  <!-- Table -->
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Logo</th>
+          <th>Name</th>
+          <th>URL</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="nptbl"></tbody>
     </table>
   </div>
 </div>
@@ -729,6 +765,53 @@ select.fi{cursor:pointer}
     <div class="fm-foot">
       <button class="fc-btn" onclick="closeFM('tfm')">Cancel</button>
       <button class="fs-btn" onclick="saveTeamMember()">Save Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- NETWORK PAGE FORM -->
+<div class="fm-ov" id="npfm" onclick="if(event.target===this)closeFM('npfm')">
+  <div class="fm">
+    <div class="fm-head">
+      <h3 id="npfm-title">Add Network Page</h3>
+      <button onclick="closeFM('npfm')">✕</button>
+    </div>
+    <input type="hidden" id="np-eid">
+
+    <div class="fg">
+      <label>🏷️ Page / Organization Name *</label>
+      <input class="fi" id="np-name" placeholder="e.g. TalentVerse Rajshahi Chapter">
+    </div>
+
+    <div class="fg">
+      <label>🔗 Website / Facebook Page URL *</label>
+      <input class="fi" id="np-url" placeholder="https://facebook.com/... or https://...">
+    </div>
+
+    <div class="fg">
+      <label>📝 Short Description (optional)</label>
+      <input class="fi" id="np-desc" placeholder="e.g. Rajshahi branch — school olympiads & events">
+    </div>
+
+    <div class="fg">
+      <label>🔢 Display Order</label>
+      <input class="fi" type="number" id="np-order" min="1" placeholder="e.g. 1, 2, 3... (Lower number shows first)">
+    </div>
+
+    <div class="fg">
+      <label>🖼️ Logo (optional — auto-uploads to ImgBB)</label>
+      <input class="fi" id="np-logo" placeholder="Or paste image URL..." style="margin-bottom:10px;">
+      <div class="up-area" onclick="document.getElementById('np-file').click()">
+        <div class="up-ico">📷</div>
+        <p>Tap to upload logo</p>
+        <input type="file" id="np-file" accept="image/*" style="display:none" onchange="prevNetworkLogo(this)">
+      </div>
+      <div class="up-prev" id="np-prev"></div>
+    </div>
+
+    <div class="fm-foot">
+      <button class="fc-btn" onclick="closeFM('npfm')">Cancel</button>
+      <button class="fs-btn" onclick="saveNetworkPage()">Save Page</button>
     </div>
   </div>
 </div>

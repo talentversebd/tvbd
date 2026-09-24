@@ -57,6 +57,11 @@ function doLogin() {
     if(typeof renderTeamTable === 'function') renderTeamTable();
      });
     }
+    if(typeof loadNetworkPages === 'function') {
+      loadNetworkPages().then(() => {
+        if(typeof renderNetworkTable === 'function') renderNetworkTable();
+      });
+    }
     if(typeof loadQuizzes === 'function') {
       loadQuizzes().then(() => {
         if(typeof renderQuizTable === 'function') renderQuizTable();
@@ -112,6 +117,11 @@ function checkAdminAuth() {
     if(typeof renderTeamTable === 'function') renderTeamTable();
       });
     }
+    if(typeof loadNetworkPages === 'function') {
+      loadNetworkPages().then(() => {
+        if(typeof renderNetworkTable === 'function') renderNetworkTable();
+      });
+    }
     if(typeof loadQuizzes === 'function') {
       loadQuizzes().then(() => {
         if(typeof renderQuizTable === 'function') renderQuizTable();
@@ -160,6 +170,7 @@ function goSec(btn) {
     'quiz-adm': 'Manage Quizzes',
     'qsub-adm': 'Quiz Submissions',
     'team-adm': 'Team Members',
+    'network-adm': 'Our Network',
     'msg-adm': 'Contact Messages',
     'reg-adm': 'Registrations',
     'cert-adm': 'Certificates',
@@ -182,6 +193,8 @@ function goSec(btn) {
       actions.innerHTML = `<button class="add-btn" onclick="openNewsForm()">+ Add News</button>`;
     } else if(secId === 'team-adm') {
       actions.innerHTML = `<button class="add-btn" onclick="openTeamForm()">+ Add Member</button>`;
+    } else if(secId === 'network-adm') {
+      actions.innerHTML = `<button class="add-btn" onclick="openNetworkForm()">+ Add Page</button>`;
     } else if(secId === 'reg-adm') {
       actions.innerHTML = `<button class="add-btn" onclick="downloadRegistrationsCSV()">⬇️ Download CSV</button>`;
     } else if(secId === 'cert-adm') {
@@ -208,6 +221,7 @@ function renderAdminAll() {
   if(typeof renderNewsTable === 'function') renderNewsTable();
   if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
   if(typeof renderTeamTable === 'function') renderTeamTable();
+  if(typeof renderNetworkTable === 'function') renderNetworkTable();
   if(typeof loadHomeEditor === 'function') loadHomeEditor();
 }
 
@@ -776,6 +790,135 @@ async function prevTeamPhoto(input) {
     document.getElementById('tf-photo').value = result.url;
     prev.innerHTML = `<img src="${result.url}"><div style="color:#4ade80;font-size:.75rem;margin-top:5px">✅ Uploaded!</div>`;
     toast("Photo uploaded! ✅");
+  } else {
+    prev.innerHTML = `<div style="color:#f87171">❌ Upload failed</div>`;
+    toast("Upload failed!", true);
+  }
+}
+
+/*===== OUR NETWORK (affiliated pages) ADMIN =====*/
+function renderNetworkTable() {
+  const tbody = document.getElementById('nptbl');
+  if(!tbody) return;
+
+  const pages = getNetworkPages();
+  if(pages.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No network pages yet. Click "+ Add Page" to start.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  pages.forEach((p) => {
+    tbody.innerHTML += `
+      <tr>
+        <td><strong style="color:var(--blue-br)">${p.order || '—'}</strong></td>
+        <td>
+          ${p.logo
+            ? `<img src="${p.logo}" class="thumb" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">`
+            : `<div class="thumb" style="width:40px;height:40px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--blue-br);font-weight:700;">${(p.name || 'NA').substring(0,2).toUpperCase()}</div>`}
+        </td>
+        <td>${p.name}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="${p.url}" target="_blank" rel="noopener" style="color:var(--lblue);">${p.url}</a></td>
+        <td style="color:var(--muted);font-size:.8rem;">${(p.description || '—').substring(0, 40)}${p.description && p.description.length > 40 ? '...' : ''}</td>
+        <td class="tbl-acts">
+          <button class="e-btn" onclick="editNetworkPage('${p.id}')">Edit</button>
+          <button class="d-btn" onclick="deleteNetworkPageAction('${p.id}')">Delete</button>
+        </td>
+      </tr>`;
+  });
+}
+
+// Open Add Network Page Form
+function openNetworkForm() {
+  document.getElementById('npfm-title').textContent = "Add Network Page";
+  document.getElementById('np-eid').value = '';
+  document.getElementById('np-name').value = '';
+  document.getElementById('np-url').value = '';
+  document.getElementById('np-desc').value = '';
+  document.getElementById('np-order').value = '';
+  document.getElementById('np-logo').value = '';
+  document.getElementById('np-prev').innerHTML = '';
+  openFM('npfm');
+}
+
+// Edit Network Page
+function editNetworkPage(id) {
+  const p = getNetworkPages().find(x => x.id === id);
+  if(!p) return;
+  document.getElementById('npfm-title').textContent = "Edit Network Page";
+  document.getElementById('np-eid').value = id;
+  document.getElementById('np-name').value = p.name || '';
+  document.getElementById('np-url').value = p.url || '';
+  document.getElementById('np-desc').value = p.description || '';
+  document.getElementById('np-order').value = p.order || '';
+  document.getElementById('np-logo').value = p.logo || '';
+  document.getElementById('np-prev').innerHTML = p.logo ? `<img src="${p.logo}">` : '';
+  openFM('npfm');
+}
+
+// Save Network Page
+async function saveNetworkPage() {
+  const name = document.getElementById('np-name').value.trim();
+  let url = document.getElementById('np-url').value.trim();
+  const description = document.getElementById('np-desc').value.trim();
+  const order = parseInt(document.getElementById('np-order').value) || 999;
+  const logo = document.getElementById('np-logo').value.trim();
+
+  if(!name) return toast("Page name is required!", true);
+  if(!url) return toast("Website/Facebook URL is required!", true);
+  if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  const page = { name, url, description, order, logo };
+  const eid = document.getElementById('np-eid').value;
+
+  const btn = document.querySelector('#npfm .fs-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  const ok = eid === '' ? await addNetworkPage(page) : await updateNetworkPage(eid, page);
+
+  btn.textContent = 'Save Page';
+  btn.disabled = false;
+
+  if(ok) {
+    renderNetworkTable();
+    closeFM('npfm');
+    toast("Network page saved! ✅");
+  } else {
+    toast("Save failed!", true);
+  }
+}
+
+// Delete Network Page
+async function deleteNetworkPageAction(id) {
+  if(!confirm("Delete this network page?")) return;
+  const ok = await deleteNetworkPage(id);
+  if(ok) {
+    renderNetworkTable();
+    toast("Network page deleted.");
+  } else {
+    toast("Delete failed!", true);
+  }
+}
+
+// Network Page Logo Upload
+async function prevNetworkLogo(input) {
+  if(!input.files?.[0]) return;
+  const file = input.files[0];
+
+  if(file.size > 32 * 1024 * 1024) {
+    return toast("File too large! Max 32MB", true);
+  }
+
+  const prev = document.getElementById('np-prev');
+  prev.innerHTML = `<div style="padding:10px;color:var(--muted)">⏳ Uploading to ImgBB...</div>`;
+
+  const result = await uploadToImgBB(file);
+
+  if(result.success) {
+    document.getElementById('np-logo').value = result.url;
+    prev.innerHTML = `<img src="${result.url}"><div style="color:#4ade80;font-size:.75rem;margin-top:5px">✅ Uploaded!</div>`;
+    toast("Logo uploaded! ✅");
   } else {
     prev.innerHTML = `<div style="color:#f87171">❌ Upload failed</div>`;
     toast("Upload failed!", true);

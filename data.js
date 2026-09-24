@@ -635,7 +635,89 @@ async function deleteTeamMember(id) {
   }
 }
 
-/*===== QUIZ / EXAM SYSTEM =====*/
+/*===== NETWORK PAGES (Our Network section on homepage) =====*/
+
+// Load all network pages
+async function loadNetworkPages() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "networkPages"), orderBy("order", "asc")));
+    cache.networkPages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return cache.networkPages;
+  } catch(err) {
+    console.error("Load network pages error:", err);
+    try {
+      const snap = await getDocs(collection(db, "networkPages"));
+      cache.networkPages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      cache.networkPages.sort((a, b) => (a.order || 999) - (b.order || 999));
+      return cache.networkPages;
+    } catch(e) {
+      console.error("Fallback load error:", e);
+      return [];
+    }
+  }
+}
+
+function getNetworkPages() {
+  return cache.networkPages || [];
+}
+
+// Add network page
+async function addNetworkPage(page) {
+  await waitForFirebase();
+  const { collection, addDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    page.createdAt = Date.now();
+    const ref = await addDoc(collection(db, "networkPages"), page);
+    if(!cache.networkPages) cache.networkPages = [];
+    cache.networkPages.push({ id: ref.id, ...page });
+    cache.networkPages.sort((a, b) => (a.order || 999) - (b.order || 999));
+    return true;
+  } catch(err) {
+    console.error("Add network page error:", err);
+    return false;
+  }
+}
+
+// Update network page
+async function updateNetworkPage(id, page) {
+  await waitForFirebase();
+  const { doc, updateDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    page.updatedAt = Date.now();
+    await updateDoc(doc(db, "networkPages", id), page);
+    if(cache.networkPages) {
+      const idx = cache.networkPages.findIndex(x => x.id === id);
+      if(idx > -1) cache.networkPages[idx] = { id, ...page };
+      cache.networkPages.sort((a, b) => (a.order || 999) - (b.order || 999));
+    }
+    return true;
+  } catch(err) {
+    console.error("Update network page error:", err);
+    return false;
+  }
+}
+
+// Delete network page
+async function deleteNetworkPage(id) {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await deleteDoc(doc(db, "networkPages", id));
+    if(cache.networkPages) {
+      cache.networkPages = cache.networkPages.filter(x => x.id !== id);
+    }
+    return true;
+  } catch(err) {
+    console.error("Delete network page error:", err);
+    return false;
+  }
+}
 
 // Load all quizzes
 async function loadQuizzes() {

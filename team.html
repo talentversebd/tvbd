@@ -159,8 +159,22 @@
   <p data-i18n="tp_desc">Meet the leaders and members of TalentVerse Bangladesh.</p>
 </div>
 
+<!-- FOUNDER SPOTLIGHT -->
+<section class="section" id="founder-spotlight-sec" style="display:none;padding-bottom:10px;">
+  <div class="founder-spotlight">
+    <img class="founder-spotlight-photo" id="fsp-photo" src="logo.jpg" alt="Founder">
+    <div class="founder-spotlight-body">
+      <span class="founder-spotlight-badge">⭐ Founder</span>
+      <h2 id="fsp-name"></h2>
+      <div class="founder-spotlight-title" id="fsp-title"></div>
+      <p class="founder-spotlight-bio" id="fsp-bio"></p>
+      <div class="founder-socials" id="fsp-socials"></div>
+    </div>
+  </div>
+</section>
+
 <!-- TEAM SECTION -->
-<section class="section">
+<section class="section" style="padding-top:20px;">
   <div id="team-page-grid"></div>
 </section>
 
@@ -228,6 +242,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 200);
 
+  // Founder spotlight
+  const fcheck = setInterval(async () => {
+    if(typeof getFounderSettings === 'function' && window.firebaseDB) {
+      clearInterval(fcheck);
+      try { await initFounderSpotlight(); }
+      catch(err) { console.error("Founder spotlight load error:", err); }
+    }
+  }, 200);
+
   // Fallback
   setTimeout(() => {
     const grid = document.getElementById('team-page-grid');
@@ -237,6 +260,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 8000);
 });
+
+async function initFounderSpotlight() {
+  const f = await getFounderSettings();
+  if(!f || !f.enabled) return;
+
+  document.getElementById('fsp-name').textContent = f.name || '';
+  document.getElementById('fsp-title').textContent = f.title || '';
+  document.getElementById('fsp-bio').textContent = f.bio || '';
+  if(f.photo) document.getElementById('fsp-photo').src = f.photo;
+
+  let socialsHtml = '';
+  if(f.facebook) socialsHtml += `<a class="founder-social-btn" href="${f.facebook}" target="_blank" rel="noopener" title="Facebook">📘</a>`;
+  if(f.linkedin) socialsHtml += `<a class="founder-social-btn" href="${f.linkedin}" target="_blank" rel="noopener" title="LinkedIn">💼</a>`;
+  document.getElementById('fsp-socials').innerHTML = socialsHtml;
+
+  document.getElementById('founder-spotlight-sec').style.display = 'block';
+}
 
 const DEPT_ICONS = {
   'leadership': '⭐', 'administration': '🗂️', 'it': '💻', 'content': '✍️',

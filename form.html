@@ -35,6 +35,9 @@ textarea.pf-input{min-height:90px;resize:vertical}
 .pf-state .ei{font-size:2.8rem;margin-bottom:14px}
 .pf-state h2{font-family:Montserrat;font-weight:800;color:var(--txt);margin-bottom:8px;font-size:1.25rem}
 .pf-hidden{display:none}
+.pf-head p{white-space:pre-line;}
+.pf-link{color:#22c55e;font-weight:600;text-decoration:underline;word-break:break-all;}
+.pf-link:hover{color:#16a34a;}
 .pf-section{padding:18px 4px 10px;margin-top:8px;border-top:1px solid var(--bdr);}
 .pf-section:first-child{border-top:none;margin-top:0;padding-top:0;}
 .pf-section h3{font-family:Montserrat;font-weight:800;font-size:1.05rem;color:var(--blue-br);margin-bottom:4px;}
@@ -124,6 +127,19 @@ function fmtPfDate(ts) {
   return new Date(ts).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
+// Escapes HTML, then turns any http(s)/www URL in the text into a clickable,
+// green link (like Google Forms does in question/description text), and
+// preserves line breaks.
+function linkify(text) {
+  if(!text) return '';
+  const esc = String(text)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return esc.replace(/(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi, (m) => {
+    const href = m.startsWith('http') ? m : `https://${m}`;
+    return `<a href="${href}" target="_blank" rel="noopener" class="pf-link">${m}</a>`;
+  });
+}
+
 async function initPublicForm() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
@@ -146,7 +162,7 @@ async function initPublicForm() {
 
   pfForm = form;
   document.getElementById('pf-title').textContent = form.title;
-  document.getElementById('pf-desc').textContent = form.description || '';
+  document.getElementById('pf-desc').innerHTML = linkify(form.description || '');
   renderPfFields();
   showPfState('pf-form-view');
 
@@ -182,8 +198,8 @@ function renderPfFields() {
     if(f.type === 'section') {
       return `
         <div class="pf-section">
-          <h3>${f.label}</h3>
-          ${f.description ? `<p>${f.description}</p>` : ''}
+          <h3>${linkify(f.label)}</h3>
+          ${f.description ? `<p>${linkify(f.description)}</p>` : ''}
         </div>`;
     }
     qNum++;
@@ -220,7 +236,7 @@ function renderPfFields() {
     }
     return `
       <div class="pf-card" data-field="${f.id}">
-        <div class="pf-q-label">${qNum}. ${f.label}${req}</div>
+        <div class="pf-q-label">${qNum}. ${linkify(f.label)}${req}</div>
         ${control}
         <div class="pf-err" id="pf-err-${f.id}">This question is required.</div>
       </div>`;

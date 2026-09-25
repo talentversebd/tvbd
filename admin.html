@@ -173,6 +173,7 @@ select.fi{cursor:pointer}
 <div class="adm-ns">Verification</div>
 <button class="adm-nb" data-sec="cert-adm" onclick="goSec(this)"><span class="ico">📜</span>Certificates</button>
 <div class="adm-ns">Notice & Settings</div>
+<button class="adm-nb" data-sec="founder-adm" onclick="goSec(this)"><span class="ico">👤</span>Founder's Message</button>
 <button class="adm-nb" data-sec="popup-adm" onclick="goSec(this)"><span class="ico">📢</span>Popup Notice</button>
 <button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
       </nav>
@@ -393,6 +394,57 @@ select.fi{cursor:pointer}
   </div>
 </div>
       <!-- POPUP NOTICE -->
+<div class="adm-sec" id="founder-adm">
+  <div class="set-wrap" style="max-width:700px;">
+
+    <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
+      <h3 style="font-family:Montserrat;font-size:1.15rem;font-weight:800;margin-bottom:6px;">
+        👤 Founder's Message
+      </h3>
+      <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
+        Shows a "Founder's Message" section on the homepage. Turn it off to keep the homepage exactly as it was before.
+      </p>
+
+      <div class="chk-wrap" style="margin-bottom:20px;background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);">
+        <input type="checkbox" id="fs-enabled">
+        <label for="fs-enabled">
+          🔛 <strong>Show Founder's Message on Homepage</strong>
+        </label>
+      </div>
+
+      <div class="f-row">
+        <div class="fg"><label>Name *</label><input class="fi" id="fs-name" placeholder="e.g. John Doe"></div>
+        <div class="fg"><label>Title *</label><input class="fi" id="fs-title" placeholder="e.g. Founder & CEO"></div>
+      </div>
+
+      <div class="fg">
+        <label>Message / Bio *</label>
+        <textarea class="fi" id="fs-bio" style="min-height:120px;" placeholder="A short message from the founder..."></textarea>
+      </div>
+
+      <div class="fg">
+        <label>Photo</label>
+        <input class="fi" id="fs-photo" placeholder="Or paste image URL..." style="margin-bottom:10px;">
+        <div id="fs-photo-prev" style="margin-bottom:10px;"></div>
+        <label class="e-btn" style="display:inline-block;cursor:pointer;">
+          📷 Upload Photo
+          <input type="file" id="fs-file" accept="image/*" style="display:none" onchange="prevFounderPhoto(this)">
+        </label>
+      </div>
+
+      <div class="f-row">
+        <div class="fg"><label>Facebook Link (optional)</label><input class="fi" id="fs-facebook" placeholder="https://facebook.com/..."></div>
+        <div class="fg"><label>LinkedIn Link (optional)</label><input class="fi" id="fs-linkedin" placeholder="https://linkedin.com/in/..."></div>
+      </div>
+    </div>
+
+    <button id="fs-save-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="saveFounderSettingsUI()">
+      💾 Save Founder Settings
+    </button>
+
+  </div>
+</div>
+
 <div class="adm-sec" id="popup-adm">
   <div class="set-wrap" style="max-width:700px;">
     

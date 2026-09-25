@@ -205,6 +205,7 @@ function goSec(btn) {
   }
 
   if(secId === 'set-adm' && typeof loadRegistrationSettings === 'function') loadRegistrationSettings();
+  if(secId === 'founder-adm' && typeof loadFounderSettingsUI === 'function') loadFounderSettingsUI();
   if(secId === 'popup-adm' && typeof loadPopupSettings === 'function') loadPopupSettings();
   if(secId === 'quiz-adm' && typeof loadQuizzes === 'function') loadQuizzes().then(() => renderQuizTable());
   if(secId === 'qsub-adm' && typeof loadQuizSubmissions === 'function') {
@@ -646,6 +647,47 @@ async function saveRegistrationSettings() {
 }
 
 /*===== POPUP SETTINGS =====*/
+/*===== FOUNDER'S MESSAGE SETTINGS =====*/
+async function loadFounderSettingsUI() {
+  if(typeof getFounderSettings !== 'function') return;
+  const f = await getFounderSettings();
+  const m = { 'fs-name': f.name, 'fs-title': f.title, 'fs-bio': f.bio, 'fs-photo': f.photo, 'fs-facebook': f.facebook, 'fs-linkedin': f.linkedin };
+  Object.entries(m).forEach(([id, val]) => { const el = document.getElementById(id); if(el) el.value = val || ''; });
+  const en = document.getElementById('fs-enabled'); if(en) en.checked = f.enabled || false;
+  const prev = document.getElementById('fs-photo-prev');
+  if(prev) prev.innerHTML = f.photo ? `<img src="${f.photo}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;">` : '';
+}
+
+async function saveFounderSettingsUI() {
+  const name = document.getElementById('fs-name')?.value.trim() || '';
+  const title = document.getElementById('fs-title')?.value.trim() || '';
+  const bio = document.getElementById('fs-bio')?.value.trim() || '';
+  const enabled = document.getElementById('fs-enabled')?.checked || false;
+
+  if(enabled && (!name || !title || !bio)) return toast("Name, title and message are required to show this section!", true);
+
+  const data = {
+    enabled, name, title, bio,
+    photo: document.getElementById('fs-photo')?.value.trim() || '',
+    facebook: document.getElementById('fs-facebook')?.value.trim() || '',
+    linkedin: document.getElementById('fs-linkedin')?.value.trim() || ''
+  };
+  if(await updateFounderSettings(data)) toast("Saved! ✅");
+  else toast("Failed to save.", true);
+}
+
+async function prevFounderPhoto(input) {
+  if(!input.files?.[0]) return;
+  const prev = document.getElementById('fs-photo-prev');
+  prev.innerHTML = `<div style="padding:10px;color:var(--muted)">⏳ Uploading...</div>`;
+  const result = await uploadToImgBB(input.files[0]);
+  if(result.success) {
+    document.getElementById('fs-photo').value = result.url;
+    prev.innerHTML = `<img src="${result.url}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;"><div style="color:#4ade80;font-size:.75rem;margin-top:5px">✅ Uploaded!</div>`;
+    toast("Uploaded! ✅");
+  } else { prev.innerHTML = `<div style="color:#f87171">❌ Failed</div>`; toast("Failed!", true); }
+}
+
 async function loadPopupSettings() {
   if(typeof getPopupSettings !== 'function') return;
   const s = await getPopupSettings();

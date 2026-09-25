@@ -1298,3 +1298,32 @@ function getFormAvailability(form, now) {
   if(form.endAt && now > form.endAt) return { state: 'closed', startAt: form.startAt || null, endAt: form.endAt };
   return { state: 'open', startAt: form.startAt || null, endAt: form.endAt || null };
 }
+
+/*===== FOUNDER'S MESSAGE SETTINGS =====*/
+async function getFounderSettings() {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  const defaults = { enabled: false, name: '', title: '', bio: '', photo: '', facebook: '', linkedin: '' };
+  try {
+    const snap = await getDoc(doc(db, "settings", "founder"));
+    if(snap.exists()) return { ...defaults, ...snap.data() };
+    return defaults;
+  } catch(err) {
+    console.error("Get founder settings error:", err);
+    return defaults;
+  }
+}
+
+async function updateFounderSettings(data) {
+  await waitForFirebase();
+  const { doc, setDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await setDoc(doc(db, "settings", "founder"), data);
+    return true;
+  } catch(err) {
+    console.error("Update founder settings error:", err);
+    return false;
+  }
+}

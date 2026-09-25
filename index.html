@@ -158,6 +158,27 @@
   </div>
 </section>
 
+<!-- FOUNDER'S MESSAGE -->
+<section class="section" id="founder-msg" style="display:none;">
+  <div class="sec-hd">
+    <span class="eyebrow">From Our Founder</span>
+    <h2 class="sec-title">Founder's <span class="hl">Message</span></h2>
+    <div class="divider"></div>
+  </div>
+  <div class="founder-grid">
+    <div class="founder-photo-wrap">
+      <img class="founder-photo" id="founder-photo" src="logo.jpg" alt="Founder">
+      <div class="founder-name" id="founder-name"></div>
+      <div class="founder-title" id="founder-title"></div>
+      <div class="founder-socials" id="founder-socials"></div>
+    </div>
+    <div>
+      <div class="founder-quote-mark">"</div>
+      <p class="founder-msg-text" id="founder-bio"></p>
+    </div>
+  </div>
+</section>
+
 <!-- LATEST NEWS -->
 <section class="section" id="news" style="background:var(--card2);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);">
   <div class="sec-hd">
@@ -424,6 +445,38 @@ function renderNetworkHome() {
   });
 }
   </script>
+
+<!-- ═══════════════════════════════════ -->
+<!-- 👤 FOUNDER'S MESSAGE SCRIPT -->
+<!-- ═══════════════════════════════════ -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const fcheck = setInterval(async () => {
+    if(typeof getFounderSettings === 'function' && window.firebaseDB) {
+      clearInterval(fcheck);
+      try { await initFounderMessage(); }
+      catch(err) { console.error("Founder message load error:", err); }
+    }
+  }, 200);
+});
+
+async function initFounderMessage() {
+  const f = await getFounderSettings();
+  if(!f || !f.enabled) return;
+
+  document.getElementById('founder-name').textContent = f.name || '';
+  document.getElementById('founder-title').textContent = f.title || '';
+  document.getElementById('founder-bio').textContent = f.bio || '';
+  if(f.photo) document.getElementById('founder-photo').src = f.photo;
+
+  let socialsHtml = '';
+  if(f.facebook) socialsHtml += `<a class="founder-social-btn" href="${f.facebook}" target="_blank" rel="noopener" title="Facebook">📘</a>`;
+  if(f.linkedin) socialsHtml += `<a class="founder-social-btn" href="${f.linkedin}" target="_blank" rel="noopener" title="LinkedIn">💼</a>`;
+  document.getElementById('founder-socials').innerHTML = socialsHtml;
+
+  document.getElementById('founder-msg').style.display = 'block';
+}
+</script>
 
 <!-- ═══════════════════════════════════ -->
 <!-- 🚀 POPUP + COUNTDOWN SCRIPT -->

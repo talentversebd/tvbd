@@ -363,9 +363,9 @@ async function submitCustomForm() {
 
   if(result.success) {
     document.getElementById('pf-thanks-title').textContent = pfForm.thankYouTitle || 'Response Submitted!';
-    document.getElementById('pf-thanks-sub').textContent = pfForm.thankYouMessage || 'Thank you — your response has been recorded.';
+    document.getElementById('pf-thanks-sub').innerHTML = linkify(pfForm.thankYouMessage || 'Thank you — your response has been recorded.');
     if(pfForm.isQuiz && grading) {
-      if(!pfForm.thankYouMessage) document.getElementById('pf-thanks-sub').textContent = 'Here\'s how you did:';
+      if(!pfForm.thankYouMessage) document.getElementById('pf-thanks-sub').innerHTML = 'Here\'s how you did:';
       document.getElementById('pf-score-box').classList.remove('pf-hidden');
       document.getElementById('pf-score-num').textContent = `${grading.score} / ${grading.totalPossible}`;
       document.getElementById('pf-review').innerHTML = grading.review.map(r => `

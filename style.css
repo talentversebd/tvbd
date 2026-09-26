@@ -150,6 +150,17 @@ button,input,select,textarea{font-family:inherit}
 .founder-quote-mark{font-family:Montserrat;font-size:3.5rem;line-height:1;color:var(--blue-br);opacity:.35;margin-bottom:-16px}
 .founder-msg-text{color:var(--muted);font-size:1rem;line-height:1.9;white-space:pre-line}
 
+.founder-spotlight{max-width:900px;margin:0 auto;background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--bdr2);border-radius:var(--r);padding:36px;display:flex;gap:32px;align-items:center;box-shadow:var(--glow);position:relative;overflow:hidden}
+.founder-spotlight::before{content:"";position:absolute;top:-40%;right:-10%;width:260px;height:260px;background:radial-gradient(circle,rgba(59,130,246,.18),transparent 70%);pointer-events:none}
+@media(max-width:640px){.founder-spotlight{flex-direction:column;text-align:center;padding:26px 20px}.founder-spotlight .founder-socials{justify-content:center}}
+.founder-spotlight-photo{width:180px;height:180px;border-radius:50%;object-fit:cover;border:5px solid var(--blue-br);box-shadow:0 0 36px rgba(59,130,246,.4);flex-shrink:0;background:#fff;position:relative;z-index:1}
+.founder-spotlight-body{position:relative;z-index:1}
+.founder-spotlight-badge{display:inline-block;background:rgba(250,204,21,.14);color:#facc15;border:1px solid rgba(250,204,21,.3);font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:10px}
+.founder-spotlight-body h2{font-family:Montserrat;font-size:1.5rem;font-weight:800}
+.founder-spotlight-title{color:var(--blue-br);font-weight:600;font-size:.95rem;margin-top:2px;margin-bottom:12px}
+.founder-spotlight-bio{color:var(--muted);font-size:.9rem;line-height:1.8;white-space:pre-line}
+.founder-spotlight .founder-socials{justify-content:flex-start;margin-top:14px}
+
 /*===== GALLERY =====*/
 .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .g-item{border-radius:var(--r2);overflow:hidden;border:1px solid var(--bdr);aspect-ratio:4/3;cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;background:var(--card2)}

@@ -171,6 +171,7 @@ function goSec(btn) {
     'qsub-adm': 'Quiz Submissions',
     'team-adm': 'Team Members',
     'network-adm': 'Our Network',
+    'founder-adm': "Founder's Message",
     'msg-adm': 'Contact Messages',
     'reg-adm': 'Registrations',
     'cert-adm': 'Certificates',

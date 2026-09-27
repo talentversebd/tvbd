@@ -735,6 +735,23 @@ async function loadQuizzes() {
   }
 }
 function getQuizzes() { return cache.quizzes || []; }
+
+// Participant Dashboard: fetch a participant's own quiz results by email.
+// Sorted client-side (newest first) to avoid needing a composite index.
+async function getQuizSubmissionsByEmail(email) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "quiz_submissions"), where("email", "==", email)));
+    const results = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    results.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+    return results;
+  } catch (err) {
+    console.error("Get quiz submissions by email error:", err);
+    return [];
+  }
+}
 function getPublishedQuizzes() { return (cache.quizzes || []).filter(q => q.status === 'published'); }
 
 // Deterministic submission ID: one document per (quiz, email) pair.

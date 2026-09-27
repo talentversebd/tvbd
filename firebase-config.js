@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc, query, orderBy, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA1VAUyNGYE7XpgLRN6-xeAI5QMjN-Q_Lk",
@@ -12,10 +13,19 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 window.firebaseDB = db;
 window.firebaseFunctions = {
   collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc, query, orderBy, where, onSnapshot
+};
+
+// Participant account system (separate from the admin panel's own hardcoded
+// login — this is real Firebase Auth, used only by account.html/dashboard.html).
+window.firebaseAuth = auth;
+window.firebaseAuthFunctions = {
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
+  onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail
 };
 
 window.IMGBB_KEY = "b374ae6a3edcf12a90a5b7be9ec39f50";
@@ -26,4 +36,4 @@ window.EMAILJS_CONFIG = {
   publicKey: "oUx7nluCmNJyGq1L30cFJ"
 };
 
-console.log("🔥 Firebase Initialized (No Auth)!");
+console.log("🔥 Firebase Initialized (Firestore + Auth)!");

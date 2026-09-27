@@ -12,18 +12,19 @@
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact — TalentVerse Bangladesh</title>
-<meta name="description" content="Get in touch with TalentVerse Bangladesh.">
-<link rel="canonical" href="https://talentversebd.github.io/tvbd/contact.html">
+<title>My Dashboard — TalentVerse Bangladesh</title>
+<meta name="description" content="View your quiz results.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://talentversebd.github.io/tvbd/dashboard.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TalentVerse Bangladesh">
-<meta property="og:title" content="Contact — TalentVerse Bangladesh">
-<meta property="og:description" content="Get in touch with TalentVerse Bangladesh.">
-<meta property="og:url" content="https://talentversebd.github.io/tvbd/contact.html">
+<meta property="og:title" content="My Dashboard — TalentVerse Bangladesh">
+<meta property="og:description" content="View your quiz results.">
+<meta property="og:url" content="https://talentversebd.github.io/tvbd/dashboard.html">
 <meta property="og:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Contact — TalentVerse Bangladesh">
-<meta name="twitter:description" content="Get in touch with TalentVerse Bangladesh.">
+<meta name="twitter:title" content="My Dashboard — TalentVerse Bangladesh">
+<meta name="twitter:description" content="View your quiz results.">
 <meta name="twitter:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -66,7 +67,7 @@
     <a href="news.html" data-i18n="nav_news">News</a>
     <a href="register.html" data-i18n="nav_register">Register</a>
     <a href="verify.html" data-i18n="nav_verify">Verify</a>
-    <a href="contact.html" class="active" data-i18n="nav_contact">Contact</a>
+    <a href="contact.html" data-i18n="nav_contact">Contact</a>
     <a href="account.html" id="nav-account-link">🔐 Account</a>
     <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
       🌐 <span class="lang-toggle-label">বাং</span>
@@ -79,90 +80,35 @@
 
 <!-- PAGE HEADER -->
 <div class="page-header">
-  <span class="eyebrow" data-i18n="cp_eyebrow">Get In Touch</span>
-  <h1><span data-i18n="cp_title_1">Contact</span> <span data-i18n="cp_title_2">Us</span></h1>
-  <p data-i18n="cp_desc">Have a question or want to collaborate? We'd love to hear from you!</p>
+  <span class="eyebrow">Participant Portal</span>
+  <h1>My <span>Dashboard</span></h1>
+  <p id="db-welcome">Welcome back!</p>
 </div>
 
-<!-- CONTACT SECTION -->
-<section class="section">
-  <div class="contact-grid">
+<!-- DASHBOARD SECTION -->
+<section class="section" style="padding-top:20px;">
+  <div style="max-width:800px;margin:0 auto;">
 
-    <!-- Contact Info -->
-    <div class="contact-info">
-      <div class="c-info-item">
-        <div class="c-info-icon">📧</div>
+    <div id="db-loading" style="text-align:center;padding:60px 20px;color:var(--muted);">⏳ Loading your dashboard...</div>
+
+    <div id="db-content" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:10px;">
         <div>
-          <h4 data-i18n="ci_email_t">Email Us</h4>
-          <a id="f-email" href="mailto:talentversebangladesh@gmail.com">talentversebangladesh@gmail.com</a>
+          <span class="eyebrow" style="margin-bottom:2px;">Logged in as</span>
+          <div id="db-email" style="font-weight:700;color:var(--txt);"></div>
         </div>
-      </div>
-      <div class="c-info-item">
-        <div class="c-info-icon">📞</div>
-        <div>
-          <h4 data-i18n="ci_call_t">Call Us</h4>
-          <a id="f-phone" href="tel:+8801634428536">+880 1634-428536</a>
-        </div>
-      </div>
-      <div class="c-info-item">
-        <div class="c-info-icon">📍</div>
-        <div>
-          <h4 data-i18n="ci_loc_t">Location</h4>
-          <p id="f-addr">Dhaka, Bangladesh</p>
-        </div>
-      </div>
-      <div class="c-info-item">
-        <div class="c-info-icon">⏰</div>
-        <div>
-          <h4 data-i18n="ci_resp_t">Response Time</h4>
-          <p data-i18n="ci_resp_d">We usually respond within 24 hours.</p>
-        </div>
+        <button onclick="dbLogout()" style="background:var(--card);border:1px solid var(--bdr);color:var(--txt);padding:9px 18px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;">🚪 Log Out</button>
       </div>
 
-      <!-- Social Links -->
-      <div class="c-info-item">
-        <div class="c-info-icon">🌐</div>
-        <div>
-          <h4 data-i18n="ci_follow_t">Follow Us</h4>
-          <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
-            <a href="https://www.facebook.com/talentversebangladesh" target="_blank" style="color:var(--blue-br);font-size:.85rem;text-decoration:none;">
-    Facebook
-</a>
-
-<a href="https://www.instagram.com/talentverse.bangladesh07?igsh=cDFpMHR4NzZvNzJx" target="_blank" style="color:var(--blue-br);font-size:.85rem;text-decoration:none;">
-    Instagram
-</a>
-
-<a href="#" style="color:var(--blue-br);font-size:.85rem;text-decoration:none;">
-    YouTube
-</a>
-          </div>
-        </div>
-      </div>
+      <h3 style="font-family:Montserrat;font-weight:800;font-size:1.1rem;margin-bottom:14px;color:var(--txt);">📊 My Quiz Results</h3>
+      <div id="db-results-list"></div>
     </div>
 
-    <!-- Contact Form -->
-    <div class="contact-form">
-      <h3 data-i18n="cf_title">Send us a Message ✉️</h3>
-      <form onsubmit="submitContact(event)">
-        <div class="cf-group">
-          <label data-i18n="cf_name_l">Your Name *</label>
-          <input class="cf-input" type="text" id="cf-name" data-i18n-ph="cf_name_ph" placeholder="Enter your full name" required>
-        </div>
-        <div class="cf-group">
-          <label data-i18n="cf_email_l">Email Address *</label>
-          <input class="cf-input" type="email" id="cf-email" data-i18n-ph="cf_email_ph" placeholder="your@email.com" required>
-        </div>
-        <div class="cf-group">
-          <label data-i18n="cf_subject_l">Subject</label>
-          <input class="cf-input" type="text" id="cf-subject" data-i18n-ph="cf_subject_ph" placeholder="What is this about?">
-        </div>
-        <div class="cf-group">
-          <label data-i18n="cf_message_l">Message *</label>
-          <textarea class="cf-input" id="cf-message" data-i18n-ph="cf_message_ph" placeholder="Write your message here..." required></textarea>
-        </div>
-        <button type="submit" class="cf-btn" data-i18n="cf_submit">Send Message 🚀</button>
-      </form>
+    <div id="db-guest" style="display:none;text-align:center;padding:60px 20px;">
+      <div style="font-size:2.6rem;margin-bottom:12px;">🔒</div>
+      <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:10px;color:var(--txt);">Please Log In</h3>
+      <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px;">You need to be logged in to view your dashboard.</p>
+      <a href="account.html" class="btn-pri">Log In →</a>
     </div>
 
   </div>
@@ -454,6 +400,77 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
+</script>
+
+<!-- DASHBOARD LOGIC -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const check = setInterval(() => {
+    if(window.firebaseAuth && window.firebaseAuthFunctions && typeof getQuizSubmissionsByEmail === 'function') {
+      clearInterval(check);
+      window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, (user) => {
+        if(user && user.emailVerified) {
+          dbLoadDashboard(user);
+        } else {
+          document.getElementById('db-loading').style.display = 'none';
+          document.getElementById('db-guest').style.display = 'block';
+        }
+      });
+    }
+  }, 200);
+});
+
+async function dbLoadDashboard(user) {
+  document.getElementById('db-welcome').textContent = `স্বাগতম, ${user.email}`;
+  document.getElementById('db-email').textContent = user.email;
+
+  const [results] = await Promise.all([
+    getQuizSubmissionsByEmail(user.email),
+    (typeof loadQuizzes === 'function' ? loadQuizzes() : Promise.resolve())
+  ]);
+  const quizzes = typeof getQuizzes === 'function' ? getQuizzes() : [];
+  const quizMap = {};
+  quizzes.forEach(q => quizMap[q.id] = q);
+
+  const list = document.getElementById('db-results-list');
+
+  if(!results.length) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:40px 20px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;color:var(--muted);">
+        <div style="font-size:2rem;margin-bottom:10px;">📭</div>
+        <p style="font-size:.9rem;">এই email দিয়ে এখনো কোনো quiz submit করা হয়নি।</p>
+        <p style="font-size:.78rem;margin-top:6px;">নোট: quiz দেওয়ার সময় যে email দিয়েছিলে, account-এর email ঠিক সেটার সাথেই মিলতে হবে।</p>
+      </div>`;
+  } else {
+    list.innerHTML = results.map(r => {
+      const quiz = quizMap[r.quizId];
+      const title = quiz ? quiz.title : 'Quiz';
+      const pending = r.status === 'pending_review';
+      const scoreText = pending
+        ? `<span style="color:#fbbf24;">⏳ Pending review</span>`
+        : `<strong style="color:var(--blue-br);">${r.totalScore ?? r.mcqScore ?? 0} / ${r.totalPossible ?? 0}</strong>`;
+      const dateStr = r.submittedAt ? new Date(r.submittedAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+      return `
+        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-weight:700;color:var(--txt);margin-bottom:4px;">${title}</div>
+            <div style="font-size:.78rem;color:var(--muted);">Submitted: ${dateStr}</div>
+          </div>
+          <div style="text-align:right;font-size:1rem;">${scoreText}</div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('db-loading').style.display = 'none';
+  document.getElementById('db-content').style.display = 'block';
+}
+
+function dbLogout() {
+  const { signOut } = window.firebaseAuthFunctions;
+  signOut(window.firebaseAuth).then(() => {
+    window.location.href = 'account.html';
+  });
+}
 </script>
 </body>
 </html>

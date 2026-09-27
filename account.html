@@ -12,18 +12,19 @@
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact — TalentVerse Bangladesh</title>
-<meta name="description" content="Get in touch with TalentVerse Bangladesh.">
-<link rel="canonical" href="https://talentversebd.github.io/tvbd/contact.html">
+<title>My Account — TalentVerse Bangladesh</title>
+<meta name="description" content="Log in or sign up to view your quiz results and more.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://talentversebd.github.io/tvbd/account.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TalentVerse Bangladesh">
-<meta property="og:title" content="Contact — TalentVerse Bangladesh">
-<meta property="og:description" content="Get in touch with TalentVerse Bangladesh.">
-<meta property="og:url" content="https://talentversebd.github.io/tvbd/contact.html">
+<meta property="og:title" content="My Account — TalentVerse Bangladesh">
+<meta property="og:description" content="Log in or sign up to view your quiz results and more.">
+<meta property="og:url" content="https://talentversebd.github.io/tvbd/account.html">
 <meta property="og:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Contact — TalentVerse Bangladesh">
-<meta name="twitter:description" content="Get in touch with TalentVerse Bangladesh.">
+<meta name="twitter:title" content="My Account — TalentVerse Bangladesh">
+<meta name="twitter:description" content="Log in or sign up to view your quiz results and more.">
 <meta name="twitter:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -66,7 +67,7 @@
     <a href="news.html" data-i18n="nav_news">News</a>
     <a href="register.html" data-i18n="nav_register">Register</a>
     <a href="verify.html" data-i18n="nav_verify">Verify</a>
-    <a href="contact.html" class="active" data-i18n="nav_contact">Contact</a>
+    <a href="contact.html" data-i18n="nav_contact">Contact</a>
     <a href="account.html" id="nav-account-link">🔐 Account</a>
     <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
       🌐 <span class="lang-toggle-label">বাং</span>
@@ -79,90 +80,71 @@
 
 <!-- PAGE HEADER -->
 <div class="page-header">
-  <span class="eyebrow" data-i18n="cp_eyebrow">Get In Touch</span>
-  <h1><span data-i18n="cp_title_1">Contact</span> <span data-i18n="cp_title_2">Us</span></h1>
-  <p data-i18n="cp_desc">Have a question or want to collaborate? We'd love to hear from you!</p>
+  <span class="eyebrow">Participant Portal</span>
+  <h1>My <span>Account</span></h1>
+  <p>Log in to see your quiz results, or create a free account if you're new here.</p>
 </div>
 
-<!-- CONTACT SECTION -->
+<!-- ACCOUNT SECTION -->
 <section class="section">
-  <div class="contact-grid">
+  <div style="max-width:440px;margin:0 auto;">
 
-    <!-- Contact Info -->
-    <div class="contact-info">
-      <div class="c-info-item">
-        <div class="c-info-icon">📧</div>
-        <div>
-          <h4 data-i18n="ci_email_t">Email Us</h4>
-          <a id="f-email" href="mailto:talentversebangladesh@gmail.com">talentversebangladesh@gmail.com</a>
-        </div>
-      </div>
-      <div class="c-info-item">
-        <div class="c-info-icon">📞</div>
-        <div>
-          <h4 data-i18n="ci_call_t">Call Us</h4>
-          <a id="f-phone" href="tel:+8801634428536">+880 1634-428536</a>
-        </div>
-      </div>
-      <div class="c-info-item">
-        <div class="c-info-icon">📍</div>
-        <div>
-          <h4 data-i18n="ci_loc_t">Location</h4>
-          <p id="f-addr">Dhaka, Bangladesh</p>
-        </div>
-      </div>
-      <div class="c-info-item">
-        <div class="c-info-icon">⏰</div>
-        <div>
-          <h4 data-i18n="ci_resp_t">Response Time</h4>
-          <p data-i18n="ci_resp_d">We usually respond within 24 hours.</p>
-        </div>
-      </div>
-
-      <!-- Social Links -->
-      <div class="c-info-item">
-        <div class="c-info-icon">🌐</div>
-        <div>
-          <h4 data-i18n="ci_follow_t">Follow Us</h4>
-          <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
-            <a href="https://www.facebook.com/talentversebangladesh" target="_blank" style="color:var(--blue-br);font-size:.85rem;text-decoration:none;">
-    Facebook
-</a>
-
-<a href="https://www.instagram.com/talentverse.bangladesh07?igsh=cDFpMHR4NzZvNzJx" target="_blank" style="color:var(--blue-br);font-size:.85rem;text-decoration:none;">
-    Instagram
-</a>
-
-<a href="#" style="color:var(--blue-br);font-size:.85rem;text-decoration:none;">
-    YouTube
-</a>
-          </div>
-        </div>
-      </div>
+    <!-- Tabs -->
+    <div style="display:flex;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:4px;margin-bottom:24px;">
+      <button id="tab-login-btn" onclick="acSwitchTab('login')" style="flex:1;padding:10px;border:none;border-radius:7px;font-weight:700;font-size:.88rem;cursor:pointer;background:var(--blue);color:#fff;">Log In</button>
+      <button id="tab-signup-btn" onclick="acSwitchTab('signup')" style="flex:1;padding:10px;border:none;border-radius:7px;font-weight:700;font-size:.88rem;cursor:pointer;background:transparent;color:var(--muted);">Sign Up</button>
     </div>
 
-    <!-- Contact Form -->
-    <div class="contact-form">
-      <h3 data-i18n="cf_title">Send us a Message ✉️</h3>
-      <form onsubmit="submitContact(event)">
-        <div class="cf-group">
-          <label data-i18n="cf_name_l">Your Name *</label>
-          <input class="cf-input" type="text" id="cf-name" data-i18n-ph="cf_name_ph" placeholder="Enter your full name" required>
-        </div>
-        <div class="cf-group">
-          <label data-i18n="cf_email_l">Email Address *</label>
-          <input class="cf-input" type="email" id="cf-email" data-i18n-ph="cf_email_ph" placeholder="your@email.com" required>
-        </div>
-        <div class="cf-group">
-          <label data-i18n="cf_subject_l">Subject</label>
-          <input class="cf-input" type="text" id="cf-subject" data-i18n-ph="cf_subject_ph" placeholder="What is this about?">
-        </div>
-        <div class="cf-group">
-          <label data-i18n="cf_message_l">Message *</label>
-          <textarea class="cf-input" id="cf-message" data-i18n-ph="cf_message_ph" placeholder="Write your message here..." required></textarea>
-        </div>
-        <button type="submit" class="cf-btn" data-i18n="cf_submit">Send Message 🚀</button>
-      </form>
+    <!-- LOG IN FORM -->
+    <div id="ac-login-view">
+      <div class="cf-group">
+        <label>Email Address</label>
+        <input class="cf-input" type="email" id="li-email" placeholder="you@email.com">
+      </div>
+      <div class="cf-group">
+        <label>Password</label>
+        <input class="cf-input" type="password" id="li-pass" placeholder="Your password">
+      </div>
+      <p id="ac-login-err" style="color:#f87171;font-size:.82rem;margin:-8px 0 14px;display:none;"></p>
+      <button class="cf-btn" onclick="acLogin()" id="ac-login-btn">Log In 🔐</button>
+      <p style="text-align:center;margin-top:14px;">
+        <a href="#" onclick="acForgotPassword();return false;" style="color:var(--blue-br);font-size:.85rem;">Forgot password?</a>
+      </p>
+    </div>
+
+    <!-- SIGN UP FORM -->
+    <div id="ac-signup-view" style="display:none;">
+      <div class="cf-group">
+        <label>Email Address</label>
+        <input class="cf-input" type="email" id="su-email" placeholder="Use the same email you registered with">
+      </div>
+      <div class="cf-group">
+        <label>Password</label>
+        <input class="cf-input" type="password" id="su-pass" placeholder="At least 6 characters">
+      </div>
+      <div class="cf-group">
+        <label>Confirm Password</label>
+        <input class="cf-input" type="password" id="su-pass2" placeholder="Re-type your password">
+      </div>
+      <p style="font-size:.78rem;color:var(--muted);margin:-8px 0 14px;line-height:1.6;">
+        💡 Use the exact same email you used for quizzes/registrations — that's how we match your results to your account.
+      </p>
+      <p id="ac-signup-err" style="color:#f87171;font-size:.82rem;margin:-8px 0 14px;display:none;"></p>
+      <button class="cf-btn" onclick="acSignup()" id="ac-signup-btn">Create Account ✨</button>
+    </div>
+
+    <!-- EMAIL VERIFICATION PENDING -->
+    <div id="ac-verify-view" style="display:none;text-align:center;padding:20px 0;">
+      <div style="font-size:2.6rem;margin-bottom:12px;">📧</div>
+      <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:10px;color:var(--txt);">Verify Your Email</h3>
+      <p style="color:var(--muted);font-size:.9rem;line-height:1.7;margin-bottom:20px;">
+        We've sent a verification link to <strong id="ac-verify-email" style="color:var(--txt);"></strong>.
+        Click the link in that email, then come back and log in.
+      </p>
+      <button class="cf-btn" onclick="acResendVerification()" id="ac-resend-btn" style="max-width:260px;margin:0 auto;">Resend Verification Email</button>
+      <p style="margin-top:16px;">
+        <a href="#" onclick="acSwitchTab('login');return false;" style="color:var(--blue-br);font-size:.85rem;">← Back to Log In</a>
+      </p>
     </div>
 
   </div>
@@ -454,6 +436,138 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
+</script>
+
+<!-- ACCOUNT / AUTH LOGIC -->
+<script>
+let acAuthReady = false;
+document.addEventListener('DOMContentLoaded', () => {
+  const check = setInterval(() => {
+    if(window.firebaseAuth && window.firebaseAuthFunctions) {
+      clearInterval(check);
+      acAuthReady = true;
+      // If already logged in & verified, skip straight to the dashboard.
+      window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, (user) => {
+        if(user && user.emailVerified && !acJustSignedUp) {
+          window.location.href = 'dashboard.html';
+        }
+      });
+    }
+  }, 200);
+});
+let acJustSignedUp = false;
+
+function acSwitchTab(tab) {
+  const loginBtn = document.getElementById('tab-login-btn');
+  const signupBtn = document.getElementById('tab-signup-btn');
+  document.getElementById('ac-login-view').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('ac-signup-view').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('ac-verify-view').style.display = 'none';
+  loginBtn.style.background = tab === 'login' ? 'var(--blue)' : 'transparent';
+  loginBtn.style.color = tab === 'login' ? '#fff' : 'var(--muted)';
+  signupBtn.style.background = tab === 'signup' ? 'var(--blue)' : 'transparent';
+  signupBtn.style.color = tab === 'signup' ? '#fff' : 'var(--muted)';
+  document.getElementById('ac-login-err').style.display = 'none';
+  document.getElementById('ac-signup-err').style.display = 'none';
+}
+
+function acShowErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// Turns Firebase's raw error codes into friendly Bangla/English messages.
+function acFriendlyError(err) {
+  const code = err && err.code || '';
+  if(code.includes('email-already-in-use')) return 'এই email দিয়ে আগেই একটা account আছে — Log In করুন।';
+  if(code.includes('invalid-email')) return 'সঠিক email address দিন।';
+  if(code.includes('weak-password')) return 'Password কমপক্ষে ৬ অক্ষরের হতে হবে।';
+  if(code.includes('user-not-found') || code.includes('invalid-credential') || code.includes('wrong-password')) return 'Email অথবা password ভুল।';
+  if(code.includes('too-many-requests')) return 'অনেকবার চেষ্টা হয়েছে — একটু পর আবার চেষ্টা করুন।';
+  return err && err.message ? err.message : 'কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করুন।';
+}
+
+async function acSignup() {
+  const email = document.getElementById('su-email').value.trim();
+  const pass = document.getElementById('su-pass').value;
+  const pass2 = document.getElementById('su-pass2').value;
+
+  if(!email || !pass) return acShowErr('ac-signup-err', 'Email ও Password দিন।');
+  if(pass.length < 6) return acShowErr('ac-signup-err', 'Password কমপক্ষে ৬ অক্ষরের হতে হবে।');
+  if(pass !== pass2) return acShowErr('ac-signup-err', 'দুটো Password মিলছে না।');
+
+  const btn = document.getElementById('ac-signup-btn');
+  btn.disabled = true; btn.textContent = 'Creating...';
+
+  const { createUserWithEmailAndPassword, sendEmailVerification } = window.firebaseAuthFunctions;
+  try {
+    const cred = await createUserWithEmailAndPassword(window.firebaseAuth, email, pass);
+    acJustSignedUp = true;
+    await sendEmailVerification(cred.user);
+    document.getElementById('ac-verify-email').textContent = email;
+    document.getElementById('ac-login-view').style.display = 'none';
+    document.getElementById('ac-signup-view').style.display = 'none';
+    document.getElementById('ac-verify-view').style.display = 'block';
+  } catch(err) {
+    acShowErr('ac-signup-err', acFriendlyError(err));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create Account ✨';
+  }
+}
+
+async function acLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass = document.getElementById('li-pass').value;
+  if(!email || !pass) return acShowErr('ac-login-err', 'Email ও Password দিন।');
+
+  const btn = document.getElementById('ac-login-btn');
+  btn.disabled = true; btn.textContent = 'Logging in...';
+
+  const { signInWithEmailAndPassword } = window.firebaseAuthFunctions;
+  try {
+    const cred = await signInWithEmailAndPassword(window.firebaseAuth, email, pass);
+    if(!cred.user.emailVerified) {
+      document.getElementById('ac-verify-email').textContent = email;
+      document.getElementById('ac-login-view').style.display = 'none';
+      document.getElementById('ac-verify-view').style.display = 'block';
+      return;
+    }
+    window.location.href = 'dashboard.html';
+  } catch(err) {
+    acShowErr('ac-login-err', acFriendlyError(err));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Log In 🔐';
+  }
+}
+
+async function acResendVerification() {
+  const { sendEmailVerification } = window.firebaseAuthFunctions;
+  const user = window.firebaseAuth.currentUser;
+  if(!user) return toast("Please log in again first.", true);
+  const btn = document.getElementById('ac-resend-btn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    await sendEmailVerification(user);
+    toast("Verification email sent! ✅");
+  } catch(err) {
+    toast(acFriendlyError(err), true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Resend Verification Email';
+  }
+}
+
+async function acForgotPassword() {
+  const email = document.getElementById('li-email').value.trim();
+  if(!email) return acShowErr('ac-login-err', 'আগে email address লিখুন, তারপর "Forgot password?" চাপুন।');
+  const { sendPasswordResetEmail } = window.firebaseAuthFunctions;
+  try {
+    await sendPasswordResetEmail(window.firebaseAuth, email);
+    toast("Password reset link sent to your email! ✅");
+  } catch(err) {
+    acShowErr('ac-login-err', acFriendlyError(err));
+  }
+}
 </script>
 </body>
 </html>

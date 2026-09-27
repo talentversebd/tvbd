@@ -13,8 +13,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
 
+// Set these up FIRST — every page's data (team, quiz, news, etc.) depends only
+// on Firestore, so it must never be blocked by anything Auth-related below.
 window.firebaseDB = db;
 window.firebaseFunctions = {
   collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc, query, orderBy, where, onSnapshot
@@ -22,11 +23,18 @@ window.firebaseFunctions = {
 
 // Participant account system (separate from the admin panel's own hardcoded
 // login — this is real Firebase Auth, used only by account.html/dashboard.html).
-window.firebaseAuth = auth;
-window.firebaseAuthFunctions = {
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-  onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail
-};
+// Wrapped in try/catch so that if Auth ever fails to initialize, it can't take
+// down Firestore (and therefore the whole rest of the site) with it.
+try {
+  const auth = getAuth(app);
+  window.firebaseAuth = auth;
+  window.firebaseAuthFunctions = {
+    createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
+    onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail
+  };
+} catch(err) {
+  console.error("Firebase Auth init failed (Firestore still works):", err);
+}
 
 window.IMGBB_KEY = "b374ae6a3edcf12a90a5b7be9ec39f50";
 

@@ -748,7 +748,7 @@ function renderTeamTable() {
             : `<div class="thumb" style="width:40px;height:40px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--blue-br);font-weight:700;">${(m.name || 'NA').substring(0,2).toUpperCase()}</div>`}
         </td>
         <td>${m.name}</td>
-        <td><span class="bs bs-active">${m.role}</span>${m.special ? ' <span class="bs" style="background:rgba(250,204,21,.14);color:#facc15;border:1px solid rgba(250,204,21,.3);">⭐ Special</span>' : ''}</td>
+        <td><span class="bs bs-active">${m.role}</span>${m.special ? ' <span class="bs" style="background:rgba(167,139,250,.14);color:#a78bfa;border:1px solid rgba(167,139,250,.3);">🔷 Special</span>' : ''}</td>
         <td style="color:var(--muted);font-size:.8rem;">${m.department || '—'}</td>
         <td style="color:var(--muted);font-size:.8rem;">${(m.description || '—').substring(0, 40)}${m.description && m.description.length > 40 ? '...' : ''}</td>
         <td class="tbl-acts">

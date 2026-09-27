@@ -170,6 +170,9 @@ select.fi{cursor:pointer}
 <button class="adm-nb" data-sec="msg-adm" onclick="goSec(this)"><span class="ico">✉️</span>Messages</button>
 <button class="adm-nb" data-sec="reg-adm" onclick="goSec(this)"><span class="ico">📝</span>Registrations</button>
 
+<div class="adm-ns">Accounts</div>
+<button class="adm-nb" data-sec="users-adm" onclick="goSec(this)"><span class="ico">👥</span>Registered Users</button>
+
 <div class="adm-ns">Verification</div>
 <button class="adm-nb" data-sec="cert-adm" onclick="goSec(this)"><span class="ico">📜</span>Certificates</button>
 <div class="adm-ns">Notice & Settings</div>
@@ -265,6 +268,22 @@ select.fi{cursor:pointer}
           <table class="tbl">
             <thead><tr><th>Student</th><th>Quiz</th><th>MCQ Score</th><th>Short Score</th><th>Total</th><th>Status</th><th>Started</th><th>Submitted</th><th>Time Taken</th><th>Actions</th></tr></thead>
             <tbody id="qstbl"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REGISTERED USERS (account.html sign-ups) -->
+      <div class="adm-sec" id="users-adm">
+        <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">👥 Registered Users</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+            Everyone who has signed up for an account on account.html. This is a mirror kept in Firestore — the full record (including password resets, etc.) always lives in Firebase Authentication → Users.
+          </p>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Email</th><th>Verified</th><th>Signed Up</th><th>Last Login</th></tr></thead>
+            <tbody id="userstbl"></tbody>
           </table>
         </div>
       </div>

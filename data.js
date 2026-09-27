@@ -1344,3 +1344,36 @@ async function updateFounderSettings(data) {
     return false;
   }
 }
+
+/*===== REGISTERED USERS (mirror of account.html sign-ups, for the admin panel) =====*/
+// The real source of truth is Firebase Authentication → Users (client-side code
+// can't list all Auth users — that needs the Admin SDK). This Firestore mirror
+// just lets the admin panel show a simple sign-up list without extra tooling.
+async function saveRegisteredUser(uid, data) {
+  await waitForFirebase();
+  const { doc, setDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await setDoc(doc(db, "registered_users", uid), data, { merge: true });
+    return true;
+  } catch(err) {
+    console.error("Save registered user error:", err);
+    return false;
+  }
+}
+
+async function loadRegisteredUsers() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "registered_users"), orderBy("createdAt", "desc")));
+    cache.registeredUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return cache.registeredUsers;
+  } catch(err) {
+    console.error("Load registered users error:", err);
+    cache.registeredUsers = cache.registeredUsers || [];
+    return cache.registeredUsers;
+  }
+}
+function getRegisteredUsers() { return cache.registeredUsers || []; }

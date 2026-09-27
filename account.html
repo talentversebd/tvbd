@@ -505,6 +505,9 @@ async function acSignup() {
     const cred = await createUserWithEmailAndPassword(window.firebaseAuth, email, pass);
     acJustSignedUp = true;
     await sendEmailVerification(cred.user);
+    if(typeof saveRegisteredUser === 'function') {
+      saveRegisteredUser(cred.user.uid, { email, createdAt: Date.now(), emailVerified: false }).catch(() => {});
+    }
     document.getElementById('ac-verify-email').textContent = email;
     document.getElementById('ac-login-view').style.display = 'none';
     document.getElementById('ac-signup-view').style.display = 'none';
@@ -532,6 +535,9 @@ async function acLogin() {
       document.getElementById('ac-login-view').style.display = 'none';
       document.getElementById('ac-verify-view').style.display = 'block';
       return;
+    }
+    if(typeof saveRegisteredUser === 'function') {
+      saveRegisteredUser(cred.user.uid, { email, emailVerified: true, lastLoginAt: Date.now() }).catch(() => {});
     }
     window.location.href = 'dashboard.html';
   } catch(err) {

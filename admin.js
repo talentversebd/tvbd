@@ -172,6 +172,7 @@ function goSec(btn) {
     'team-adm': 'Team Members',
     'network-adm': 'Our Network',
     'founder-adm': "Founder's Message",
+    'users-adm': "Registered Users",
     'msg-adm': 'Contact Messages',
     'reg-adm': 'Registrations',
     'cert-adm': 'Certificates',
@@ -207,6 +208,7 @@ function goSec(btn) {
 
   if(secId === 'set-adm' && typeof loadRegistrationSettings === 'function') loadRegistrationSettings();
   if(secId === 'founder-adm' && typeof loadFounderSettingsUI === 'function') loadFounderSettingsUI();
+  if(secId === 'users-adm' && typeof loadRegisteredUsersUI === 'function') loadRegisteredUsersUI();
   if(secId === 'popup-adm' && typeof loadPopupSettings === 'function') loadPopupSettings();
   if(secId === 'quiz-adm' && typeof loadQuizzes === 'function') loadQuizzes().then(() => renderQuizTable());
   if(secId === 'qsub-adm' && typeof loadQuizSubmissions === 'function') {
@@ -687,6 +689,25 @@ async function prevFounderPhoto(input) {
     prev.innerHTML = `<img src="${result.url}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;"><div style="color:#4ade80;font-size:.75rem;margin-top:5px">✅ Uploaded!</div>`;
     toast("Uploaded! ✅");
   } else { prev.innerHTML = `<div style="color:#f87171">❌ Failed</div>`; toast("Failed!", true); }
+}
+
+/*===== REGISTERED USERS =====*/
+async function loadRegisteredUsersUI() {
+  const tbody = document.getElementById('userstbl');
+  if(!tbody) return;
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="4">Loading…</td></tr>`;
+  const users = typeof loadRegisteredUsers === 'function' ? await loadRegisteredUsers() : [];
+  if(!users.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No one has signed up yet.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td>${u.email || '—'}</td>
+      <td><span class="bs ${u.emailVerified ? 'bs-active' : 'bs-past'}">${u.emailVerified ? '✅ Verified' : '⏳ Not verified'}</span></td>
+      <td>${u.createdAt ? new Date(u.createdAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
+      <td>${u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
+    </tr>`).join('');
 }
 
 async function loadPopupSettings() {

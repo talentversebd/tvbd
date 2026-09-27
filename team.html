@@ -98,6 +98,38 @@
   display:-webkit-box;-webkit-line-clamp:3;
   -webkit-box-orient:vertical;overflow:hidden;
 }
+
+/* Special card (CEO / Department Head) — same structure, elevated design */
+.team-card-special{
+  border-color:rgba(250,204,21,.35);
+  background:linear-gradient(160deg,var(--card),rgba(250,204,21,.05));
+}
+.team-card-special:hover{
+  transform:translateY(-6px);
+  box-shadow:0 14px 44px rgba(250,204,21,.25);
+  border-color:rgba(250,204,21,.5);
+}
+.team-card-special .team-card-top{
+  padding-top:34px;
+  background:linear-gradient(135deg,rgba(250,204,21,.18),rgba(250,204,21,.04));
+}
+.team-card-special .team-card-top::before{
+  background:radial-gradient(circle at 50% 0%,rgba(250,204,21,.22) 0%,transparent 70%);
+}
+.team-card-special .team-avatar,
+.team-card-special .team-avatar-ph{
+  width:104px;height:104px;
+  border-color:#facc15;
+  box-shadow:0 4px 20px rgba(250,204,21,.4);
+}
+.team-card-special .team-card-top .role{color:#facc15;}
+.special-badge{
+  position:absolute;top:10px;right:10px;z-index:2;
+  background:rgba(250,204,21,.16);color:#facc15;
+  border:1px solid rgba(250,204,21,.4);
+  font-size:.6rem;font-weight:800;letter-spacing:.05em;
+  padding:3px 9px;border-radius:20px;text-transform:uppercase;
+}
 .team-empty{text-align:center;padding:60px 20px;color:var(--muted);}
 .team-empty .icon{font-size:4rem;margin-bottom:16px;}
 .team-empty h3{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;color:var(--txt);}
@@ -321,8 +353,9 @@ function renderTeamPage() {
   grid.innerHTML = deptNames.map(dept => {
     const members = groups[dept];
     const cards = members.map(m => `
-      <div class="team-card">
+      <div class="team-card${m.special ? ' team-card-special' : ''}">
         <div class="team-card-top">
+          ${m.special ? '<span class="special-badge">⭐ Leadership</span>' : ''}
           ${m.photo 
             ? `<img src="${m.photo}" class="team-avatar" alt="${m.name}">` 
             : `<div class="team-avatar-ph">${(m.name || 'NA').substring(0,2).toUpperCase()}</div>`}

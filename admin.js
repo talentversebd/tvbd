@@ -748,7 +748,7 @@ function renderTeamTable() {
             : `<div class="thumb" style="width:40px;height:40px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--blue-br);font-weight:700;">${(m.name || 'NA').substring(0,2).toUpperCase()}</div>`}
         </td>
         <td>${m.name}</td>
-        <td><span class="bs bs-active">${m.role}</span></td>
+        <td><span class="bs bs-active">${m.role}</span>${m.special ? ' <span class="bs" style="background:rgba(250,204,21,.14);color:#facc15;border:1px solid rgba(250,204,21,.3);">⭐ Special</span>' : ''}</td>
         <td style="color:var(--muted);font-size:.8rem;">${m.department || '—'}</td>
         <td style="color:var(--muted);font-size:.8rem;">${(m.description || '—').substring(0, 40)}${m.description && m.description.length > 40 ? '...' : ''}</td>
         <td class="tbl-acts">
@@ -765,6 +765,7 @@ function openTeamForm() {
   document.getElementById('tf-eid').value = '';
   document.getElementById('tf-name').value = '';
   document.getElementById('tf-role').value = '';
+  document.getElementById('tf-special').value = '0';
   document.getElementById('tf-dept').value = '';
   document.getElementById('tf-desc').value = '';
   document.getElementById('tf-order').value = '';
@@ -781,6 +782,7 @@ function editTeamMember(id) {
   document.getElementById('tf-eid').value = id;
   document.getElementById('tf-name').value = m.name || '';
   document.getElementById('tf-role').value = m.role || '';
+  document.getElementById('tf-special').value = m.special ? '1' : '0';
   document.getElementById('tf-dept').value = m.department || '';
   document.getElementById('tf-desc').value = m.description || '';
   document.getElementById('tf-order').value = m.order || '';
@@ -793,6 +795,7 @@ function editTeamMember(id) {
 async function saveTeamMember() {
   const name = document.getElementById('tf-name').value.trim();
   const role = document.getElementById('tf-role').value.trim();
+  const special = document.getElementById('tf-special').value === '1';
   const department = document.getElementById('tf-dept').value.trim() || 'Other';
   const description = document.getElementById('tf-desc').value.trim();
   const order = parseInt(document.getElementById('tf-order').value) || 999;
@@ -801,7 +804,7 @@ async function saveTeamMember() {
   if(!name) return toast("Name is required!", true);
   if(!role) return toast("Role is required!", true);
   
-  const member = { name, role, department, description, order, photo };
+  const member = { name, role, department, description, order, photo, special };
   const eid = document.getElementById('tf-eid').value;
   
   const btn = document.querySelector('#tfm .fs-btn');

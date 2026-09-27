@@ -471,8 +471,8 @@ async function initFounderMessage() {
   if(f.photo) document.getElementById('founder-photo').src = f.photo;
 
   let socialsHtml = '';
-  if(f.facebook) socialsHtml += `<a class="founder-social-btn" href="${f.facebook}" target="_blank" rel="noopener" title="Facebook">📘</a>`;
-  if(f.linkedin) socialsHtml += `<a class="founder-social-btn" href="${f.linkedin}" target="_blank" rel="noopener" title="LinkedIn">💼</a>`;
+  if(f.facebook) socialsHtml += `<a class="founder-social-btn" href="${f.facebook}" target="_blank" rel="noopener" title="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.5 9.87v-6.98H7.9V12h2.6V9.8c0-2.6 1.55-4.03 3.9-4.03 1.13 0 2.32.2 2.32.2v2.55h-1.3c-1.28 0-1.68.8-1.68 1.62V12h2.86l-.46 2.89h-2.4v6.98A10 10 0 0 0 22 12z"/></svg></a>`;
+  if(f.linkedin) socialsHtml += `<a class="founder-social-btn" href="${f.linkedin}" target="_blank" rel="noopener" title="LinkedIn"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.98 3.5C4.98 4.88 3.94 6 2.5 6S0 4.88 0 3.5 1.04 1 2.48 1 4.98 2.12 4.98 3.5zM.5 8h4V23h-4V8zm7.5 0h3.8v2.05h.05c.53-1 1.82-2.05 3.75-2.05C19.5 8 21 10.24 21 14.02V23h-4v-8.06c0-1.92-.03-4.4-2.68-4.4-2.68 0-3.1 2.1-3.1 4.26V23h-4V8z"/></svg></a>`;
   document.getElementById('founder-socials').innerHTML = socialsHtml;
 
   document.getElementById('founder-msg').style.display = 'block';

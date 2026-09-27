@@ -77,7 +77,7 @@ function renderOlympiads() {
   const page = window.location.pathname.split('/').pop() || 'index.html';
   const isHome = (page === 'index.html' || page === '');
   const all = getOlympiads();
-  const olympiads = isHome ? all.slice(0, 3) : all;
+  const olympiads = isHome ? all.slice(0, 2) : all;
 
   grid.innerHTML = '';
 

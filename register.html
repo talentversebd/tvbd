@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('reg-authgate').style.display = 'none';
             document.getElementById('reg-form').style.display = 'none';
           } else {
-            await loadOlympiads();
+            await loadAllData();
             if(typeof populateOlympiadDropdown === 'function') populateOlympiadDropdown();
 
             window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, (user) => {
@@ -316,6 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch(err) {
         console.error("Error loading registration:", err);
         document.getElementById('reg-loading').style.display = 'none';
+        document.getElementById('reg-active').style.display = 'none';
         document.getElementById('reg-empty').style.display = 'block';
       }
     }
@@ -325,6 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     if(document.getElementById('reg-loading').style.display !== 'none') {
       document.getElementById('reg-loading').style.display = 'none';
+      document.getElementById('reg-active').style.display = 'none';
       document.getElementById('reg-empty').style.display = 'block';
     }
   }, 10000);

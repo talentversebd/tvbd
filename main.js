@@ -9,15 +9,34 @@ window.addEventListener('scroll', () => {
 /*===== MOBILE NAV =====*/
 function toggleMobileNav() {
   const nav = document.getElementById('hnav');
-  if(nav) nav.classList.toggle('open');
+  if(!nav) return;
+  const hamburger = document.querySelector('.hamburger');
+
+  let backdrop = document.querySelector('.nav-backdrop');
+  if(!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.className = 'nav-backdrop';
+    backdrop.onclick = closeMobileNav;
+    document.body.appendChild(backdrop);
+  }
+
+  const isOpen = nav.classList.toggle('open');
+  backdrop.classList.toggle('open', isOpen);
+  if(hamburger) hamburger.classList.toggle('active', isOpen);
+}
+
+function closeMobileNav() {
+  const nav = document.getElementById('hnav');
+  const hamburger = document.querySelector('.hamburger');
+  const backdrop = document.querySelector('.nav-backdrop');
+  if(nav) nav.classList.remove('open');
+  if(hamburger) hamburger.classList.remove('active');
+  if(backdrop) backdrop.classList.remove('open');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.h-nav a').forEach(a => {
-    a.addEventListener('click', () => {
-      const nav = document.getElementById('hnav');
-      if(nav) nav.classList.remove('open');
-    });
+    a.addEventListener('click', closeMobileNav);
   });
 });
 

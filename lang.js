@@ -15,7 +15,7 @@ const translations = {
     // Nav
     nav_home: "Home",
     nav_olympiads: "Events & Quiz",
-    nav_team: "Team",
+    nav_team: "Exclusive Members",
     nav_news: "News",
     nav_register: "Register",
     nav_verify: "Verify",
@@ -67,8 +67,8 @@ const translations = {
 
     // Team
     team_eyebrow: "Our Team",
-    team_title_1: "Executive",
-    team_title_2: "Panel",
+    team_title_1: "Exclusive",
+    team_title_2: "Members",
     team_desc: "Meet the leaders driving TalentVerse Bangladesh forward.",
     team_viewall: "See All Members →",
     team_role_fallback: "Team info coming soon!",
@@ -100,8 +100,8 @@ const translations = {
 
     // Team page
     tp_eyebrow: "Our Team",
-    tp_title_1: "Executive",
-    tp_title_2: "Panel",
+    tp_title_1: "Exclusive",
+    tp_title_2: "Members",
     tp_desc: "Meet the leaders and members of TalentVerse Bangladesh.",
     tp_loading_t: "Team Loading...",
     tp_loading_d: "Please wait or refresh the page.",
@@ -194,7 +194,7 @@ const translations = {
     // Nav
     nav_home: "হোম",
     nav_olympiads: "ইভেন্ট & কুইজ",
-    nav_team: "টিম",
+    nav_team: "এক্সক্লুসিভ মেম্বার",
     nav_news: "নিউজ",
     nav_register: "রেজিস্টার",
     nav_verify: "ভেরিফাই",
@@ -246,8 +246,8 @@ const translations = {
 
     // Team
     team_eyebrow: "আমাদের টিম",
-    team_title_1: "নির্বাহী",
-    team_title_2: "প্যানেল",
+    team_title_1: "এক্সক্লুসিভ",
+    team_title_2: "মেম্বার",
     team_desc: "TalentVerse Bangladesh-কে এগিয়ে নেওয়া নেতৃত্বের সাথে পরিচিত হোন।",
     team_viewall: "সব সদস্য দেখুন →",
     team_role_fallback: "টিমের তথ্য শীঘ্রই আসছে!",
@@ -279,8 +279,8 @@ const translations = {
 
     // Team page
     tp_eyebrow: "আমাদের টিম",
-    tp_title_1: "নির্বাহী",
-    tp_title_2: "প্যানেল",
+    tp_title_1: "এক্সক্লুসিভ",
+    tp_title_2: "মেম্বার",
     tp_desc: "TalentVerse Bangladesh-এর নেতৃত্ব ও সদস্যদের সাথে পরিচিত হোন।",
     tp_loading_t: "টিম লোড হচ্ছে...",
     tp_loading_d: "অনুগ্রহ করে অপেক্ষা করুন বা পেজ রিফ্রেশ করুন।",

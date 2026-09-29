@@ -35,20 +35,42 @@ button,input,select,textarea{font-family:inherit}
 .h-nav a.active{color:var(--blue-br)}
 .h-admin-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:8px 16px;border-radius:7px;font-size:.83rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s}
 .h-admin-btn:hover{opacity:.85}
-.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;flex-shrink:0}
-.hamburger span{display:block;width:22px;height:2px;background:var(--txt);border-radius:2px;transition:.3s}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px;flex-shrink:0;position:relative;z-index:902}
+.hamburger span{display:block;width:22px;height:2px;background:var(--txt);border-radius:2px;transition:transform .3s,opacity .2s}
+.hamburger.active span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.active span:nth-child(2){opacity:0}
+.hamburger.active span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 
 /*===== MOBILE NAV =====*/
 @media(max-width:700px){
-  .h-nav{
-    display:none;position:fixed;top:64px;left:0;right:0;
-    flex-direction:column;align-items:stretch;
-    background:rgba(9,9,15,.98);border-bottom:1px solid var(--bdr);
-    padding:12px;gap:4px;z-index:899;
+  .nav-backdrop{
+    position:fixed;inset:0;top:64px;z-index:898;
+    background:rgba(0,0,0,.55);backdrop-filter:blur(2px);
+    opacity:0;pointer-events:none;transition:opacity .25s;
   }
-  .h-nav.open{display:flex}
-  .h-nav a{padding:12px 16px;font-size:.92rem}
-  .h-admin-btn{margin:4px 0;padding:12px 16px;text-align:center}
+  .nav-backdrop.open{opacity:1;pointer-events:all}
+
+  .h-nav{
+    position:fixed;top:74px;left:12px;right:12px;z-index:899;
+    flex-direction:column;align-items:stretch;gap:3px;
+    background:var(--card);border:1px solid var(--bdr2);border-radius:16px;
+    padding:10px;box-shadow:0 20px 50px rgba(0,0,0,.55);
+    max-height:calc(100vh - 100px);overflow-y:auto;
+    opacity:0;visibility:hidden;pointer-events:none;
+    transform:translateY(-14px) scale(.97);
+    transition:opacity .22s ease,transform .22s ease,visibility .22s;
+  }
+  .h-nav.open{
+    opacity:1;visibility:visible;pointer-events:all;
+    transform:translateY(0) scale(1);
+  }
+  .h-nav a{
+    padding:13px 16px;font-size:.92rem;border-radius:10px;
+    border-left:3px solid transparent;transition:background .15s,border-color .15s,color .15s;
+  }
+  .h-nav a:active{background:rgba(59,130,246,.1)}
+  .h-nav a.active{border-left-color:var(--blue-br);background:rgba(59,130,246,.12)}
+  .h-admin-btn{margin:6px 4px 2px;padding:13px 16px;text-align:center;border-radius:10px}
   .hamburger{display:flex}
 }
 

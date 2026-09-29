@@ -222,8 +222,8 @@ function openModal(i) {
 
   const linkedQuiz = getLinkedQuizFor(o);
   if(reg) {
-    let regHtml = o.regLink
-      ? `<a href="${o.regLink}" target="_blank" class="modal-reg-btn">Register Now 🚀</a>`
+    let regHtml = o.regEnabled && o.status !== 'past'
+      ? `<a href="register.html?olympiad=${encodeURIComponent(o.title)}" class="modal-reg-btn">Register Now 🚀</a>`
       : '';
     if(linkedQuiz) {
       regHtml += `<a href="quiz.html?id=${linkedQuiz.id}" class="modal-reg-btn"

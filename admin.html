@@ -277,12 +277,12 @@ select.fi{cursor:pointer}
         <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
           <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">👥 Registered Users</h3>
           <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
-            Everyone who has signed up for an account on account.html, with all the information they gave. Click "View" for the full profile. This is a mirror kept in Firestore — the full record (including password resets, etc.) always lives in Firebase Authentication → Users.
+            Everyone who has signed up for an account on account.html. This is a mirror kept in Firestore — the full record (including password resets, etc.) always lives in Firebase Authentication → Users.
           </p>
         </div>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Photo</th><th>Name</th><th>Email</th><th>Phone</th><th>Institution</th><th>District</th><th>Verified</th><th>Signed Up</th><th>Details</th></tr></thead>
+            <thead><tr><th>Email</th><th>Verified</th><th>Signed Up</th><th>Last Login</th></tr></thead>
             <tbody id="userstbl"></tbody>
           </table>
         </div>
@@ -661,7 +661,6 @@ select.fi{cursor:pointer}
       <div class="fg"><label>Eligibility</label><input class="fi" id="of-el"></div>
       <div class="fg"><label>Registration Fee</label><input class="fi" id="of-fe"></div>
     </div>
-    <div class="fg"><label>External Registration Link (optional)</label><input class="fi" id="of-rl" placeholder="https://..."></div>
     
     <div class="fg">
       <div class="chk-wrap">

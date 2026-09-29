@@ -320,14 +320,17 @@
 <script>
 // Load and render team
 document.addEventListener('DOMContentLoaded', () => {
+  let teamLoaded = false;
   const check = setInterval(async () => {
     if(typeof loadTeam === 'function' && window.firebaseDB) {
       clearInterval(check);
+      teamLoaded = true;
       try {
         await loadTeam();
         renderTeamPage();
       } catch(err) {
         console.error("Team load error:", err);
+        showTeamLoadError();
       }
     }
   }, 200);
@@ -341,15 +344,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 200);
 
-  // Fallback
+  // If Firebase never becomes ready (slow/blocked network), stop waiting and
+  // show a real retry option instead of leaving the page stuck on "Loading...".
   setTimeout(() => {
-    const grid = document.getElementById('team-page-grid');
-    if(grid && grid.innerHTML === '') {
-      const dict = translations[getLang()];
-      grid.innerHTML = `<div class="team-empty"><div class="icon">👥</div><h3>${dict.tp_loading_t}</h3><p>${dict.tp_loading_d}</p></div>`;
+    if(!teamLoaded) {
+      clearInterval(check);
+      showTeamLoadError();
     }
-  }, 8000);
+  }, 10000);
 });
+
+function showTeamLoadError() {
+  const grid = document.getElementById('team-page-grid');
+  if(!grid || grid.innerHTML !== '') return;
+  grid.innerHTML = `
+    <div class="team-empty">
+      <div class="icon">⚠️</div>
+      <h3>Couldn't Load</h3>
+      <p>Please check your internet connection and try again.</p>
+      <button class="btn-out" style="margin-top:14px;cursor:pointer;" onclick="window.location.reload()">🔄 Retry</button>
+    </div>`;
+}
+
 
 async function initFounderSpotlight() {
   const f = await getFounderSettings();

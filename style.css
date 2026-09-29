@@ -33,8 +33,7 @@ button,input,select,textarea{font-family:inherit}
 .h-nav a{color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:500;padding:6px 12px;border-radius:6px;transition:color .2s,background .2s;white-space:nowrap}
 .h-nav a:hover,.h-nav a.active{color:var(--txt);background:rgba(59,130,246,.1)}
 .h-nav a.active{color:var(--blue-br)}
-.h-admin-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:8px 16px;border-radius:7px;font-size:.83rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s}
-.h-admin-btn:hover{opacity:.85}
+.h-admin-btn{display:none}
 .hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px;flex-shrink:0;position:relative;z-index:902}
 .hamburger span{display:block;width:22px;height:2px;background:var(--txt);border-radius:2px;transition:transform .3s,opacity .2s}
 .hamburger.active span:nth-child(1){transform:translateY(7px) rotate(45deg)}
@@ -70,7 +69,6 @@ button,input,select,textarea{font-family:inherit}
   }
   .h-nav a:active{background:rgba(59,130,246,.1)}
   .h-nav a.active{border-left-color:var(--blue-br);background:rgba(59,130,246,.12)}
-  .h-admin-btn{margin:6px 4px 2px;padding:13px 16px;text-align:center;border-radius:10px}
   .hamburger{display:flex}
 }
 

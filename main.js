@@ -9,34 +9,15 @@ window.addEventListener('scroll', () => {
 /*===== MOBILE NAV =====*/
 function toggleMobileNav() {
   const nav = document.getElementById('hnav');
-  if(!nav) return;
-  const hamburger = document.querySelector('.hamburger');
-
-  let backdrop = document.querySelector('.nav-backdrop');
-  if(!backdrop) {
-    backdrop = document.createElement('div');
-    backdrop.className = 'nav-backdrop';
-    backdrop.onclick = closeMobileNav;
-    document.body.appendChild(backdrop);
-  }
-
-  const isOpen = nav.classList.toggle('open');
-  backdrop.classList.toggle('open', isOpen);
-  if(hamburger) hamburger.classList.toggle('active', isOpen);
-}
-
-function closeMobileNav() {
-  const nav = document.getElementById('hnav');
-  const hamburger = document.querySelector('.hamburger');
-  const backdrop = document.querySelector('.nav-backdrop');
-  if(nav) nav.classList.remove('open');
-  if(hamburger) hamburger.classList.remove('active');
-  if(backdrop) backdrop.classList.remove('open');
+  if(nav) nav.classList.toggle('open');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.h-nav a').forEach(a => {
-    a.addEventListener('click', closeMobileNav);
+    a.addEventListener('click', () => {
+      const nav = document.getElementById('hnav');
+      if(nav) nav.classList.remove('open');
+    });
   });
 });
 
@@ -134,8 +115,15 @@ async function submitContact(e) {
 async function submitRegistration(e) {
   if(e) e.preventDefault();
 
+  // Defense in depth: even though the UI hides this form until logged in,
+  // double-check here so registration can never be saved without a verified account.
+  const user = window.firebaseAuth && window.firebaseAuth.currentUser;
+  if(!user || !user.emailVerified) {
+    return toast("রেজিস্ট্রেশন করতে আগে account দিয়ে Log In করতে হবে।", true);
+  }
+
   const name = document.getElementById('rf-name')?.value.trim();
-  const email = document.getElementById('rf-email')?.value.trim();
+  const email = user.email; // always the verified account email — never trust a form field for this
   const phone = document.getElementById('rf-phone')?.value.trim();
   const olympiad = document.getElementById('rf-olympiad')?.value;
   const cls = document.getElementById('rf-class')?.value.trim();
@@ -144,8 +132,6 @@ async function submitRegistration(e) {
   const msg = document.getElementById('rf-message')?.value.trim();
 
   if(!name) return toast("Please enter your name!", true);
-  if(!email) return toast("Please enter your email!", true);
-  if(!isValidEmail(email)) return toast("Please enter a valid email!", true);
   if(!phone) return toast("Please enter your phone number!", true);
   if(!olympiad) return toast("Please select an olympiad!", true);
 
@@ -157,7 +143,7 @@ async function submitRegistration(e) {
   try {
     // 1. Save to Firestore
     await addRegistration({
-      name, email, phone, olympiad,
+      uid: user.uid, name, email, phone, olympiad,
       class: cls, school, address, message: msg
     });
 
@@ -194,7 +180,6 @@ Message: ${msg || 'N/A'}
     
     // Reset form
     document.getElementById('rf-name').value = '';
-    document.getElementById('rf-email').value = '';
     document.getElementById('rf-phone').value = '';
     document.getElementById('rf-class').value = '';
     document.getElementById('rf-school').value = '';

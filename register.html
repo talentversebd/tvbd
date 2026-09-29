@@ -125,7 +125,7 @@
       </div>
       <h2 id="reg-title">Competition Title</h2>
       <div class="reg-desc" id="reg-description">Description loading...</div>
-      
+
       <div class="reg-deadline" id="reg-deadline-wrap" style="display:none;">
         <div class="ic">📅</div>
         <div>
@@ -133,14 +133,55 @@
           <span id="reg-deadline-text">-</span>
         </div>
       </div>
-      
-      <a href="#" id="reg-link-btn" class="reg-btn" target="_blank" rel="noopener">
-        <span data-i18n="reg_btn_fill">📝 Fill Registration Form</span>
-        <span style="font-size:1.1rem;">→</span>
-      </a>
-      
+
+      <!-- Not logged in -->
+      <div id="reg-authgate" style="display:none;text-align:center;padding:24px 10px;">
+        <div style="font-size:2rem;margin-bottom:10px;">🔒</div>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:18px;">রেজিস্ট্রেশন করতে হলে আগে account দিয়ে Log In করতে হবে — এতে তোমার সব registration/result এক জায়গায় (Dashboard) দেখা যাবে।</p>
+        <a href="#" id="reg-authgate-link" class="reg-btn" style="display:inline-flex;">Log In / Sign Up →</a>
+      </div>
+
+      <!-- Registration Form (shown once logged in) -->
+      <form id="reg-form" style="display:none;margin-top:10px;" onsubmit="return false;">
+        <div class="cf-group">
+          <label>Full Name *</label>
+          <input class="cf-input" type="text" id="rf-name" placeholder="Your full name" required>
+        </div>
+        <div class="cf-group">
+          <label>Email Address *</label>
+          <input class="cf-input" type="email" id="rf-email" readonly style="opacity:.7;cursor:not-allowed;">
+        </div>
+        <div class="cf-group">
+          <label>Phone Number *</label>
+          <input class="cf-input" type="tel" id="rf-phone" placeholder="e.g. 01XXXXXXXXX" required>
+        </div>
+        <div class="cf-group">
+          <label>Which Olympiad / Event? *</label>
+          <select class="cf-input" id="rf-olympiad" required>
+            <option value="">Loading events...</option>
+          </select>
+        </div>
+        <div class="cf-group">
+          <label>Class / Grade</label>
+          <input class="cf-input" type="text" id="rf-class" placeholder="e.g. Class 9, HSC 1st year">
+        </div>
+        <div class="cf-group">
+          <label>School / Institution</label>
+          <input class="cf-input" type="text" id="rf-school" placeholder="Your school or college name">
+        </div>
+        <div class="cf-group">
+          <label>Address</label>
+          <input class="cf-input" type="text" id="rf-address" placeholder="District, Division">
+        </div>
+        <div class="cf-group">
+          <label>Message (optional)</label>
+          <textarea class="cf-input" id="rf-message" placeholder="Anything else you'd like to add"></textarea>
+        </div>
+        <button class="cf-btn rf-btn" onclick="submitRegistration(event)">Submit Registration ✅</button>
+      </form>
+
       <div class="reg-note">
-        💡 <strong data-i18n="reg_note_label">Note:</strong> <span data-i18n="reg_note_body">Clicking the button will open the Google Form in a new tab. Fill out all details and submit. You'll receive confirmation after successful submission.</span>
+        💡 <strong data-i18n="reg_note_label">Note:</strong> তোমার account-এর email দিয়েই registration সেভ হবে, তাই Dashboard-এ পরে নিজের registration দেখা যাবে।
       </div>
     </div>
 
@@ -209,48 +250,64 @@
 // Load Registration Settings when page opens
 document.addEventListener('DOMContentLoaded', () => {
   const check = setInterval(async () => {
-    if(typeof getRegistrationSettings === 'function' && window.firebaseDB) {
+    if(typeof getRegistrationSettings === 'function' && window.firebaseDB && window.firebaseAuth && window.firebaseAuthFunctions && typeof getOlympiads === 'function') {
       clearInterval(check);
-      
+
       try {
         const settings = await getRegistrationSettings();
         const dict = translations[getLang()];
-        
+
         document.getElementById('reg-loading').style.display = 'none';
-        
-        if(settings.active && settings.formLink) {
+
+        if(settings.active) {
           // Show active registration
           document.getElementById('reg-active').style.display = 'block';
           document.getElementById('reg-title').textContent = settings.title || dict.rp_eyebrow;
           document.getElementById('reg-description').textContent = settings.description || dict.reg_desc_fallback;
-          document.getElementById('reg-link-btn').href = settings.formLink;
-          
+
+          let deadlinePassed = false;
           if(settings.deadline) {
             const deadline = new Date(settings.deadline);
-            const formatted = deadline.toLocaleDateString(getLang() === 'bn' ? 'bn-BD' : 'en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            const formatted = deadline.toLocaleDateString(getLang() === 'bn' ? 'bn-BD' : 'en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             });
             document.getElementById('reg-deadline-text').textContent = formatted;
             document.getElementById('reg-deadline-wrap').style.display = 'flex';
-            
-            // Auto-close if deadline passed
+
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             if(deadline < today) {
+              deadlinePassed = true;
               const badge = document.getElementById('reg-status-badge');
               badge.classList.add('closed');
               badge.innerHTML = `
                 <span style="display:inline-block;width:8px;height:8px;background:#f87171;border-radius:50%;"></span>
                 <span>${dict.reg_status_closed}</span>
               `;
-              const btn = document.getElementById('reg-link-btn');
-              btn.style.pointerEvents = 'none';
-              btn.style.opacity = '0.5';
-              btn.innerHTML = `<span>${dict.reg_closed_btn}</span>`;
             }
+          }
+
+          if(deadlinePassed) {
+            document.getElementById('reg-authgate').style.display = 'none';
+            document.getElementById('reg-form').style.display = 'none';
+          } else {
+            await loadOlympiads();
+            if(typeof populateOlympiadDropdown === 'function') populateOlympiadDropdown();
+
+            window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, (user) => {
+              if(user && user.emailVerified) {
+                document.getElementById('reg-authgate').style.display = 'none';
+                document.getElementById('reg-form').style.display = 'block';
+                document.getElementById('rf-email').value = user.email;
+              } else {
+                document.getElementById('reg-authgate').style.display = 'block';
+                document.getElementById('reg-form').style.display = 'none';
+                document.getElementById('reg-authgate-link').href = `account.html?redirect=${encodeURIComponent(location.href)}`;
+              }
+            });
           }
         } else {
           // Show empty state

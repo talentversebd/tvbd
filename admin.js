@@ -692,22 +692,77 @@ async function prevFounderPhoto(input) {
 }
 
 /*===== REGISTERED USERS =====*/
+function fmtUserDate(t) {
+  return t ? new Date(t).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+}
+function escUser(v) {
+  return String(v == null || v === '' ? '—' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 async function loadRegisteredUsersUI() {
   const tbody = document.getElementById('userstbl');
   if(!tbody) return;
-  tbody.innerHTML = `<tr class="empty-row"><td colspan="4">Loading…</td></tr>`;
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="9">Loading…</td></tr>`;
   const users = typeof loadRegisteredUsers === 'function' ? await loadRegisteredUsers() : [];
   if(!users.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No one has signed up yet.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">No one has signed up yet.</td></tr>`;
     return;
   }
-  tbody.innerHTML = users.map(u => `
+  tbody.innerHTML = users.map(u => {
+    const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+    const photo = u.photo
+      ? `<img src="${escUser(u.photo)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:38px;height:38px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-weight:700;">${escUser((name || u.email || '?').charAt(0).toUpperCase())}</div>`;
+    return `
     <tr>
-      <td>${u.email || '—'}</td>
+      <td>${photo}</td>
+      <td>${escUser(name)}</td>
+      <td>${escUser(u.email)}</td>
+      <td>${escUser(u.phone)}</td>
+      <td>${escUser(u.institution)}</td>
+      <td>${escUser(u.district)}</td>
       <td><span class="bs ${u.emailVerified ? 'bs-active' : 'bs-past'}">${u.emailVerified ? '✅ Verified' : '⏳ Not verified'}</span></td>
-      <td>${u.createdAt ? new Date(u.createdAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
-      <td>${u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
-    </tr>`).join('');
+      <td>${fmtUserDate(u.createdAt)}</td>
+      <td class="tbl-acts"><button class="e-btn" onclick="viewRegisteredUser('${escUser(u.id)}')">View</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function viewRegisteredUser(id) {
+  const u = (typeof getRegisteredUsers === 'function' ? getRegisteredUsers() : []).find(x => x.id === id);
+  if(!u) return;
+  const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+  const row = (l, v) => `<div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--bdr);"><span style="color:var(--muted);font-size:.82rem;">${l}</span><strong style="text-align:right;font-size:.88rem;">${escUser(v)}</strong></div>`;
+  const photo = u.photo
+    ? `<img src="${escUser(u.photo)}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;">`
+    : `<div style="width:96px;height:96px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;">${escUser((name || u.email || '?').charAt(0).toUpperCase())}</div>`;
+  let ov = document.getElementById('user-detail-ov');
+  if(!ov) {
+    ov = document.createElement('div');
+    ov.id = 'user-detail-ov';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.onclick = e => { if(e.target === ov) ov.remove(); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `
+    <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:88vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="font-family:Montserrat;font-size:1.05rem;">👤 User Profile</h3>
+        <button onclick="document.getElementById('user-detail-ov').remove()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>
+      <div style="text-align:center;margin-bottom:12px;">${photo}</div>
+      ${row('Full Name', name)}
+      ${row('Email', u.email)}
+      ${row('Phone', u.phone)}
+      ${row('Date of Birth', u.dob)}
+      ${row('Gender', u.gender)}
+      ${row('Religion', u.religion)}
+      ${row('Institution', u.institution)}
+      ${row('Class / Level', u.classLevel)}
+      ${row('District', u.district)}
+      ${row('Email Verified', u.emailVerified ? 'Yes' : 'No')}
+      ${row('Account Created', fmtUserDate(u.createdAt))}
+      ${row('Last Login', fmtUserDate(u.lastLoginAt))}
+    </div>`;
 }
 
 async function loadPopupSettings() {

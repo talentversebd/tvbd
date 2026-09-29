@@ -148,11 +148,11 @@
         </div>
 
         <div class="cf-group"><label>First Name *</label><input class="cf-input" id="ep-fname" type="text"></div>
-        <div class="cf-group"><label>Last Name</label><input class="cf-input" id="ep-lname" type="text"></div>
-        <div class="cf-group"><label>Date of Birth</label><input class="cf-input" id="ep-dob" type="date"></div>
-        <div class="cf-group"><label>Phone Number</label><input class="cf-input" id="ep-phone" type="tel" placeholder="01XXXXXXXXX"></div>
+        <div class="cf-group"><label>Last Name *</label><input class="cf-input" id="ep-lname" type="text"></div>
+        <div class="cf-group"><label>Date of Birth *</label><input class="cf-input" id="ep-dob" type="date"></div>
+        <div class="cf-group"><label>Phone Number *</label><input class="cf-input" id="ep-phone" type="tel" placeholder="01XXXXXXXXX"></div>
         <div class="cf-group">
-          <label>Gender</label>
+          <label>Gender *</label>
           <select class="cf-input" id="ep-gender">
             <option value="">Select...</option>
             <option value="Male">Male</option>
@@ -161,7 +161,7 @@
           </select>
         </div>
         <div class="cf-group">
-          <label>Religion</label>
+          <label>Religion *</label>
           <select class="cf-input" id="ep-religion">
             <option value="">Select...</option>
             <option value="Islam">Islam</option>
@@ -171,9 +171,9 @@
             <option value="Other">Other</option>
           </select>
         </div>
-        <div class="cf-group"><label>University / Institution</label><input class="cf-input" id="ep-institution" type="text"></div>
-        <div class="cf-group"><label>Class / Level</label><input class="cf-input" id="ep-class" type="text" placeholder="e.g. Class 9, HSC 1st Year"></div>
-        <div class="cf-group"><label>District</label><input class="cf-input" id="ep-district" type="text"></div>
+        <div class="cf-group"><label>University / Institution *</label><input class="cf-input" id="ep-institution" type="text"></div>
+        <div class="cf-group"><label>Class / Level *</label><input class="cf-input" id="ep-class" type="text" placeholder="e.g. Class 9, HSC 1st Year"></div>
+        <div class="cf-group"><label>District *</label><input class="cf-input" id="ep-district" type="text"></div>
 
         <button class="cf-btn" onclick="dbSaveProfile()" id="db-save-profile-btn" style="margin-top:8px;">Save Profile</button>
       </div>
@@ -584,7 +584,8 @@ function dbRenderProfile() {
     dbFieldRow('District', p.district)
   ].join('');
 
-  document.getElementById('db-incomplete-prompt').style.display = p.firstName ? 'none' : 'block';
+  const complete = p.firstName && p.lastName && p.dob && p.phone && p.gender && p.religion && p.institution && p.classLevel && p.district;
+  document.getElementById('db-incomplete-prompt').style.display = complete ? 'none' : 'block';
 }
 
 function dbOpenEdit() {
@@ -607,7 +608,14 @@ function dbCloseEdit() {
 
 async function dbSaveProfile() {
   const firstName = document.getElementById('ep-fname').value.trim();
-  if(!firstName) return toast("First Name is required!", true);
+  const reqs = [
+    ['ep-fname','First Name'], ['ep-lname','Last Name'], ['ep-dob','Date of Birth'], ['ep-phone','Phone Number'],
+    ['ep-gender','Gender'], ['ep-religion','Religion'], ['ep-institution','University / Institution'],
+    ['ep-class','Class / Level'], ['ep-district','District']
+  ];
+  for(const [id,label] of reqs) {
+    if(!document.getElementById(id).value.trim()) return toast(label + " দিতে হবে — সব তথ্য বাধ্যতামূলক!", true);
+  }
 
   const btn = document.getElementById('db-save-profile-btn');
   btn.disabled = true; btn.textContent = 'Saving...';

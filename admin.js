@@ -638,13 +638,13 @@ function copyVerifyLink(url) {
 async function loadRegistrationSettings() {
   if(typeof getRegistrationSettings !== 'function') return;
   const s = await getRegistrationSettings();
-  const m = {'rs-title':s.title,'rs-desc':s.description,'rs-link':s.formLink,'rs-deadline':s.deadline};
+  const m = {'rs-title':s.title,'rs-desc':s.description,'rs-deadline':s.deadline};
   Object.entries(m).forEach(([id,val]) => { const el=document.getElementById(id); if(el) el.value=val||''; });
   const a = document.getElementById('rs-active'); if(a) a.checked = s.active||false;
 }
 async function saveRegistrationSettings() {
-  const data = { title:document.getElementById('rs-title')?.value.trim()||'', description:document.getElementById('rs-desc')?.value.trim()||'', formLink:document.getElementById('rs-link')?.value.trim()||'', deadline:document.getElementById('rs-deadline')?.value||'', active:document.getElementById('rs-active')?.checked||false };
-  if(data.active && !data.formLink) return toast("Link required!", true);
+  const data = { title:document.getElementById('rs-title')?.value.trim()||'', description:document.getElementById('rs-desc')?.value.trim()||'', deadline:document.getElementById('rs-deadline')?.value||'', active:document.getElementById('rs-active')?.checked||false };
+  if(data.active && !data.title) return toast("Title required!", true);
   if(await updateRegistrationSettings(data)) toast("Saved! ✅");
   else toast("Failed!", true);
 }

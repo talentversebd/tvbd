@@ -287,7 +287,7 @@ async function deleteMessage(id) {
   }
 }
 
-/*===== REGISTRATIONS (Old form data - kept for backward compatibility) =====*/
+/*===== REGISTRATIONS (event sign-ups — requires a logged-in, verified account) =====*/
 async function addRegistration(r) {
   await waitForFirebase();
   const { collection, addDoc } = window.firebaseFunctions;
@@ -1377,3 +1377,18 @@ async function loadRegisteredUsers() {
   }
 }
 function getRegisteredUsers() { return cache.registeredUsers || []; }
+
+// Single-user fetch for the participant's own Profile page (dashboard.html) —
+// doesn't rely on the admin list being loaded/cached.
+async function getRegisteredUserById(uid) {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDoc(doc(db, "registered_users", uid));
+    return snap.exists() ? snap.data() : null;
+  } catch (err) {
+    console.error("Get registered user error:", err);
+    return null;
+  }
+}

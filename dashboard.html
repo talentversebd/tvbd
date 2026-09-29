@@ -100,8 +100,83 @@
         <button onclick="dbLogout()" style="background:var(--card);border:1px solid var(--bdr);color:var(--txt);padding:9px 18px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;">🚪 Log Out</button>
       </div>
 
+      <!-- PROFILE HEADER -->
+      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:24px;margin-bottom:20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;">
+        <div style="position:relative;flex-shrink:0;">
+          <div id="db-avatar" style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:800;color:#fff;overflow:hidden;">F</div>
+          <button onclick="document.getElementById('db-photo-file').click()" style="position:absolute;bottom:0;right:0;width:30px;height:30px;border-radius:50%;background:var(--blue);border:2px solid var(--bg);color:#fff;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">📷</button>
+          <input type="file" id="db-photo-file" accept="image/*" style="display:none;" onchange="dbUploadPhoto(this)">
+        </div>
+        <div style="flex:1;min-width:180px;">
+          <div id="db-fullname" style="font-family:Montserrat;font-weight:800;font-size:1.25rem;color:var(--txt);">Loading...</div>
+          <div id="db-username" style="color:var(--blue-br);font-size:.85rem;font-weight:600;margin-top:2px;"></div>
+          <div id="db-institution-line" style="color:var(--muted);font-size:.85rem;margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <!-- INCOMPLETE PROFILE PROMPT -->
+      <div id="db-incomplete-prompt" style="display:none;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:12px;padding:16px 18px;margin-bottom:20px;text-align:center;">
+        <p style="font-size:.88rem;color:var(--txt);margin-bottom:10px;">👋 তোমার প্রোফাইল এখনো পূরণ করা হয়নি — নিচের তথ্যগুলো দিয়ে দাও।</p>
+        <button onclick="dbOpenEdit()" style="background:#fbbf24;color:#1a1a1a;border:none;padding:9px 20px;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;">Complete Profile →</button>
+      </div>
+
+      <!-- PERSONAL INFORMATION -->
+      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:22px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="font-family:Montserrat;font-weight:800;font-size:1rem;color:var(--txt);">Personal Information</h3>
+          <button onclick="dbOpenEdit()" style="background:none;border:none;color:var(--blue-br);font-size:.85rem;font-weight:600;cursor:pointer;">✏️ Edit Profile</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;" id="db-personal-grid"></div>
+      </div>
+
+      <!-- ACADEMIC INFORMATION -->
+      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:22px;margin-bottom:20px;">
+        <h3 style="font-family:Montserrat;font-weight:800;font-size:1rem;color:var(--txt);margin-bottom:16px;">Academic Information</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;" id="db-academic-grid"></div>
+      </div>
+
       <h3 style="font-family:Montserrat;font-weight:800;font-size:1.1rem;margin-bottom:14px;color:var(--txt);">📊 My Quiz Results</h3>
       <div id="db-results-list"></div>
+    </div>
+
+    <!-- EDIT PROFILE MODAL -->
+    <div id="db-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)dbCloseEdit()">
+      <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:16px;padding:26px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h3 style="font-family:Montserrat;font-weight:800;color:var(--txt);">Edit Profile</h3>
+          <button onclick="dbCloseEdit()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+        </div>
+
+        <div class="cf-group"><label>First Name *</label><input class="cf-input" id="ep-fname" type="text"></div>
+        <div class="cf-group"><label>Last Name</label><input class="cf-input" id="ep-lname" type="text"></div>
+        <div class="cf-group"><label>Date of Birth</label><input class="cf-input" id="ep-dob" type="date"></div>
+        <div class="cf-group"><label>Phone Number</label><input class="cf-input" id="ep-phone" type="tel" placeholder="01XXXXXXXXX"></div>
+        <div class="cf-group">
+          <label>Gender</label>
+          <select class="cf-input" id="ep-gender">
+            <option value="">Select...</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="cf-group">
+          <label>Religion</label>
+          <select class="cf-input" id="ep-religion">
+            <option value="">Select...</option>
+            <option value="Islam">Islam</option>
+            <option value="Hinduism">Hinduism</option>
+            <option value="Christianity">Christianity</option>
+            <option value="Buddhism">Buddhism</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="cf-group"><label>University / Institution</label><input class="cf-input" id="ep-institution" type="text"></div>
+        <div class="cf-group"><label>Class / Level</label><input class="cf-input" id="ep-class" type="text" placeholder="e.g. Class 9, HSC 1st Year"></div>
+        <div class="cf-group"><label>District</label><input class="cf-input" id="ep-district" type="text"></div>
+
+        <button class="cf-btn" onclick="dbSaveProfile()" id="db-save-profile-btn" style="margin-top:8px;">Save Profile</button>
+      </div>
     </div>
 
     <div id="db-guest" style="display:none;text-align:center;padding:60px 20px;">
@@ -420,14 +495,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 200);
 });
 
+let dbUser = null;
+let dbProfile = null;
+
 async function dbLoadDashboard(user) {
+  dbUser = user;
   document.getElementById('db-welcome').textContent = `স্বাগতম, ${user.email}`;
   document.getElementById('db-email').textContent = user.email;
 
-  const [results] = await Promise.all([
+  const [results, profile] = await Promise.all([
     getQuizSubmissionsByEmail(user.email),
+    getRegisteredUserById(user.uid),
     (typeof loadQuizzes === 'function' ? loadQuizzes() : Promise.resolve())
   ]);
+  dbProfile = profile || {};
+  dbRenderProfile();
+
   const quizzes = typeof getQuizzes === 'function' ? getQuizzes() : [];
   const quizMap = {};
   quizzes.forEach(q => quizMap[q.id] = q);
@@ -463,6 +546,112 @@ async function dbLoadDashboard(user) {
 
   document.getElementById('db-loading').style.display = 'none';
   document.getElementById('db-content').style.display = 'block';
+}
+
+function dbFieldRow(label, value) {
+  return `<div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">${label}</div><div style="font-size:.92rem;color:var(--txt);font-weight:600;">${value || '—'}</div></div>`;
+}
+
+function dbRenderProfile() {
+  const p = dbProfile || {};
+  const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ') || dbUser.email.split('@')[0];
+  const username = '@' + dbUser.email.split('@')[0];
+
+  document.getElementById('db-fullname').textContent = fullName;
+  document.getElementById('db-username').textContent = username;
+  document.getElementById('db-institution-line').textContent = p.institution || '';
+
+  const avatar = document.getElementById('db-avatar');
+  if(p.photo) {
+    avatar.innerHTML = `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  } else {
+    avatar.textContent = (p.firstName || dbUser.email).charAt(0).toUpperCase();
+  }
+
+  document.getElementById('db-personal-grid').innerHTML = [
+    dbFieldRow('First Name', p.firstName),
+    dbFieldRow('Last Name', p.lastName),
+    dbFieldRow('Date of Birth', p.dob),
+    dbFieldRow('Email Address', dbUser.email),
+    dbFieldRow('Phone Number', p.phone),
+    dbFieldRow('Gender', p.gender),
+    dbFieldRow('Religion', p.religion)
+  ].join('');
+
+  document.getElementById('db-academic-grid').innerHTML = [
+    dbFieldRow('University / Institution', p.institution),
+    dbFieldRow('Class / Level', p.classLevel),
+    dbFieldRow('District', p.district)
+  ].join('');
+
+  document.getElementById('db-incomplete-prompt').style.display = p.firstName ? 'none' : 'block';
+}
+
+function dbOpenEdit() {
+  const p = dbProfile || {};
+  document.getElementById('ep-fname').value = p.firstName || '';
+  document.getElementById('ep-lname').value = p.lastName || '';
+  document.getElementById('ep-dob').value = p.dob || '';
+  document.getElementById('ep-phone').value = p.phone || '';
+  document.getElementById('ep-gender').value = p.gender || '';
+  document.getElementById('ep-religion').value = p.religion || '';
+  document.getElementById('ep-institution').value = p.institution || '';
+  document.getElementById('ep-class').value = p.classLevel || '';
+  document.getElementById('ep-district').value = p.district || '';
+  document.getElementById('db-edit-modal').style.display = 'flex';
+}
+
+function dbCloseEdit() {
+  document.getElementById('db-edit-modal').style.display = 'none';
+}
+
+async function dbSaveProfile() {
+  const firstName = document.getElementById('ep-fname').value.trim();
+  if(!firstName) return toast("First Name is required!", true);
+
+  const btn = document.getElementById('db-save-profile-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+
+  const data = {
+    firstName,
+    lastName: document.getElementById('ep-lname').value.trim(),
+    dob: document.getElementById('ep-dob').value,
+    phone: document.getElementById('ep-phone').value.trim(),
+    gender: document.getElementById('ep-gender').value,
+    religion: document.getElementById('ep-religion').value,
+    institution: document.getElementById('ep-institution').value.trim(),
+    classLevel: document.getElementById('ep-class').value.trim(),
+    district: document.getElementById('ep-district').value.trim()
+  };
+
+  const ok = await saveRegisteredUser(dbUser.uid, data);
+  btn.disabled = false; btn.textContent = 'Save Profile';
+
+  if(ok) {
+    dbProfile = { ...dbProfile, ...data };
+    dbRenderProfile();
+    dbCloseEdit();
+    toast("Profile updated! ✅");
+  } else {
+    toast("Failed to save profile.", true);
+  }
+}
+
+async function dbUploadPhoto(input) {
+  if(!input.files?.[0]) return;
+  const file = input.files[0];
+  if(!file.type.startsWith('image/')) return toast("Please choose an image file.", true);
+
+  toast("Uploading photo...");
+  const result = await uploadToImgBB(file);
+  if(result.success) {
+    await saveRegisteredUser(dbUser.uid, { photo: result.url });
+    dbProfile = { ...dbProfile, photo: result.url };
+    dbRenderProfile();
+    toast("Photo updated! ✅");
+  } else {
+    toast("Photo upload failed.", true);
+  }
 }
 
 function dbLogout() {

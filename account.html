@@ -441,15 +441,29 @@ document.addEventListener('keydown', (e) => {
 <!-- ACCOUNT / AUTH LOGIC -->
 <script>
 let acAuthReady = false;
+function acRedirectTarget() {
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = params.get('redirect');
+  if(fromUrl) {
+    sessionStorage.setItem('tvbd_redirect_after_login', fromUrl);
+    return decodeURIComponent(fromUrl);
+  }
+  const stored = sessionStorage.getItem('tvbd_redirect_after_login');
+  if(stored) {
+    sessionStorage.removeItem('tvbd_redirect_after_login');
+    return decodeURIComponent(stored);
+  }
+  return 'dashboard.html';
+}
 document.addEventListener('DOMContentLoaded', () => {
   const check = setInterval(() => {
     if(window.firebaseAuth && window.firebaseAuthFunctions) {
       clearInterval(check);
       acAuthReady = true;
-      // If already logged in & verified, skip straight to the dashboard.
+      // If already logged in & verified, skip straight to the dashboard (or wherever they came from).
       window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, (user) => {
         if(user && user.emailVerified && !acJustSignedUp) {
-          window.location.href = 'dashboard.html';
+          window.location.href = acRedirectTarget();
         }
       });
     }
@@ -539,7 +553,7 @@ async function acLogin() {
     if(typeof saveRegisteredUser === 'function') {
       saveRegisteredUser(cred.user.uid, { email, emailVerified: true, lastLoginAt: Date.now() }).catch(() => {});
     }
-    window.location.href = 'dashboard.html';
+    window.location.href = acRedirectTarget();
   } catch(err) {
     acShowErr('ac-login-err', acFriendlyError(err));
   } finally {

@@ -303,6 +303,20 @@ footer{background:var(--card2);border-top:1px solid var(--bdr);padding:52px 20px
 .lb img,.lb video{max-width:93vw;max-height:88vh;border-radius:8px}
 .lb-close{position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1}
 
+/*===== SCROLL TO TOP BUTTON =====*/
+.scroll-top-btn{
+  position:fixed;bottom:24px;right:20px;z-index:850;
+  width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;
+  font-size:1.25rem;line-height:1;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(37,99,235,.4);
+  opacity:0;visibility:hidden;transform:translateY(12px);
+  transition:opacity .25s,transform .25s,visibility .25s;
+}
+.scroll-top-btn.show{opacity:1;visibility:visible;transform:translateY(0)}
+.scroll-top-btn:hover{opacity:.85}
+@media(max-width:700px){.scroll-top-btn{bottom:18px;right:16px;width:42px;height:42px;font-size:1.1rem}}
+
 /*===== TOAST =====*/
 .toast{position:fixed;bottom:20px;right:20px;z-index:9999;background:var(--card);border:1px solid var(--bdr2);border-radius:10px;padding:13px 18px;display:flex;align-items:center;gap:9px;transform:translateY(80px);opacity:0;transition:transform .3s,opacity .3s;box-shadow:var(--glow);min-width:200px;pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}

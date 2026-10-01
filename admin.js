@@ -371,6 +371,16 @@ function populateQuizDropdown(selectedId) {
     quizzes.map(q => `<option value="${q.id}" ${q.id === selectedId ? 'selected' : ''}>${q.title}${q.status === 'published' ? '' : ' (Draft)'}</option>`).join('');
 }
 
+/*===== CUSTOM REGISTRATION FORM DROPDOWN HELPER (used by Olympiad form) =====*/
+async function populateRegFormDropdown(selectedId) {
+  const sel = document.getElementById('of-regform');
+  if(!sel) return;
+  if(typeof loadCustomForms === 'function') await loadCustomForms();
+  const forms = (typeof getCustomForms === 'function') ? getCustomForms() : [];
+  sel.innerHTML = '<option value="">-- Use Simple Built-in Form (Segment/Fee/Message) --</option>' +
+    forms.map(f => `<option value="${f.id}" ${f.id === selectedId ? 'selected' : ''}>${f.title}${f.status === 'published' ? '' : ' (Draft)'}</option>`).join('');
+}
+
 /*===== OLYMPIAD FORM =====*/
 function openOlympiadForm() {
   document.getElementById('ofm-title').textContent = "Add Olympiad";
@@ -381,6 +391,7 @@ function openOlympiadForm() {
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = false;
   document.getElementById('of-iprev').innerHTML = '';
   populateQuizDropdown('');
+  populateRegFormDropdown('');
   openFM('ofm');
 }
 function editOlympiad(id) {
@@ -397,13 +408,13 @@ function editOlympiad(id) {
   document.getElementById('of-el').value = o.eligibility||'';
   document.getElementById('of-fe').value = o.fee||'';
   document.getElementById('of-segments').value = (o.segments||[]).join(', ');
-  document.getElementById('of-rl').value = o.regLink||'';
   document.getElementById('of-ds').value = o.desc||'';
   document.getElementById('of-fd').value = o.fullDesc||'';
   document.getElementById('of-iu').value = o.img||'';
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = o.regEnabled||false;
   document.getElementById('of-iprev').innerHTML = o.img ? `<img src="${o.img}">` : '';
   populateQuizDropdown(o.quizId || '');
+  populateRegFormDropdown(o.registrationFormId || '');
   openFM('ofm');
 }
 async function saveOlympiad() {
@@ -411,7 +422,7 @@ async function saveOlympiad() {
   const desc = document.getElementById('of-ds').value.trim();
   if(!title || !desc) return toast("Title & description required!", true);
   const segments = document.getElementById('of-segments').value.split(',').map(s => s.trim()).filter(Boolean);
-  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '' };
+  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '', registrationFormId:document.getElementById('of-regform')?.value || '' };
   const eid = document.getElementById('of-eid').value;
   const ok = eid === '' ? await addOlympiad(o) : await updateOlympiad(eid, o);
   if(ok) { renderOlympiadTable(); renderDashboard(); closeFM('ofm'); toast("Saved! ✅"); }

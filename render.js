@@ -290,6 +290,20 @@ function renderInlineRegistration(o, prefixHtml) {
     const hasSegments = (o.segments || []).length > 0;
     const isPaid = !!o.fee;
 
+    if(o.registrationFormId) {
+      const customForm = await getCustomFormById(o.registrationFormId);
+      if(customForm && customForm.fields && customForm.fields.length) {
+        reg.innerHTML = prefixHtml + `
+          <div class="modal-reg-section">
+            ${sectionHead}
+            ${renderCustomRegFields(customForm.fields)}
+            <button class="modal-reg-btn im-submit-btn" style="width:100%;border:none;cursor:pointer;" onclick="submitInlineCustomRegistration('${o.id}', '${customForm.id}')">Submit Registration ✅</button>
+          </div>`;
+        return;
+      }
+      // Fall through to the simple built-in form if the linked form has no fields (or failed to load).
+    }
+
     reg.innerHTML = prefixHtml + `
       <div class="modal-reg-section">
         ${sectionHead}
@@ -317,6 +331,60 @@ function renderInlineRegistration(o, prefixHtml) {
         <button class="modal-reg-btn im-submit-btn" style="width:100%;border:none;cursor:pointer;" onclick="submitInlineRegistration('${o.id}')">Submit Registration ✅</button>
       </div>`;
   })();
+}
+
+/*===== Render a custom (Form Builder) form's fields inline inside the event modal =====*/
+function renderCustomRegFields(fields) {
+  return fields.map(f => {
+    if(f.type === 'section') {
+      return `<div style="padding:14px 0 6px;border-top:1px solid var(--bdr);margin-top:10px;">
+        <h4 style="font-family:Montserrat;font-weight:800;color:var(--blue-br);margin-bottom:4px;">${f.label}</h4>
+        ${f.description ? `<p style="color:var(--muted);font-size:.85rem;">${f.description}</p>` : ''}
+      </div>`;
+    }
+    const req = f.required ? '<span style="color:#f87171;margin-left:3px;">*</span>' : '';
+    let control = '';
+    if(f.type === 'short') {
+      control = `<input class="cf-input" type="text" id="imf-${f.id}" placeholder="Your answer">`;
+    } else if(f.type === 'paragraph') {
+      control = `<textarea class="cf-input" id="imf-${f.id}" placeholder="Your answer"></textarea>`;
+    } else if(f.type === 'mcq') {
+      control = (f.options || []).map(opt => `
+        <label style="display:flex;align-items:center;gap:9px;padding:7px 2px;cursor:pointer;font-size:.88rem;">
+          <input type="radio" name="imf-${f.id}" value="${(opt || '').replace(/"/g, '&quot;')}" style="accent-color:var(--blue-br);width:16px;height:16px;flex-shrink:0;">
+          <span>${opt}</span>
+        </label>`).join('');
+    } else if(f.type === 'checkbox') {
+      control = (f.options || []).map(opt => `
+        <label style="display:flex;align-items:center;gap:9px;padding:7px 2px;cursor:pointer;font-size:.88rem;">
+          <input type="checkbox" data-group="imf-${f.id}" value="${(opt || '').replace(/"/g, '&quot;')}" style="accent-color:var(--blue-br);width:16px;height:16px;flex-shrink:0;">
+          <span>${opt}</span>
+        </label>`).join('');
+    } else if(f.type === 'dropdown') {
+      control = `<select class="cf-input" id="imf-${f.id}">
+        <option value="">Select…</option>
+        ${(f.options || []).map(opt => `<option value="${(opt || '').replace(/"/g, '&quot;')}">${opt}</option>`).join('')}
+      </select>`;
+    } else {
+      return ''; // Unsupported field type (e.g. file upload) inside this compact modal view.
+    }
+    return `<div class="cf-group"><label>${f.label}${req}</label>${control}</div>`;
+  }).join('');
+}
+
+function getCustomRegFieldValue(f) {
+  if(f.type === 'short' || f.type === 'paragraph' || f.type === 'dropdown') {
+    return document.getElementById(`imf-${f.id}`)?.value.trim() || '';
+  }
+  if(f.type === 'mcq') {
+    const sel = document.querySelector(`input[name="imf-${f.id}"]:checked`);
+    return sel ? sel.value : '';
+  }
+  if(f.type === 'checkbox') {
+    const sels = document.querySelectorAll(`input[data-group="imf-${f.id}"]:checked`);
+    return Array.from(sels).map(s => s.value);
+  }
+  return '';
 }
 
 function closeModal() {

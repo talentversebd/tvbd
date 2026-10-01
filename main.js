@@ -343,6 +343,78 @@ async function submitInlineRegistration(olympiadId) {
   }
 }
 
+/*===== INLINE REGISTRATION SUBMIT — via a linked custom Form Builder form =====*/
+async function submitInlineCustomRegistration(olympiadId, formId) {
+  const user = window.firebaseAuth && window.firebaseAuth.currentUser;
+  if(!user || !user.emailVerified) {
+    return toast("রেজিস্ট্রেশন করতে আগে account দিয়ে Log In করতে হবে।", true);
+  }
+
+  const o = (typeof getOlympiads === 'function' ? getOlympiads() : []).find(x => x.id === olympiadId);
+  if(!o) return toast("Event not found!", true);
+
+  const profile = await getRegisteredUserById(user.uid);
+  if(!profile || !profile.firstName || !profile.lastName || !profile.phone) {
+    return toast("আগে Dashboard থেকে তোমার Profile সম্পূর্ণ করো।", true);
+  }
+  const fullName = `${profile.firstName} ${profile.lastName}`.trim();
+  const email = user.email;
+
+  const customForm = await getCustomFormById(formId);
+  if(!customForm) return toast("Form not found!", true);
+
+  const answers = {};
+  for(const f of (customForm.fields || [])) {
+    if(f.type === 'section') continue;
+    const val = getCustomRegFieldValue(f);
+    const isEmpty = Array.isArray(val) ? val.length === 0 : !val;
+    if(f.required && isEmpty) return toast(`"${f.label}" পূরণ করো!`, true);
+    answers[f.id] = val;
+  }
+
+  const btn = document.querySelector('.im-submit-btn');
+  const originalText = btn ? btn.textContent : '';
+  if(btn) { btn.textContent = '⏳ Submitting...'; btn.disabled = true; }
+
+  try {
+    // 1. Save the full answers against the linked Form Builder form, so the
+    // admin can review them under Form Builder → Responses.
+    const formSaved = await addFormResponse({ formId, answers, uid: user.uid, email, olympiad: o.title });
+    if(!formSaved.success) {
+      toast("Failed to submit. Please try again!", true);
+      if(btn) { btn.textContent = originalText; btn.disabled = false; }
+      return;
+    }
+
+    // 2. Also log a lightweight entry in the main Registrations list, so the
+    // admin sees "who registered for what" in one place without having to
+    // dig through every linked form separately.
+    await addRegistration({
+      uid: user.uid, email, olympiad: o.title,
+      name: fullName, phone: profile.phone,
+      class: profile.classLevel || '', school: profile.institution || '',
+      address: profile.district || '',
+      segment: '', transactionId: '',
+      message: `[Custom form responses — see Form Builder → "${customForm.title}" → Responses]`
+    });
+
+    toast("Registration successful! We'll contact you soon. ✅");
+    const reg = document.getElementById('m-reg');
+    if(reg) {
+      reg.innerHTML = `
+        <div class="modal-reg-section" style="text-align:center;">
+          <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
+          <h4 style="font-family:Montserrat;font-weight:800;margin-bottom:6px;">Registered!</h4>
+          <p style="color:var(--muted);font-size:.85rem;">তোমার registration পেয়েছি। Dashboard-এ গিয়ে পরে এটা দেখতে পারবে।</p>
+        </div>`;
+    }
+  } catch(err) {
+    console.error("Custom registration error:", err);
+    toast("Failed to submit. Please try again!", true);
+    if(btn) { btn.textContent = originalText; btn.disabled = false; }
+  }
+}
+
 /*===== POPULATE OLYMPIAD DROPDOWN =====*/
 function populateOlympiadDropdown() {
   const select = document.getElementById('rf-olympiad');

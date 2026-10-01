@@ -2,74 +2,106 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ---- Who is who (checked by Firebase, using the logged-in email) ----
+    // ---- Who is who ----
     function signedIn() { return request.auth != null; }
+
+    // Fixed owners (by login email)
     function isMain() {
       return signedIn() && request.auth.token.email == 'talentversebangladesh@gmail.com';
     }
-    function isEC() {
-      return isMain() || (signedIn() && request.auth.token.email == 'ec@talentversebangladesh.com');
-    }
-    function isFormAdmin() {
-      return isMain() || (signedIn() && request.auth.token.email == 'talentversebd5@gmail.com');
+
+    // Official members: the main admin gives each person a list of pages in
+    // member_access/{their uid}. Only the main admin can write that document.
+    function hasPerm(p) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/member_access/$(request.auth.uid))
+        && (p in get(/databases/$(database)/documents/member_access/$(request.auth.uid)).data.get('permissions', []));
     }
 
-    // ---- Public website content: everyone reads, only admin writes ----
-    match /home/{id}          { allow read: if true; allow write: if isMain(); }
-    match /olympiads/{id}     { allow read: if true; allow write: if isMain(); }
-    match /gallery/{id}       { allow read: if true; allow write: if isMain(); }
-    match /news/{id}          { allow read: if true; allow write: if isMain(); }
-    match /team/{id}          { allow read: if true; allow write: if isMain(); }
-    match /networkPages/{id}  { allow read: if true; allow write: if isMain(); }
-    match /quizzes/{id}       { allow read: if true; allow write: if isMain(); }
-    match /certificates/{id}  { allow read: if true; allow write: if isMain(); }
+    function isEC() {
+      return isMain() || hasPerm('election')
+        || (signedIn() && request.auth.token.email == 'ec@talentversebangladesh.com');
+    }
+    function isFormAdmin() {
+      return isMain() || hasPerm('forms')
+        || (signedIn() && request.auth.token.email == 'talentversebd5@gmail.com');
+    }
+
+    // ---- Public website content: everyone reads, admin / permitted member writes ----
+    match /home/{id}          { allow read: if true; allow write: if isMain() || hasPerm('home'); }
+    match /gallery/{id}       { allow read: if true; allow write: if isMain() || hasPerm('home'); }
+    match /olympiads/{id}     { allow read: if true; allow write: if isMain() || hasPerm('olympiads'); }
+    match /team/{id}          { allow read: if true; allow write: if isMain() || hasPerm('team'); }
+    match /networkPages/{id}  { allow read: if true; allow write: if isMain() || hasPerm('network'); }
+    match /news/{id}          { allow read: if true; allow write: if isMain() || hasPerm('news'); }
+    match /quizzes/{id}       { allow read: if true; allow write: if isMain() || hasPerm('quizzes'); }
+    match /certificates/{id}  { allow read: if true; allow write: if isMain() || hasPerm('certificates'); }
 
     match /settings/{id} {
       allow read: if true;
-      allow write: if isMain() || (id == 'election' && isEC());
+      allow write: if isMain()
+                   || (id == 'founder'  && hasPerm('founder'))
+                   || (id == 'popup'    && hasPerm('popup'))
+                   || (id == 'election' && isEC());
     }
 
     // ---- Forms ----
     match /custom_forms/{id}  { allow read: if true; allow write: if isFormAdmin(); }
     match /form_responses/{id} {
-      allow create: if true;                       // anyone can submit a form
+      allow create: if true;
       allow read, update, delete: if isFormAdmin();
     }
 
     // ---- Election ----
     match /election_candidates/{id} { allow read: if true; allow write: if isEC(); }
     match /election_votes/{id} {
-      allow create: if true;                       // anonymous ballots
+      allow create: if true;
       allow read, update, delete: if isEC();
     }
     match /election_voters/{id} {
-      allow create: if true;                       // one attendance record per voter (create only, never overwritten)
+      allow create: if true;
       allow read, update, delete: if isEC();
     }
 
-    // ---- Contact messages & olympiad registrations ----
+    // ---- Contact messages & registrations ----
     match /messages/{id} {
       allow create: if true;
-      allow read, update, delete: if isMain();
+      allow read, update, delete: if isMain() || hasPerm('messages');
     }
     match /registrations/{id} {
       allow create: if true;
-      allow read, update, delete: if isMain();
+      allow read, update, delete: if isMain() || hasPerm('registrations');
     }
 
     // ---- Quiz submissions ----
     match /quiz_submissions/{id} {
       allow create: if true;
-      allow read: if isMain()
+      allow read: if isMain() || hasPerm('qsubs')
                   || (signedIn() && resource.data.email == request.auth.token.email);
-      allow update, delete: if isMain();
+      allow update, delete: if isMain() || hasPerm('qsubs');
     }
 
-    // ---- User accounts: each person only their own, admin sees all ----
+    // ---- User accounts: each person only their own, main admin sees all ----
     match /registered_users/{uid} {
-      allow create, update: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn() && request.auth.uid == uid;
+      // a Member ID can be set once and never changed afterwards
+      allow update: if signedIn() && request.auth.uid == uid
+                    && (!('memberCode' in resource.data)
+                        || request.resource.data.get('memberCode', null) == resource.data.memberCode);
       allow read: if isMain() || (signedIn() && request.auth.uid == uid);
       allow delete: if isMain();
+    }
+
+    // ---- Member ID registry: create-only (a code can never be reused or changed) ----
+    match /member_codes/{code} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow get, list, update, delete: if isMain();
+    }
+
+    // ---- Member access (page permissions): only the main admin writes ----
+    match /member_access/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;   // a member can read their own
+      allow read, write: if isMain();
     }
 
     // ---- Anything not listed above is closed ----

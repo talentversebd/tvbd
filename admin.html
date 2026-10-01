@@ -280,9 +280,13 @@ select.fi{cursor:pointer}
             Everyone who has signed up for an account on account.html, with all the information they gave. Click "View" for the full profile. This is a mirror kept in Firestore — the full record (including password resets, etc.) always lives in Firebase Authentication → Users.
           </p>
         </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+          <input class="fi" id="user-code-search" placeholder="Member ID দিয়ে খুঁজুন (যেমন TV-7K3M9Q)" style="flex:1;min-width:210px;text-transform:uppercase;" onkeydown="if(event.key==='Enter')findMemberByCode()">
+          <button class="add-btn" onclick="findMemberByCode()">🔍 Find</button>
+        </div>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Photo</th><th>Name</th><th>Email</th><th>Phone</th><th>Institution</th><th>District</th><th>Verified</th><th>Signed Up</th><th>Details</th></tr></thead>
+            <thead><tr><th>Photo</th><th>Name</th><th>Member ID</th><th>Email</th><th>Phone</th><th>Institution</th><th>Verified</th><th>Signed Up</th><th>Access</th><th>Details</th></tr></thead>
             <tbody id="userstbl"></tbody>
           </table>
         </div>

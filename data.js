@@ -1396,6 +1396,99 @@ async function loadRegisteredUsers() {
 }
 function getRegisteredUsers() { return cache.registeredUsers || []; }
 
+/*===== MEMBER ID (unique code per account) + MEMBER ACCESS =====
+   Every account gets a short unique Member ID like TV-7K3M9Q. The code is
+   "claimed" in member_codes/{code} (create-only, so it can never be reused or
+   changed). Admin can look a person up by that code and grant access to chosen
+   pages. Permissions live in member_access/{uid}, which only the main admin
+   can write (a user can never edit their own access). */
+async function claimMemberCode(uid) {
+  await waitForFirebase();
+  const { doc, setDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  for(let attempt = 0; attempt < 10; attempt++) {
+    const arr = new Uint32Array(6);
+    crypto.getRandomValues(arr);
+    let part = '';
+    arr.forEach(n => { part += alphabet[n % alphabet.length]; });
+    const code = 'TV-' + part;
+    try {
+      await setDoc(doc(db, "member_codes", code), { uid, createdAt: Date.now() });
+      return code;
+    } catch(err) {
+      if(err && err.code === 'permission-denied') continue;   // code already taken, try another
+      console.error("Claim member code error:", err);
+      return null;
+    }
+  }
+  return null;
+}
+
+async function ensureMemberCode(uid, profile) {
+  if(profile && profile.memberCode) return profile.memberCode;
+  const code = await claimMemberCode(uid);
+  if(code) await saveRegisteredUser(uid, { memberCode: code });
+  return code;
+}
+
+// A signed-in person reads their own access (used by the dashboard + admin login)
+async function getMyAccess(uid) {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try {
+    const snap = await getDoc(doc(window.firebaseDB, "member_access", uid));
+    return snap.exists() ? snap.data() : null;
+  } catch(err) { return null; }
+}
+
+// Admin only
+async function loadAllMemberAccess() {
+  await waitForFirebase();
+  const { collection, getDocs } = window.firebaseFunctions;
+  try {
+    const snap = await getDocs(collection(window.firebaseDB, "member_access"));
+    const map = {};
+    snap.docs.forEach(d => { map[d.id] = d.data(); });
+    cache.memberAccess = map;
+  } catch(err) {
+    console.error("Load member access error:", err);
+    cache.memberAccess = cache.memberAccess || {};
+  }
+  return cache.memberAccess;
+}
+function getMemberAccessMap() { return cache.memberAccess || {}; }
+
+async function saveMemberAccess(uid, data) {
+  await waitForFirebase();
+  const { doc, setDoc } = window.firebaseFunctions;
+  try {
+    await setDoc(doc(window.firebaseDB, "member_access", uid), data);
+    cache.memberAccess = cache.memberAccess || {};
+    cache.memberAccess[uid] = data;
+    return true;
+  } catch(err) { console.error("Save member access error:", err); return false; }
+}
+
+async function removeMemberAccess(uid) {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  try {
+    await deleteDoc(doc(window.firebaseDB, "member_access", uid));
+    if(cache.memberAccess) delete cache.memberAccess[uid];
+    return true;
+  } catch(err) { console.error("Remove member access error:", err); return false; }
+}
+
+async function getUidByMemberCode(code) {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try {
+    const snap = await getDoc(doc(window.firebaseDB, "member_codes", code));
+    return snap.exists() ? snap.data().uid : null;
+  } catch(err) { console.error("Lookup member code error:", err); return null; }
+}
+
 // Single-user fetch for the participant's own Profile page (dashboard.html) —
 // doesn't rely on the admin list being loaded/cached.
 async function getRegisteredUserById(uid) {

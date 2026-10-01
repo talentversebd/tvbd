@@ -29,7 +29,7 @@ async function doFormAdminLogin() {
   if(!u || !p) return showErr("Please enter both email and password!");
 
   faBusy = true; faFresh = true;
-  try { await tvbdAdminAuth.login(u, p, FORM_ALLOWED); }
+  try { await tvbdAdminAuth.login(u, p, FORM_ALLOWED, 'forms'); }
   catch(e) { faFresh = false; showErr(tvbdAdminAuth.friendlyError(e)); }
   finally { faBusy = false; }
 }
@@ -58,7 +58,8 @@ function checkFormAdminAuth() {
       faBooted = false;
       login.style.display = 'flex';
       shell.style.display = 'none';
-    }
+    },
+    'forms'
   ).catch(e => toast(tvbdAdminAuth.friendlyError(e), true));
 }
 

@@ -297,7 +297,7 @@ async function doLogin(){
   const showErr=(m)=>{ err.textContent=m; err.classList.add('show'); setTimeout(()=>err.classList.remove('show'),4000); };
   if(!u||!p) return showErr("Please enter both email and password!");
   ecBusy=true; ecFresh=true;
-  try { await tvbdAdminAuth.login(u,p,EC_ALLOWED); }
+  try { await tvbdAdminAuth.login(u,p,EC_ALLOWED,'election'); }
   catch(e){ ecFresh=false; showErr(tvbdAdminAuth.friendlyError(e)); }
   finally { ecBusy=false; }
 }
@@ -314,7 +314,8 @@ function checkAuth(){
       ecBooted=false;
       document.getElementById('adm-login').style.display='flex';
       document.getElementById('adm-shell').style.display='none';
-    }
+    },
+    'election'
   ).catch(e=>toast(tvbdAdminAuth.friendlyError(e), true));
 }
 document.addEventListener('keydown', e=>{

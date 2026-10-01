@@ -6,6 +6,55 @@ console.log("🚀 Admin.js loaded");
 const ADMIN_EMAIL = "talentversebangladesh@gmail.com";
 const ADMIN_ALLOWED = [ADMIN_EMAIL];
 
+/*===== PAGE PERMISSIONS (what the main admin can hand out to official members) =====
+   key  = stored in member_access/{uid}.permissions and checked by Firestore rules
+   sec  = which sidebar section it unlocks in this panel */
+const PERM_CATALOG = [
+  { key:'home',          label:'Home Page',                 sec:'home-ed' },
+  { key:'olympiads',     label:'Olympiads / Events',        sec:'olymp-adm' },
+  { key:'team',          label:'Team Members',              sec:'team-adm' },
+  { key:'network',       label:'Our Network',               sec:'network-adm' },
+  { key:'news',          label:'News',                      sec:'news-adm' },
+  { key:'quizzes',       label:'Quizzes',                   sec:'quiz-adm' },
+  { key:'qsubs',         label:'Quiz Submissions',          sec:'qsub-adm' },
+  { key:'messages',      label:'Contact Messages',          sec:'msg-adm' },
+  { key:'registrations', label:'Registrations',             sec:'reg-adm' },
+  { key:'certificates',  label:'Certificates',              sec:'cert-adm' },
+  { key:'founder',       label:"Founder's Message",         sec:'founder-adm' },
+  { key:'popup',         label:'Popup Notice',              sec:'popup-adm' },
+  { key:'forms',         label:'Form Builder (form-admin.html)',      page:true },
+  { key:'election',      label:'Election Panel (election-admin.html)', page:true }
+];
+const SEC_PERM = {};
+PERM_CATALOG.forEach(p => { if(p.sec) SEC_PERM[p.sec] = p.key; });
+
+let adminAccess = null;   // { all:true } for the main admin, { all:false, perms:[...] } for members
+function canAdmin(key) {
+  return !!adminAccess && (adminAccess.all || (adminAccess.perms || []).includes(key));
+}
+function secAllowed(sec) {
+  if(sec === 'dash') return true;
+  if(!adminAccess) return false;
+  if(adminAccess.all) return true;
+  const key = SEC_PERM[sec];
+  return key ? canAdmin(key) : false;      // users-adm, set-adm … stay main-admin only
+}
+function applyAccessToNav() {
+  const nav = document.querySelector('.adm-nav');
+  if(!nav) return;
+  nav.querySelectorAll('.adm-nb').forEach(b => {
+    b.style.display = secAllowed(b.getAttribute('data-sec')) ? '' : 'none';
+  });
+  // hide section headings that have no visible buttons under them
+  let heading = null, any = false;
+  const flush = () => { if(heading) heading.style.display = any ? '' : 'none'; };
+  Array.from(nav.children).forEach(el => {
+    if(el.classList.contains('adm-ns')) { flush(); heading = el; any = false; }
+    else if(el.classList.contains('adm-nb') && el.style.display !== 'none') any = true;
+  });
+  flush();
+}
+
 /*===== ADMIN NAVIGATION =====*/
 function openAdmin() {
   window.location.href = 'admin.html';
@@ -26,17 +75,18 @@ function adminShowErr(msg) {
 }
 
 function adminLoadData() {
-  const run = (loader, render) => {
+  const run = (perm, loader, render) => {
+    if(!canAdmin(perm)) return;
     if(typeof window[loader] === 'function') {
       window[loader]().then(() => { if(typeof window[render] === 'function') window[render](); });
     }
   };
-  run('loadMessages', 'renderMessagesTable');
-  run('loadRegistrations', 'renderRegistrationsTable');
-  run('loadCertificates', 'renderCertificatesTable');
-  run('loadTeam', 'renderTeamTable');
-  run('loadNetworkPages', 'renderNetworkTable');
-  run('loadQuizzes', 'renderQuizTable');
+  run('messages',      'loadMessages',      'renderMessagesTable');
+  run('registrations', 'loadRegistrations', 'renderRegistrationsTable');
+  run('certificates',  'loadCertificates',  'renderCertificatesTable');
+  run('team',          'loadTeam',          'renderTeamTable');
+  run('network',       'loadNetworkPages',  'renderNetworkTable');
+  run('quizzes',       'loadQuizzes',       'renderQuizTable');
 }
 
 /*===== LOGIN =====*/
@@ -73,7 +123,9 @@ function checkAdminAuth() {
   const shell = document.getElementById('adm-shell');
 
   tvbdAdminAuth.watch(ADMIN_ALLOWED,
-    () => {
+    (user, access) => {
+      adminAccess = access;
+      applyAccessToNav();
       if(login) login.style.display = 'none';
       if(shell) shell.style.display = 'flex';
       if(!adminBooted) {
@@ -85,6 +137,7 @@ function checkAdminAuth() {
     },
     () => {
       adminBooted = false;
+      adminAccess = null;
       if(login) login.style.display = 'flex';
       if(shell) shell.style.display = 'none';
     }
@@ -108,6 +161,7 @@ function closeSidebar() {
 /*===== NAVIGATION =====*/
 function goSec(btn) {
   const secId = btn.getAttribute('data-sec');
+  if(!secAllowed(secId)) return toast('এই পেজে আপনার অ্যাক্সেস নেই।', true);
 
   document.querySelectorAll('.adm-sec').forEach(s => s.classList.remove('active'));
   const sec = document.getElementById(secId);
@@ -659,65 +713,83 @@ async function prevFounderPhoto(input) {
   } else { prev.innerHTML = `<div style="color:#f87171">❌ Failed</div>`; toast("Failed!", true); }
 }
 
-/*===== REGISTERED USERS =====*/
+/*===== REGISTERED USERS + MEMBER ACCESS (main admin only) =====*/
 function fmtUserDate(t) {
   return t ? new Date(t).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
 }
 function escUser(v) {
   return String(v == null || v === '' ? '—' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+function userAvatar(u, size) {
+  const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+  return u.photo
+    ? `<img src="${escUser(u.photo)}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;">`
+    : `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${Math.round(size/2.4)}px;">${escUser((name || u.email || '?').charAt(0).toUpperCase())}</div>`;
+}
+
 async function loadRegisteredUsersUI() {
   const tbody = document.getElementById('userstbl');
   if(!tbody) return;
-  tbody.innerHTML = `<tr class="empty-row"><td colspan="9">Loading…</td></tr>`;
-  const users = typeof loadRegisteredUsers === 'function' ? await loadRegisteredUsers() : [];
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="10">Loading…</td></tr>`;
+  const [users, accessMap] = await Promise.all([
+    typeof loadRegisteredUsers === 'function' ? loadRegisteredUsers() : [],
+    typeof loadAllMemberAccess === 'function' ? loadAllMemberAccess() : {}
+  ]);
   if(!users.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">No one has signed up yet.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">No one has signed up yet.</td></tr>`;
     return;
   }
   tbody.innerHTML = users.map(u => {
     const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
-    const photo = u.photo
-      ? `<img src="${escUser(u.photo)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
-      : `<div style="width:38px;height:38px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-weight:700;">${escUser((name || u.email || '?').charAt(0).toUpperCase())}</div>`;
+    const acc = accessMap[u.id];
+    const n = acc && acc.permissions ? acc.permissions.length : 0;
     return `
     <tr>
-      <td>${photo}</td>
+      <td>${userAvatar(u, 38)}</td>
       <td>${escUser(name)}</td>
+      <td style="font-family:monospace;letter-spacing:.5px;">${escUser(u.memberCode)}</td>
       <td>${escUser(u.email)}</td>
       <td>${escUser(u.phone)}</td>
       <td>${escUser(u.institution)}</td>
-      <td>${escUser(u.district)}</td>
       <td><span class="bs ${u.emailVerified ? 'bs-active' : 'bs-past'}">${u.emailVerified ? '✅ Verified' : '⏳ Not verified'}</span></td>
       <td>${fmtUserDate(u.createdAt)}</td>
+      <td>${n ? `<span class="bs bs-active">🔑 ${n} page${n > 1 ? 's' : ''}</span>` : '—'}</td>
       <td class="tbl-acts"><button class="e-btn" onclick="viewRegisteredUser('${escUser(u.id)}')">View</button></td>
     </tr>`;
   }).join('');
+}
+
+function closeUserOverlay(id) { const el = document.getElementById(id); if(el) el.remove(); }
+
+function openUserOverlay(id, innerHtml) {
+  let ov = document.getElementById(id);
+  if(!ov) {
+    ov = document.createElement('div');
+    ov.id = id;
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.onclick = e => { if(e.target === ov) ov.remove(); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = innerHtml;
 }
 
 function viewRegisteredUser(id) {
   const u = (typeof getRegisteredUsers === 'function' ? getRegisteredUsers() : []).find(x => x.id === id);
   if(!u) return;
   const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+  const acc = (typeof getMemberAccessMap === 'function' ? getMemberAccessMap() : {})[id];
+  const accText = acc && (acc.permissions || []).length
+    ? acc.permissions.map(k => (PERM_CATALOG.find(p => p.key === k) || { label:k }).label).join(', ')
+    : 'No extra access';
   const row = (l, v) => `<div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--bdr);"><span style="color:var(--muted);font-size:.82rem;">${l}</span><strong style="text-align:right;font-size:.88rem;">${escUser(v)}</strong></div>`;
-  const photo = u.photo
-    ? `<img src="${escUser(u.photo)}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;">`
-    : `<div style="width:96px;height:96px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;">${escUser((name || u.email || '?').charAt(0).toUpperCase())}</div>`;
-  let ov = document.getElementById('user-detail-ov');
-  if(!ov) {
-    ov = document.createElement('div');
-    ov.id = 'user-detail-ov';
-    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-    ov.onclick = e => { if(e.target === ov) ov.remove(); };
-    document.body.appendChild(ov);
-  }
-  ov.innerHTML = `
+  openUserOverlay('user-detail-ov', `
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:88vh;overflow:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
         <h3 style="font-family:Montserrat;font-size:1.05rem;">👤 User Profile</h3>
-        <button onclick="document.getElementById('user-detail-ov').remove()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+        <button onclick="closeUserOverlay('user-detail-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
-      <div style="text-align:center;margin-bottom:12px;">${photo}</div>
+      <div style="display:flex;justify-content:center;margin-bottom:12px;">${userAvatar(u, 96)}</div>
+      ${row('Member ID', u.memberCode)}
       ${row('Full Name', name)}
       ${row('Email', u.email)}
       ${row('Phone', u.phone)}
@@ -730,7 +802,77 @@ function viewRegisteredUser(id) {
       ${row('Email Verified', u.emailVerified ? 'Yes' : 'No')}
       ${row('Account Created', fmtUserDate(u.createdAt))}
       ${row('Last Login', fmtUserDate(u.lastLoginAt))}
-    </div>`;
+      ${row('Admin Access', accText)}
+      <button class="save-btn" style="width:100%;margin-top:16px;" onclick="openMemberAccess('${escUser(id)}')">🔑 Manage Access</button>
+    </div>`);
+}
+
+async function findMemberByCode() {
+  const input = document.getElementById('user-code-search');
+  let code = (input.value || '').trim().toUpperCase().replace(/\s+/g, '');
+  if(!code) return toast('Member ID লিখুন!', true);
+  if(!code.startsWith('TV-')) code = 'TV-' + code;
+  const uid = await getUidByMemberCode(code);
+  if(!uid) return toast('এই Member ID পাওয়া যায়নি।', true);
+  if(!getRegisteredUsers().find(x => x.id === uid)) await loadRegisteredUsers();
+  await loadAllMemberAccess();
+  if(!getRegisteredUsers().find(x => x.id === uid)) return toast('ইউজারের প্রোফাইল পাওয়া যায়নি।', true);
+  viewRegisteredUser(uid);
+}
+
+async function openMemberAccess(uid) {
+  const u = getRegisteredUsers().find(x => x.id === uid);
+  if(!u) return;
+  const accessMap = await loadAllMemberAccess();
+  const acc = accessMap[uid] || { permissions: [], label: '' };
+  const name = [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email;
+  const boxes = PERM_CATALOG.map(p => `
+    <label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--bdr);cursor:pointer;font-size:.88rem;">
+      <input type="checkbox" class="ma-perm" value="${p.key}" ${acc.permissions.includes(p.key) ? 'checked' : ''} style="width:18px;height:18px;">
+      <span>${p.label}</span>
+    </label>`).join('');
+  openUserOverlay('member-access-ov', `
+    <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:90vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <h3 style="font-family:Montserrat;font-size:1.05rem;">🔑 Manage Access</h3>
+        <button onclick="closeUserOverlay('member-access-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:.85rem;margin-bottom:4px;"><strong>${escUser(name)}</strong> · <span style="font-family:monospace;">${escUser(u.memberCode)}</span></p>
+      <p style="font-size:.76rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">যে পেজগুলো টিক দেবেন শুধু সেগুলোই এই সদস্য নিজের অ্যাকাউন্ট দিয়ে admin.html-এ এডিট করতে পারবেন। ইউজার ম্যানেজমেন্ট ও সিস্টেম সেটিংস সবসময় শুধু আপনার কাছে থাকবে।</p>
+      <div class="fg"><label>Role label (optional)</label><input class="fi" id="ma-label" value="${String(acc.label || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}" placeholder="e.g. Official Member, Content Team"></div>
+      <div style="display:flex;gap:10px;margin:8px 0;">
+        <button class="e-btn" onclick="document.querySelectorAll('.ma-perm').forEach(c=>c.checked=true)">Select all</button>
+        <button class="e-btn" onclick="document.querySelectorAll('.ma-perm').forEach(c=>c.checked=false)">Clear</button>
+      </div>
+      <div>${boxes}</div>
+      <button class="save-btn" style="width:100%;margin-top:16px;" onclick="saveMemberAccessUI('${escUser(uid)}')">💾 Save Access</button>
+    </div>`);
+}
+
+async function saveMemberAccessUI(uid) {
+  const u = getRegisteredUsers().find(x => x.id === uid);
+  if(!u) return;
+  const perms = Array.from(document.querySelectorAll('.ma-perm')).filter(c => c.checked).map(c => c.value);
+  const label = document.getElementById('ma-label').value.trim();
+  let ok;
+  if(!perms.length) {
+    ok = await removeMemberAccess(uid);
+  } else {
+    ok = await saveMemberAccess(uid, {
+      uid,
+      memberCode: u.memberCode || '',
+      name: [u.firstName, u.lastName].filter(Boolean).join(' '),
+      email: u.email || '',
+      permissions: perms,
+      label,
+      grantedAt: Date.now()
+    });
+  }
+  if(!ok) return toast('Save failed! Rules/internet চেক করুন।', true);
+  toast(perms.length ? 'Access saved! ✅' : 'সব অ্যাক্সেস সরানো হয়েছে।');
+  closeUserOverlay('member-access-ov');
+  closeUserOverlay('user-detail-ov');
+  loadRegisteredUsersUI();
 }
 
 async function loadPopupSettings() {

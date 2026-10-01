@@ -111,6 +111,13 @@
           <div id="db-fullname" style="font-family:Montserrat;font-weight:800;font-size:1.25rem;color:var(--txt);">Loading...</div>
           <div id="db-username" style="color:var(--blue-br);font-size:.85rem;font-weight:600;margin-top:2px;"></div>
           <div id="db-institution-line" style="color:var(--muted);font-size:.85rem;margin-top:2px;"></div>
+          <div id="db-memberid-wrap" style="display:none;margin-top:10px;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="background:rgba(37,99,235,.12);border:1px solid var(--bdr2);border-radius:8px;padding:6px 12px;font-size:.82rem;">🆔 Member ID: <strong id="db-memberid" style="letter-spacing:1px;font-family:monospace;"></strong></span>
+            <button onclick="dbCopyMemberId()" style="background:none;border:1px solid var(--bdr2);color:var(--txt);border-radius:8px;padding:6px 12px;font-size:.78rem;cursor:pointer;">Copy</button>
+          </div>
+          <div id="db-staff-link" style="display:none;margin-top:10px;">
+            <a href="admin.html" style="display:inline-block;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border-radius:8px;padding:8px 16px;font-size:.82rem;font-weight:700;text-decoration:none;">🛠 Open Admin Panel</a>
+          </div>
         </div>
       </div>
 
@@ -509,7 +516,17 @@ async function dbLoadDashboard(user) {
     (typeof loadQuizzes === 'function' ? loadQuizzes() : Promise.resolve())
   ]);
   dbProfile = profile || {};
+  // Make sure every account has a unique Member ID (older accounts get one now)
+  if(!dbProfile.memberCode && typeof ensureMemberCode === 'function') {
+    try { const mc = await ensureMemberCode(user.uid, dbProfile); if(mc) dbProfile.memberCode = mc; } catch(e) {}
+  }
   dbRenderProfile();
+  // Official members with admin access get a shortcut to the panel
+  if(typeof getMyAccess === 'function') {
+    getMyAccess(user.uid).then(a => {
+      if(a && (a.permissions || []).length) document.getElementById('db-staff-link').style.display = 'block';
+    });
+  }
 
   const quizzes = typeof getQuizzes === 'function' ? getQuizzes() : [];
   const quizMap = {};
@@ -561,6 +578,11 @@ function dbRenderProfile() {
   document.getElementById('db-username').textContent = username;
   document.getElementById('db-institution-line').textContent = p.institution || '';
 
+  if(p.memberCode) {
+    document.getElementById('db-memberid').textContent = p.memberCode;
+    document.getElementById('db-memberid-wrap').style.display = 'flex';
+  }
+
   const avatar = document.getElementById('db-avatar');
   if(p.photo) {
     avatar.innerHTML = `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
@@ -586,6 +608,14 @@ function dbRenderProfile() {
 
   const complete = p.firstName && p.lastName && p.dob && p.phone && p.gender && p.religion && p.institution && p.classLevel && p.district;
   document.getElementById('db-incomplete-prompt').style.display = complete ? 'none' : 'block';
+}
+
+function dbCopyMemberId() {
+  const code = (dbProfile && dbProfile.memberCode) || '';
+  if(!code) return;
+  if(navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => toast('Member ID copied!')).catch(() => toast(code));
+  } else { toast(code); }
 }
 
 function dbOpenEdit() {

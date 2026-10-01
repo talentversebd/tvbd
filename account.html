@@ -599,6 +599,14 @@ async function acSignup() {
       } catch(e) { console.error('Photo upload failed', e); }
     }
 
+    // Unique Member ID (shown on the profile; admin uses it to grant access)
+    try {
+      if(typeof claimMemberCode === 'function') {
+        const mc = await claimMemberCode(cred.user.uid);
+        if(mc) profile.memberCode = mc;
+      }
+    } catch(e) { console.error('Member code failed', e); }
+
     if(typeof saveRegisteredUser === 'function') {
       await saveRegisteredUser(cred.user.uid, profile).catch(() => {});
     }

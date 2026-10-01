@@ -290,17 +290,17 @@ function renderRegistrationsTable() {
   const tbody = document.getElementById('rtbl');
   if(!tbody) return;
   const data = getRegistrations();
-  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No registrations yet.</td></tr>`; return; }
+  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="8">No registrations yet.</td></tr>`; return; }
   tbody.innerHTML = '';
   data.forEach(r => {
     const date = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'N/A';
-    tbody.innerHTML += `<tr><td>${r.name}</td><td>${r.email}</td><td>${r.phone}</td><td>${r.olympiad}</td><td>${date}</td>
+    tbody.innerHTML += `<tr><td>${r.name}</td><td>${r.email}</td><td>${r.phone}</td><td>${r.olympiad}</td><td>${r.segment||'—'}</td><td>${r.transactionId||'—'}</td><td>${date}</td>
       <td class="tbl-acts"><button class="e-btn" onclick="viewRegistration('${r.id}')">View</button><button class="d-btn" onclick="deleteRegistrationAction('${r.id}')">Delete</button></td></tr>`;
   });
 }
 function viewRegistration(id) {
   const r = getRegistrations().find(x => x.id === id);
-  if(r) alert(`Name: ${r.name}\nEmail: ${r.email}\nPhone: ${r.phone}\nOlympiad: ${r.olympiad}`);
+  if(r) alert(`Name: ${r.name}\nEmail: ${r.email}\nPhone: ${r.phone}\nOlympiad: ${r.olympiad}\nSegment: ${r.segment||'N/A'}\nTransaction ID: ${r.transactionId||'N/A'}\nClass: ${r.class||'N/A'}\nSchool: ${r.school||'N/A'}\nAddress: ${r.address||'N/A'}\nMessage: ${r.message||'N/A'}`);
 }
 async function deleteRegistrationAction(id) {
   if(!confirm("Delete?")) return;
@@ -310,9 +310,9 @@ async function deleteRegistrationAction(id) {
 function downloadRegistrationsCSV() {
   const regs = getRegistrations();
   if(!regs.length) return toast("No data!", true);
-  let csv = "Name,Email,Phone,Olympiad,Date\n";
+  let csv = "Name,Email,Phone,Olympiad,Segment,Transaction ID,Class,School,Date\n";
   regs.forEach(r => {
-    csv += [r.name,r.email,r.phone,r.olympiad,r.createdAt?new Date(r.createdAt).toLocaleString():''].map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')+"\n";
+    csv += [r.name,r.email,r.phone,r.olympiad,r.segment,r.transactionId,r.class,r.school,r.createdAt?new Date(r.createdAt).toLocaleString():''].map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')+"\n";
   });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
@@ -375,7 +375,7 @@ function populateQuizDropdown(selectedId) {
 function openOlympiadForm() {
   document.getElementById('ofm-title').textContent = "Add Olympiad";
   document.getElementById('of-eid').value = "";
-  ['of-t','of-dt','of-rd','of-v','of-pr','of-el','of-fe','of-rl','of-ds','of-fd','of-iu'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['of-t','of-dt','of-rd','of-v','of-pr','of-el','of-fe','of-segments','of-ds','of-fd','of-iu'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('of-cat').value = 'Mathematics';
   document.getElementById('of-st').value = 'upcoming';
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = false;
@@ -396,6 +396,7 @@ function editOlympiad(id) {
   document.getElementById('of-pr').value = o.prize||'';
   document.getElementById('of-el').value = o.eligibility||'';
   document.getElementById('of-fe').value = o.fee||'';
+  document.getElementById('of-segments').value = (o.segments||[]).join(', ');
   document.getElementById('of-rl').value = o.regLink||'';
   document.getElementById('of-ds').value = o.desc||'';
   document.getElementById('of-fd').value = o.fullDesc||'';
@@ -409,7 +410,8 @@ async function saveOlympiad() {
   const title = document.getElementById('of-t').value.trim();
   const desc = document.getElementById('of-ds').value.trim();
   if(!title || !desc) return toast("Title & description required!", true);
-  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, regLink:document.getElementById('of-rl').value, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '' };
+  const segments = document.getElementById('of-segments').value.split(',').map(s => s.trim()).filter(Boolean);
+  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '' };
   const eid = document.getElementById('of-eid').value;
   const ok = eid === '' ? await addOlympiad(o) : await updateOlympiad(eid, o);
   if(ok) { renderOlympiadTable(); renderDashboard(); closeFM('ofm'); toast("Saved! ✅"); }

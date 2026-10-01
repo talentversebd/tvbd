@@ -373,7 +373,7 @@ select.fi{cursor:pointer}
       <div class="adm-sec" id="reg-adm">
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Olympiad</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Olympiad</th><th>Segment</th><th>Transaction ID</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody id="rtbl"></tbody>
           </table>
         </div>
@@ -659,15 +659,20 @@ select.fi{cursor:pointer}
     </div>
     <div class="f-row">
       <div class="fg"><label>Eligibility</label><input class="fi" id="of-el"></div>
-      <div class="fg"><label>Registration Fee</label><input class="fi" id="of-fe"></div>
+      <div class="fg"><label>Registration Fee (leave blank if free)</label><input class="fi" id="of-fe" placeholder="e.g. ৳200 — blank = free"></div>
     </div>
-    <div class="fg"><label>External Registration Link (optional)</label><input class="fi" id="of-rl" placeholder="https://..."></div>
-    
+
     <div class="fg">
       <div class="chk-wrap">
         <input type="checkbox" id="of-reg-enabled">
         <label for="of-reg-enabled">✅ Enable Registration for this Olympiad</label>
       </div>
+    </div>
+
+    <div class="fg">
+      <label>Segments / Categories (comma separated, optional)</label>
+      <input class="fi" id="of-segments" placeholder="e.g. Junior, Senior, Group A, Group B">
+      <p style="font-size:.72rem;color:var(--muted);margin-top:5px;">Shown as a dropdown on the registration form so participants pick which segment they're joining. Leave blank if this event has no segments.</p>
     </div>
 
     <div class="fg">

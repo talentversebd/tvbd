@@ -108,7 +108,10 @@ function renderOlympiads() {
           ${o.venue ? `<span class="chip">📍 ${o.venue}</span>` : ''}
         </div>
         <p class="o-card-desc">${o.desc}</p>
-        <button class="rm-btn">Read More</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="rm-btn">Read More</button>
+          ${o.regEnabled && o.status !== 'past' ? `<button class="rm-btn" style="background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;" onclick="event.stopPropagation();window.location.href='register.html?olympiad=${encodeURIComponent(o.title)}'">📝 Register Now</button>` : ''}
+        </div>
         ${quizTakeButtonHtml(o)}
       </div>`;
     grid.appendChild(card);

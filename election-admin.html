@@ -265,12 +265,13 @@ textarea.fi{min-height:80px;resize:vertical}
 </div>
 
 <script type="module" src="firebase-config.js"></script>
+<script src="admin-auth.js"></script>
 <script src="data.js?v=3"></script>
 
 <script>
-/*===== EC CREDENTIALS — CHANGE THESE BEFORE PUBLISHING ===== */
+/*===== EC LOGIN (real Firebase Auth — no password stored here) ===== */
 const EC_EMAIL = "ec@talentversebangladesh.com";
-const EC_PASS = "TVBD@EC2026";
+const EC_ALLOWED = [EC_EMAIL, "talentversebangladesh@gmail.com"];
 
 function toast(msg, isErr=false){
   const t=document.getElementById('toast'),ico=document.getElementById('t-ico'),m=document.getElementById('t-msg');
@@ -287,28 +288,34 @@ window.addEventListener('unhandledrejection', e => {
   toast('Error: ' + (e.reason?.message || e.reason || 'unknown'), true);
 });
 
-function doLogin(){
+let ecBusy=false, ecWatching=false, ecBooted=false, ecFresh=false;
+async function doLogin(){
+  if(ecBusy) return;
   const u=document.getElementById('lu').value.trim();
   const p=document.getElementById('lp').value;
   const err=document.getElementById('lerr');
-  if(!u||!p){ err.textContent="Please enter both email and password!"; err.classList.add('show'); setTimeout(()=>err.classList.remove('show'),3000); return; }
-  if(u===EC_EMAIL && p===EC_PASS){
-    sessionStorage.setItem('tvbd_ec_admin','true');
-    document.getElementById('adm-login').style.display='none';
-    document.getElementById('adm-shell').style.display='flex';
-    initPanel();
-    toast("Welcome, EC! 👋");
-  } else {
-    err.textContent="❌ Incorrect email or password!"; err.classList.add('show'); setTimeout(()=>err.classList.remove('show'),4000);
-  }
+  const showErr=(m)=>{ err.textContent=m; err.classList.add('show'); setTimeout(()=>err.classList.remove('show'),4000); };
+  if(!u||!p) return showErr("Please enter both email and password!");
+  ecBusy=true; ecFresh=true;
+  try { await tvbdAdminAuth.login(u,p,EC_ALLOWED); }
+  catch(e){ ecFresh=false; showErr(tvbdAdminAuth.friendlyError(e)); }
+  finally { ecBusy=false; }
 }
-function doLogout(){ sessionStorage.removeItem('tvbd_ec_admin'); window.location.href='index.html'; }
+async function doLogout(){ try{ await tvbdAdminAuth.logout(); }catch(e){} window.location.href='index.html'; }
 function checkAuth(){
-  if(sessionStorage.getItem('tvbd_ec_admin')==='true'){
-    document.getElementById('adm-login').style.display='none';
-    document.getElementById('adm-shell').style.display='flex';
-    initPanel();
-  }
+  if(ecWatching) return; ecWatching=true;
+  tvbdAdminAuth.watch(EC_ALLOWED,
+    ()=>{
+      document.getElementById('adm-login').style.display='none';
+      document.getElementById('adm-shell').style.display='flex';
+      if(!ecBooted){ ecBooted=true; initPanel(); if(ecFresh) toast("Welcome, EC! 👋"); }
+    },
+    ()=>{
+      ecBooted=false;
+      document.getElementById('adm-login').style.display='flex';
+      document.getElementById('adm-shell').style.display='none';
+    }
+  ).catch(e=>toast(tvbdAdminAuth.friendlyError(e), true));
 }
 document.addEventListener('keydown', e=>{
   if(e.key==='Enter'){

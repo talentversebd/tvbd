@@ -923,6 +923,11 @@ async function addQuizSubmission(sub, quiz) {
     markLocalQuizAttempt(quiz.id);
     return { success: true, id, result: sub };
   } catch(err) {
+    if(err && err.code === 'permission-denied') {
+      // A second submit for the same quiz+email is refused by the security rules.
+      markLocalQuizAttempt(quiz.id);
+      return { success: false, error: "You have already submitted this exam.", alreadySubmitted: true };
+    }
     console.error("Add quiz submission error:", err);
     return { success: false, error: err.message };
   }
@@ -1102,7 +1107,7 @@ async function hasAlreadyVoted(electionId, email) {
 // so the two can never be joined back together.
 async function submitVote(electionId, voter, selections) {
   await waitForFirebase();
-  const { doc, getDoc, setDoc, collection, addDoc } = window.firebaseFunctions;
+  const { doc, getDoc, collection, writeBatch } = window.firebaseFunctions;
   const db = window.firebaseDB;
   try {
     const voterId = evMakeVoterId(electionId, voter.email);
@@ -1112,8 +1117,17 @@ async function submitVote(electionId, voter, selections) {
       return { success:false, alreadyVoted:true, error:"You have already voted." };
     }
 
+    // One atomic batch: the attendance record and every anonymous ballot are
+    // saved together, or not at all. If this person already voted, the rules
+    // reject the attendance record and the whole batch fails, so no extra
+    // votes are ever counted.
+    const batch = writeBatch(db);
+    batch.set(doc(db, "election_voters", voterId), {
+      electionId: electionId || 'default',
+      name: voter.name, email: voter.email, phone: voter.phone, votedAt: Date.now()
+    });
     for(const sel of selections) {
-      await addDoc(collection(db, "election_votes"), {
+      batch.set(doc(collection(db, "election_votes")), {
         electionId: electionId || 'default',
         position: sel.position,
         candidateId: sel.candidateId || null,
@@ -1121,11 +1135,15 @@ async function submitVote(electionId, voter, selections) {
         castAt: Date.now()
       });
     }
-
-    await setDoc(doc(db, "election_voters", voterId), {
-      electionId: electionId || 'default',
-      name: voter.name, email: voter.email, phone: voter.phone, votedAt: Date.now()
-    });
+    try {
+      await batch.commit();
+    } catch(err) {
+      if(err && err.code === 'permission-denied') {
+        markLocalVoteAttempt(electionId);
+        return { success:false, alreadyVoted:true, error:"You have already voted." };
+      }
+      throw err;
+    }
 
     markLocalVoteAttempt(electionId);
     return { success:true };

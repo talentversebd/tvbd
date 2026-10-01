@@ -1,8 +1,10 @@
 console.log("🚀 Admin.js loaded");
 
-/*===== ADMIN CREDENTIALS (Code based) =====*/
+/*===== ADMIN ACCOUNT (real Firebase Auth) =====
+   No password is stored in this file any more. Firebase checks the password,
+   and the Firestore rules only accept this email as admin. */
 const ADMIN_EMAIL = "talentversebangladesh@gmail.com";
-const ADMIN_PASS = "T@lentVer$eB@nglade$h";
+const ADMIN_ALLOWED = [ADMIN_EMAIL];
 
 /*===== ADMIN NAVIGATION =====*/
 function openAdmin() {
@@ -13,131 +15,84 @@ function closeAdmin() {
   window.location.href = 'index.html';
 }
 
-/*===== SIMPLE LOGIN (No Firebase Auth needed) =====*/
-function doLogin() {
+let adminBooted = false, adminWatching = false, adminBusy = false, adminFresh = false;
+
+function adminShowErr(msg) {
+  const err = document.getElementById('lerr');
+  if(!err) return;
+  err.textContent = msg;
+  err.classList.add('show');
+  setTimeout(() => err.classList.remove('show'), 4000);
+}
+
+function adminLoadData() {
+  const run = (loader, render) => {
+    if(typeof window[loader] === 'function') {
+      window[loader]().then(() => { if(typeof window[render] === 'function') window[render](); });
+    }
+  };
+  run('loadMessages', 'renderMessagesTable');
+  run('loadRegistrations', 'renderRegistrationsTable');
+  run('loadCertificates', 'renderCertificatesTable');
+  run('loadTeam', 'renderTeamTable');
+  run('loadNetworkPages', 'renderNetworkTable');
+  run('loadQuizzes', 'renderQuizTable');
+}
+
+/*===== LOGIN =====*/
+async function doLogin() {
+  if(adminBusy) return;
   const u = document.getElementById('lu').value.trim();
   const p = document.getElementById('lp').value;
-  const err = document.getElementById('lerr');
 
-  if(!u || !p) {
-    err.textContent = "Please enter both email and password!";
-    err.classList.add('show');
-    setTimeout(() => err.classList.remove('show'), 3000);
-    return;
-  }
+  if(!u || !p) return adminShowErr("Please enter both email and password!");
 
-  if(u === ADMIN_EMAIL && p === ADMIN_PASS) {
-    // Login SUCCESS
-    sessionStorage.setItem('tvbd_admin', 'true');
-    sessionStorage.setItem('tvbd_admin_email', u);
-    
-    document.getElementById('adm-login').style.display = 'none';
-    document.getElementById('adm-shell').style.display = 'flex';
-    
-    renderAdminAll();
-    
-    // Load messages & registrations & certificates
-    if(typeof loadMessages === 'function') {
-      loadMessages().then(() => {
-        if(typeof renderMessagesTable === 'function') renderMessagesTable();
-      });
-    }
-    if(typeof loadRegistrations === 'function') {
-      loadRegistrations().then(() => {
-        if(typeof renderRegistrationsTable === 'function') renderRegistrationsTable();
-      });
-    }
-    if(typeof loadCertificates === 'function') {
-      loadCertificates().then(() => {
-        if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
-      });
-    }
-    if(typeof loadTeam === 'function') {
-  loadTeam().then(() => {
-    if(typeof renderTeamTable === 'function') renderTeamTable();
-     });
-    }
-    if(typeof loadNetworkPages === 'function') {
-      loadNetworkPages().then(() => {
-        if(typeof renderNetworkTable === 'function') renderNetworkTable();
-      });
-    }
-    if(typeof loadQuizzes === 'function') {
-      loadQuizzes().then(() => {
-        if(typeof renderQuizTable === 'function') renderQuizTable();
-      });
-    }
-    
-    toast("Welcome back, Admin! 👋");
-  } else {
-    // Login FAILED
-    err.textContent = "❌ Incorrect email or password!";
-    err.classList.add('show');
-    setTimeout(() => err.classList.remove('show'), 4000);
+  adminBusy = true;
+  adminFresh = true;
+  try {
+    await tvbdAdminAuth.login(u, p, ADMIN_ALLOWED);   // the watcher below opens the panel
+  } catch(e) {
+    adminFresh = false;
+    adminShowErr(tvbdAdminAuth.friendlyError(e));
+  } finally {
+    adminBusy = false;
   }
 }
 
 /*===== LOGOUT =====*/
-function doLogout() {
-  sessionStorage.removeItem('tvbd_admin');
-  sessionStorage.removeItem('tvbd_admin_email');
+async function doLogout() {
+  try { await tvbdAdminAuth.logout(); } catch(e) {}
   window.location.href = 'index.html';
 }
 
-/*===== CHECK AUTH ON PAGE LOAD =====*/
+/*===== CHECK AUTH (runs once per page) =====*/
 function checkAdminAuth() {
-  const isLogged = sessionStorage.getItem('tvbd_admin');
+  if(adminWatching) return;
+  adminWatching = true;
   const login = document.getElementById('adm-login');
   const shell = document.getElementById('adm-shell');
-  
-  if(isLogged === 'true') {
-    // Already logged in
-    if(login) login.style.display = 'none';
-    if(shell) shell.style.display = 'flex';
-    
-    renderAdminAll();
-    
-    if(typeof loadMessages === 'function') {
-      loadMessages().then(() => {
-        if(typeof renderMessagesTable === 'function') renderMessagesTable();
-      });
+
+  tvbdAdminAuth.watch(ADMIN_ALLOWED,
+    () => {
+      if(login) login.style.display = 'none';
+      if(shell) shell.style.display = 'flex';
+      if(!adminBooted) {
+        adminBooted = true;
+        renderAdminAll();
+        adminLoadData();
+        if(adminFresh) toast("Welcome back, Admin! 👋");
+      }
+    },
+    () => {
+      adminBooted = false;
+      if(login) login.style.display = 'flex';
+      if(shell) shell.style.display = 'none';
     }
-    if(typeof loadRegistrations === 'function') {
-      loadRegistrations().then(() => {
-        if(typeof renderRegistrationsTable === 'function') renderRegistrationsTable();
-      });
-    }
-    if(typeof loadCertificates === 'function') {
-      loadCertificates().then(() => {
-        if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
-      });
-    }
-    if(typeof loadTeam === 'function') {
-  loadTeam().then(() => {
-    if(typeof renderTeamTable === 'function') renderTeamTable();
-      });
-    }
-    if(typeof loadNetworkPages === 'function') {
-      loadNetworkPages().then(() => {
-        if(typeof renderNetworkTable === 'function') renderNetworkTable();
-      });
-    }
-    if(typeof loadQuizzes === 'function') {
-      loadQuizzes().then(() => {
-        if(typeof renderQuizTable === 'function') renderQuizTable();
-      });
-    }
-  } else {
-    // Not logged in - show login
-    if(login) login.style.display = 'flex';
-    if(shell) shell.style.display = 'none';
-  }
+  ).catch(e => adminShowErr(tvbdAdminAuth.friendlyError(e)));
 }
 
 // Auto check on page load
-document.addEventListener('DOMContentLoaded', () => {
-  checkAdminAuth();
-});
+document.addEventListener('DOMContentLoaded', checkAdminAuth);
 
 /*===== SIDEBAR =====*/
 function openSidebar() {
@@ -420,7 +375,7 @@ function populateQuizDropdown(selectedId) {
 function openOlympiadForm() {
   document.getElementById('ofm-title').textContent = "Add Olympiad";
   document.getElementById('of-eid').value = "";
-  ['of-t','of-dt','of-rd','of-v','of-pr','of-el','of-fe','of-ds','of-fd','of-iu'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['of-t','of-dt','of-rd','of-v','of-pr','of-el','of-fe','of-rl','of-ds','of-fd','of-iu'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('of-cat').value = 'Mathematics';
   document.getElementById('of-st').value = 'upcoming';
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = false;
@@ -441,6 +396,7 @@ function editOlympiad(id) {
   document.getElementById('of-pr').value = o.prize||'';
   document.getElementById('of-el').value = o.eligibility||'';
   document.getElementById('of-fe').value = o.fee||'';
+  document.getElementById('of-rl').value = o.regLink||'';
   document.getElementById('of-ds').value = o.desc||'';
   document.getElementById('of-fd').value = o.fullDesc||'';
   document.getElementById('of-iu').value = o.img||'';
@@ -453,7 +409,7 @@ async function saveOlympiad() {
   const title = document.getElementById('of-t').value.trim();
   const desc = document.getElementById('of-ds').value.trim();
   if(!title || !desc) return toast("Title & description required!", true);
-  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '' };
+  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, regLink:document.getElementById('of-rl').value, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '' };
   const eid = document.getElementById('of-eid').value;
   const ok = eid === '' ? await addOlympiad(o) : await updateOlympiad(eid, o);
   if(ok) { renderOlympiadTable(); renderDashboard(); closeFM('ofm'); toast("Saved! ✅"); }
@@ -691,22 +647,77 @@ async function prevFounderPhoto(input) {
 }
 
 /*===== REGISTERED USERS =====*/
+function fmtUserDate(t) {
+  return t ? new Date(t).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+}
+function escUser(v) {
+  return String(v == null || v === '' ? '—' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 async function loadRegisteredUsersUI() {
   const tbody = document.getElementById('userstbl');
   if(!tbody) return;
-  tbody.innerHTML = `<tr class="empty-row"><td colspan="4">Loading…</td></tr>`;
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="9">Loading…</td></tr>`;
   const users = typeof loadRegisteredUsers === 'function' ? await loadRegisteredUsers() : [];
   if(!users.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No one has signed up yet.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">No one has signed up yet.</td></tr>`;
     return;
   }
-  tbody.innerHTML = users.map(u => `
+  tbody.innerHTML = users.map(u => {
+    const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+    const photo = u.photo
+      ? `<img src="${escUser(u.photo)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:38px;height:38px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-weight:700;">${escUser((name || u.email || '?').charAt(0).toUpperCase())}</div>`;
+    return `
     <tr>
-      <td>${u.email || '—'}</td>
+      <td>${photo}</td>
+      <td>${escUser(name)}</td>
+      <td>${escUser(u.email)}</td>
+      <td>${escUser(u.phone)}</td>
+      <td>${escUser(u.institution)}</td>
+      <td>${escUser(u.district)}</td>
       <td><span class="bs ${u.emailVerified ? 'bs-active' : 'bs-past'}">${u.emailVerified ? '✅ Verified' : '⏳ Not verified'}</span></td>
-      <td>${u.createdAt ? new Date(u.createdAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
-      <td>${u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
-    </tr>`).join('');
+      <td>${fmtUserDate(u.createdAt)}</td>
+      <td class="tbl-acts"><button class="e-btn" onclick="viewRegisteredUser('${escUser(u.id)}')">View</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function viewRegisteredUser(id) {
+  const u = (typeof getRegisteredUsers === 'function' ? getRegisteredUsers() : []).find(x => x.id === id);
+  if(!u) return;
+  const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+  const row = (l, v) => `<div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--bdr);"><span style="color:var(--muted);font-size:.82rem;">${l}</span><strong style="text-align:right;font-size:.88rem;">${escUser(v)}</strong></div>`;
+  const photo = u.photo
+    ? `<img src="${escUser(u.photo)}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;">`
+    : `<div style="width:96px;height:96px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;">${escUser((name || u.email || '?').charAt(0).toUpperCase())}</div>`;
+  let ov = document.getElementById('user-detail-ov');
+  if(!ov) {
+    ov = document.createElement('div');
+    ov.id = 'user-detail-ov';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.onclick = e => { if(e.target === ov) ov.remove(); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `
+    <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:88vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="font-family:Montserrat;font-size:1.05rem;">👤 User Profile</h3>
+        <button onclick="document.getElementById('user-detail-ov').remove()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>
+      <div style="text-align:center;margin-bottom:12px;">${photo}</div>
+      ${row('Full Name', name)}
+      ${row('Email', u.email)}
+      ${row('Phone', u.phone)}
+      ${row('Date of Birth', u.dob)}
+      ${row('Gender', u.gender)}
+      ${row('Religion', u.religion)}
+      ${row('Institution', u.institution)}
+      ${row('Class / Level', u.classLevel)}
+      ${row('District', u.district)}
+      ${row('Email Verified', u.emailVerified ? 'Yes' : 'No')}
+      ${row('Account Created', fmtUserDate(u.createdAt))}
+      ${row('Last Login', fmtUserDate(u.lastLoginAt))}
+    </div>`;
 }
 
 async function loadPopupSettings() {

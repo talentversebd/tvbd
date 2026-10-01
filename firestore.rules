@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Who is who (checked by Firebase, using the logged-in email) ----
+    function signedIn() { return request.auth != null; }
+    function isMain() {
+      return signedIn() && request.auth.token.email == 'talentversebangladesh@gmail.com';
+    }
+    function isEC() {
+      return isMain() || (signedIn() && request.auth.token.email == 'ec@talentversebangladesh.com');
+    }
+    function isFormAdmin() {
+      return isMain() || (signedIn() && request.auth.token.email == 'talentversebd5@gmail.com');
+    }
+
+    // ---- Public website content: everyone reads, only admin writes ----
+    match /home/{id}          { allow read: if true; allow write: if isMain(); }
+    match /olympiads/{id}     { allow read: if true; allow write: if isMain(); }
+    match /gallery/{id}       { allow read: if true; allow write: if isMain(); }
+    match /news/{id}          { allow read: if true; allow write: if isMain(); }
+    match /team/{id}          { allow read: if true; allow write: if isMain(); }
+    match /networkPages/{id}  { allow read: if true; allow write: if isMain(); }
+    match /quizzes/{id}       { allow read: if true; allow write: if isMain(); }
+    match /certificates/{id}  { allow read: if true; allow write: if isMain(); }
+
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isMain() || (id == 'election' && isEC());
+    }
+
+    // ---- Forms ----
+    match /custom_forms/{id}  { allow read: if true; allow write: if isFormAdmin(); }
+    match /form_responses/{id} {
+      allow create: if true;                       // anyone can submit a form
+      allow read, update, delete: if isFormAdmin();
+    }
+
+    // ---- Election ----
+    match /election_candidates/{id} { allow read: if true; allow write: if isEC(); }
+    match /election_votes/{id} {
+      allow create: if true;                       // anonymous ballots
+      allow read, update, delete: if isEC();
+    }
+    match /election_voters/{id} {
+      allow create: if true;                       // one attendance record per voter (create only, never overwritten)
+      allow read, update, delete: if isEC();
+    }
+
+    // ---- Contact messages & olympiad registrations ----
+    match /messages/{id} {
+      allow create: if true;
+      allow read, update, delete: if isMain();
+    }
+    match /registrations/{id} {
+      allow create: if true;
+      allow read, update, delete: if isMain();
+    }
+
+    // ---- Quiz submissions ----
+    match /quiz_submissions/{id} {
+      allow create: if true;
+      allow read: if isMain()
+                  || (signedIn() && resource.data.email == request.auth.token.email);
+      allow update, delete: if isMain();
+    }
+
+    // ---- User accounts: each person only their own, admin sees all ----
+    match /registered_users/{uid} {
+      allow create, update: if signedIn() && request.auth.uid == uid;
+      allow read: if isMain() || (signedIn() && request.auth.uid == uid);
+      allow delete: if isMain();
+    }
+
+    // ---- Anything not listed above is closed ----
+    match /{document=**} { allow read, write: if false; }
+  }
+}

@@ -1,8 +1,8 @@
 console.log("🚀 form-admin.js loaded");
 
-/*===== SEPARATE ADMIN CREDENTIALS (own login, own session — not linked to admin.html) =====*/
+/*===== FORM ADMIN LOGIN (real Firebase Auth — no password stored here) =====*/
 const FORM_ADMIN_EMAIL = "talentversebd5@gmail.com";
-const FORM_ADMIN_PASS = "Frame to Fiction";
+const FORM_ALLOWED = [FORM_ADMIN_EMAIL, "talentversebangladesh@gmail.com"];
 
 /*===== TOAST (self-contained, no dependency on main.js) =====*/
 function toast(msg, isErr = false) {
@@ -17,48 +17,49 @@ function toast(msg, isErr = false) {
 }
 
 /*===== LOGIN / LOGOUT =====*/
-function doFormAdminLogin() {
+let faBusy = false, faWatching = false, faBooted = false, faFresh = false;
+
+async function doFormAdminLogin() {
+  if(faBusy) return;
   const u = document.getElementById('flu').value.trim();
   const p = document.getElementById('flp').value;
   const err = document.getElementById('flerr');
+  const showErr = m => { err.textContent = m; err.classList.add('show'); setTimeout(() => err.classList.remove('show'), 4000); };
 
-  if(!u || !p) {
-    err.textContent = "Please enter both email and password!";
-    err.classList.add('show');
-    setTimeout(() => err.classList.remove('show'), 3000);
-    return;
-  }
+  if(!u || !p) return showErr("Please enter both email and password!");
 
-  if(u === FORM_ADMIN_EMAIL && p === FORM_ADMIN_PASS) {
-    sessionStorage.setItem('tvbd_form_admin', 'true');
-    document.getElementById('fadm-login').style.display = 'none';
-    document.getElementById('fadm-shell').style.display = 'flex';
-    loadCustomForms().then(() => renderFormsTable());
-    toast("Welcome back! 👋");
-  } else {
-    err.textContent = "❌ Incorrect email or password!";
-    err.classList.add('show');
-    setTimeout(() => err.classList.remove('show'), 4000);
-  }
+  faBusy = true; faFresh = true;
+  try { await tvbdAdminAuth.login(u, p, FORM_ALLOWED); }
+  catch(e) { faFresh = false; showErr(tvbdAdminAuth.friendlyError(e)); }
+  finally { faBusy = false; }
 }
 
-function doFormAdminLogout() {
-  sessionStorage.removeItem('tvbd_form_admin');
+async function doFormAdminLogout() {
+  try { await tvbdAdminAuth.logout(); } catch(e) {}
   window.location.reload();
 }
 
 function checkFormAdminAuth() {
-  const isLogged = sessionStorage.getItem('tvbd_form_admin');
+  if(faWatching) return;
+  faWatching = true;
   const login = document.getElementById('fadm-login');
   const shell = document.getElementById('fadm-shell');
-  if(isLogged === 'true') {
-    login.style.display = 'none';
-    shell.style.display = 'flex';
-    loadCustomForms().then(() => renderFormsTable());
-  } else {
-    login.style.display = 'flex';
-    shell.style.display = 'none';
-  }
+  tvbdAdminAuth.watch(FORM_ALLOWED,
+    () => {
+      login.style.display = 'none';
+      shell.style.display = 'flex';
+      if(!faBooted) {
+        faBooted = true;
+        loadCustomForms().then(() => renderFormsTable());
+        if(faFresh) toast("Welcome back! 👋");
+      }
+    },
+    () => {
+      faBooted = false;
+      login.style.display = 'flex';
+      shell.style.display = 'none';
+    }
+  ).catch(e => toast(tvbdAdminAuth.friendlyError(e), true));
 }
 
 document.addEventListener('DOMContentLoaded', checkFormAdminAuth);

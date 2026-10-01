@@ -110,7 +110,7 @@ function renderOlympiads() {
         <p class="o-card-desc">${o.desc}</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="rm-btn">Read More</button>
-          ${o.regEnabled && o.status !== 'past' ? `<button class="rm-btn" style="background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;" onclick="event.stopPropagation();window.location.href='register.html?olympiad=${encodeURIComponent(o.title)}'">📝 Register Now</button>` : ''}
+          ${o.regEnabled && o.status !== 'past' ? `<button class="rm-btn" style="background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;" onclick="event.stopPropagation();openModal(${i});">📝 Register Now</button>` : ''}
         </div>
         ${quizTakeButtonHtml(o)}
       </div>`;
@@ -225,14 +225,13 @@ function openModal(i) {
 
   const linkedQuiz = getLinkedQuizFor(o);
   if(reg) {
-    let regHtml = o.regEnabled && o.status !== 'past'
-      ? `<a href="register.html?olympiad=${encodeURIComponent(o.title)}" class="modal-reg-btn">Register Now 🚀</a>`
-      : '';
+    let extraHtml = '';
     if(linkedQuiz) {
-      regHtml += `<a href="quiz.html?id=${linkedQuiz.id}" class="modal-reg-btn"
-        style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:10px;">📝 Take Quiz Now</a>`;
+      extraHtml += `<a href="quiz.html?id=${linkedQuiz.id}" class="modal-reg-btn"
+        style="background:linear-gradient(135deg,#16a34a,#15803d);margin-bottom:10px;">📝 Take Quiz Now</a>`;
     }
-    reg.innerHTML = regHtml;
+    reg.innerHTML = extraHtml;
+    renderInlineRegistration(o, extraHtml);
   }
 
   const modal = document.getElementById('o-modal');
@@ -240,6 +239,84 @@ function openModal(i) {
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
+}
+
+/*===== INLINE REGISTRATION (shown right inside the event modal — no page navigation) =====*/
+function renderInlineRegistration(o, prefixHtml) {
+  const reg = document.getElementById('m-reg');
+  if(!reg) return;
+  prefixHtml = prefixHtml || '';
+
+  if(!o.regEnabled || o.status === 'past') { reg.innerHTML = prefixHtml; return; }
+
+  const sectionHead = `<h4 style="font-family:Montserrat;font-weight:800;margin:4px 0 14px;">📝 Registration</h4>`;
+  const user = window.firebaseAuth && window.firebaseAuth.currentUser;
+
+  if(!user || !user.emailVerified) {
+    reg.innerHTML = prefixHtml + `
+      <div class="modal-reg-section">
+        ${sectionHead}
+        <div style="text-align:center;padding:10px 0 4px;">
+          <div style="font-size:1.8rem;margin-bottom:8px;">🔒</div>
+          <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px;">রেজিস্ট্রেশন করতে আগে account দিয়ে Log In করতে হবে।</p>
+          <a href="account.html?redirect=${encodeURIComponent(location.href)}" class="modal-reg-btn">Log In / Sign Up →</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  reg.innerHTML = prefixHtml + `<div class="modal-reg-section">${sectionHead}<p style="text-align:center;color:var(--muted);font-size:.85rem;">Loading…</p></div>`;
+
+  (async () => {
+    const profile = typeof getRegisteredUserById === 'function' ? await getRegisteredUserById(user.uid) : null;
+    const complete = profile && profile.firstName && profile.lastName && profile.phone;
+
+    // Make sure we're still looking at the same event (user might've clicked
+    // to another card while this was loading).
+    if(document.getElementById('m-title')?.textContent !== o.title) return;
+
+    if(!complete) {
+      reg.innerHTML = prefixHtml + `
+        <div class="modal-reg-section">
+          ${sectionHead}
+          <div style="text-align:center;padding:10px 0 4px;">
+            <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px;">Register করার আগে Dashboard-এ গিয়ে তোমার Profile (নাম, ফোন, স্কুল) সম্পূর্ণ করো।</p>
+            <a href="dashboard.html" class="modal-reg-btn">Complete My Profile →</a>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const hasSegments = (o.segments || []).length > 0;
+    const isPaid = !!o.fee;
+
+    reg.innerHTML = prefixHtml + `
+      <div class="modal-reg-section">
+        ${sectionHead}
+        ${hasSegments ? `
+        <div class="cf-group">
+          <label>Segment / Category *</label>
+          <select class="cf-input" id="im-segment">
+            <option value="">-- Select a segment --</option>
+            ${o.segments.map(s => `<option value="${s}">${s}</option>`).join('')}
+          </select>
+        </div>` : ''}
+        ${isPaid ? `
+        <div class="cf-group" style="background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.3);border-radius:8px;padding:12px;">
+          💰 <strong>Registration Fee: ${o.fee}</strong><br>
+          <span style="font-size:.8rem;color:var(--muted);">পেমেন্ট সম্পন্ন করে নিচে Transaction ID দাও।</span>
+        </div>
+        <div class="cf-group">
+          <label>Transaction ID *</label>
+          <input class="cf-input" type="text" id="im-txnid" placeholder="e.g. bKash/Nagad Transaction ID">
+        </div>` : ''}
+        <div class="cf-group">
+          <label>Message (optional)</label>
+          <textarea class="cf-input" id="im-message" placeholder="Anything else you'd like to add"></textarea>
+        </div>
+        <button class="modal-reg-btn im-submit-btn" style="width:100%;border:none;cursor:pointer;" onclick="submitInlineRegistration('${o.id}')">Submit Registration ✅</button>
+      </div>`;
+  })();
 }
 
 function closeModal() {

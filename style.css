@@ -294,6 +294,7 @@ footer{background:var(--card2);border-top:1px solid var(--bdr);padding:52px 20px
 .md-val{font-size:.9rem;font-weight:700;color:var(--txt)}
 .modal-desc{color:var(--muted);font-size:.9rem;line-height:1.8;margin-bottom:18px;white-space:pre-wrap}
 .modal-reg-btn{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;text-decoration:none;padding:11px 26px;border-radius:8px;font-weight:700;font-size:.9rem;border:none;cursor:pointer}
+.modal-reg-section{border-top:1px solid var(--bdr);margin-top:16px;padding-top:16px}
 
 /*===== LIGHTBOX =====*/
 .lb{position:fixed;inset:0;z-index:2800;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}

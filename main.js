@@ -263,6 +263,86 @@ Message: ${msg || 'N/A'}
   }
 }
 
+/*===== INLINE REGISTRATION SUBMIT (from the event modal) =====*/
+async function submitInlineRegistration(olympiadId) {
+  const user = window.firebaseAuth && window.firebaseAuth.currentUser;
+  if(!user || !user.emailVerified) {
+    return toast("রেজিস্ট্রেশন করতে আগে account দিয়ে Log In করতে হবে।", true);
+  }
+
+  const o = (typeof getOlympiads === 'function' ? getOlympiads() : []).find(x => x.id === olympiadId);
+  if(!o) return toast("Event not found!", true);
+
+  const profile = await getRegisteredUserById(user.uid);
+  if(!profile || !profile.firstName || !profile.lastName || !profile.phone) {
+    return toast("আগে Dashboard থেকে তোমার Profile সম্পূর্ণ করো।", true);
+  }
+  const fullName = `${profile.firstName} ${profile.lastName}`.trim();
+  const email = user.email;
+
+  const segment = document.getElementById('im-segment')?.value.trim() || '';
+  const txnId = document.getElementById('im-txnid')?.value.trim() || '';
+  const msg = document.getElementById('im-message')?.value.trim() || '';
+
+  const needsSegment = (o.segments || []).length > 0;
+  const isPaid = !!o.fee;
+
+  if(needsSegment && !segment) return toast("একটা Segment সিলেক্ট করো!", true);
+  if(isPaid && !txnId) return toast("Transaction ID দিতে হবে — এটা Paid Event!", true);
+
+  const btn = document.querySelector('.im-submit-btn');
+  const originalText = btn ? btn.textContent : '';
+  if(btn) { btn.textContent = '⏳ Submitting...'; btn.disabled = true; }
+
+  try {
+    const saved = await addRegistration({
+      uid: user.uid, email, olympiad: o.title, segment, transactionId: txnId, message: msg,
+      name: fullName, phone: profile.phone,
+      class: profile.classLevel || '', school: profile.institution || '',
+      address: profile.district || ''
+    });
+
+    if(!saved) {
+      toast("Failed to submit. Please try again!", true);
+      if(btn) { btn.textContent = originalText; btn.disabled = false; }
+      return;
+    }
+
+    if(typeof emailjs !== 'undefined' && window.EMAILJS_CONFIG && window.EMAILJS_CONFIG.serviceId) {
+      try {
+        await emailjs.send(
+          window.EMAILJS_CONFIG.serviceId,
+          window.EMAILJS_CONFIG.templateId,
+          {
+            from_name: fullName,
+            from_email: email,
+            subject: `New Registration: ${o.title}`,
+            message: `New Registration Received!\n\nName: ${fullName}\nEmail: ${email}\nPhone: ${profile.phone}\nOlympiad: ${o.title}\nSegment: ${segment || 'N/A'}\nTransaction ID: ${txnId || 'N/A'}\nClass: ${profile.classLevel || 'N/A'}\nSchool: ${profile.institution || 'N/A'}\n\nMessage: ${msg || 'N/A'}`
+          },
+          window.EMAILJS_CONFIG.publicKey
+        );
+      } catch(emailErr) {
+        console.error("Registration email notification failed (registration was still saved):", emailErr);
+      }
+    }
+
+    toast("Registration successful! We'll contact you soon. ✅");
+    const reg = document.getElementById('m-reg');
+    if(reg) {
+      reg.innerHTML = `
+        <div class="modal-reg-section" style="text-align:center;">
+          <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
+          <h4 style="font-family:Montserrat;font-weight:800;margin-bottom:6px;">Registered!</h4>
+          <p style="color:var(--muted);font-size:.85rem;">তোমার registration পেয়েছি। Dashboard-এ গিয়ে পরে এটা দেখতে পারবে।</p>
+        </div>`;
+    }
+  } catch(err) {
+    console.error("Registration error:", err);
+    toast("Failed to submit. Please try again!", true);
+    if(btn) { btn.textContent = originalText; btn.disabled = false; }
+  }
+}
+
 /*===== POPULATE OLYMPIAD DROPDOWN =====*/
 function populateOlympiadDropdown() {
   const select = document.getElementById('rf-olympiad');

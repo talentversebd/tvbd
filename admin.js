@@ -585,6 +585,7 @@ function openCertificateForm() {
   document.getElementById('cf-certid').value = '';
   document.getElementById('cf-certid').disabled = false;
   document.getElementById('cf-name').value = '';
+  document.getElementById('cf-email').value = '';
   document.getElementById('cf-event').value = '';
   document.getElementById('cf-position').value = '';
   document.getElementById('cf-date').value = new Date().toISOString().split('T')[0];
@@ -597,6 +598,7 @@ function editCertificate(id) {
   document.getElementById('cf-certid').value = c.certId||'';
   document.getElementById('cf-certid').disabled = true;
   document.getElementById('cf-name').value = c.name||'';
+  document.getElementById('cf-email').value = c.email||'';
   document.getElementById('cf-event').value = c.event||'';
   document.getElementById('cf-position').value = c.position||'';
   document.getElementById('cf-date').value = c.issueDate||'';
@@ -605,11 +607,12 @@ function editCertificate(id) {
 async function saveCertificate() {
   const certId = document.getElementById('cf-certid').value.trim();
   const name = document.getElementById('cf-name').value.trim();
+  const email = document.getElementById('cf-email').value.trim().toLowerCase();
   const event = document.getElementById('cf-event').value.trim();
   const position = document.getElementById('cf-position').value.trim();
   const issueDate = document.getElementById('cf-date').value;
   if(!certId||!name||!event||!position||!issueDate) return toast("All fields required!", true);
-  const cert = { certId, name, event, position, issueDate };
+  const cert = { certId, name, email, event, position, issueDate };
   const eid = document.getElementById('cf-eid').value;
   const result = eid === '' ? await addCertificate(cert) : await updateCertificate(eid, cert);
   if(result.success) { renderCertificatesTable(); renderDashboard(); closeFM('cfm'); toast("Saved! ✅"); }
@@ -1266,7 +1269,7 @@ async function bulkGenerate() {
   let n = bulkNextNumber(prefix);
   const list = picked.map(i => {
     const r = bulkRows.find(x => x.i === i);
-    return { certId: prefix + String(n++).padStart(3, '0'), name: r.name, event: bulkEvent.title, position: pos[i], issueDate: date };
+    return { certId: prefix + String(n++).padStart(3, '0'), name: r.name, email: r.email || '', event: bulkEvent.title, position: pos[i], issueDate: date };
   });
 
   const btn = document.getElementById('bc-go');

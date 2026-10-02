@@ -70,6 +70,7 @@ function navRenderLoggedIn(user) {
       <a href="dashboard.html#profile">👤 My Profile</a>
       <a href="dashboard.html#events">🎟️ My Events</a>
       <a href="dashboard.html#results">📊 My Results</a>
+      <a href="dashboard.html#certificates">🎓 My Certificates</a>
       <a href="admin.html" id="nav-acc-admin" style="display:none;">🛠️ Admin Panel</a>
       <button type="button" class="nav-acc-logout" onclick="navLogout()">🚪 Log Out</button>
     </div>

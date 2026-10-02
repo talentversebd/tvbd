@@ -330,6 +330,23 @@ async function deleteRegistration(id) {
   }
 }
 
+// Participant Dashboard: fetch a participant's own event registrations by email
+// ("My Events"). Sorted client-side (newest first) to avoid needing a composite index.
+async function getRegistrationsByEmail(email) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "registrations"), where("email", "==", email)));
+    const regs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    regs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return regs;
+  } catch(err) {
+    console.error("Get registrations by email error:", err);
+    return [];
+  }
+}
+
 /*===== IMGBB IMAGE UPLOAD =====*/
 async function uploadToImgBB(file) {
   const key = window.IMGBB_KEY;

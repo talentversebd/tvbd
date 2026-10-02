@@ -40,6 +40,92 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+/*===== ACCOUNT NAV (logged-in users get a dropdown: My Profile / My Events / My Results) =====*/
+async function navLogout() {
+  try {
+    if(window.firebaseAuth && window.firebaseAuthFunctions) {
+      await window.firebaseAuthFunctions.signOut(window.firebaseAuth);
+    }
+  } catch(err) { console.error('Logout error:', err); }
+  window.location.href = 'index.html';
+}
+
+function navRenderLoggedIn(user) {
+  const link = document.getElementById('nav-account-link');
+  if(!link) return; // already replaced on this page, or this page has no account link
+
+  const initial = (user.email || '?').charAt(0).toUpperCase();
+  const name = (user.email || '').split('@')[0];
+
+  const wrap = document.createElement('div');
+  wrap.className = 'nav-acc-wrap';
+  wrap.innerHTML = `
+    <button type="button" class="nav-acc-trigger" id="nav-acc-trigger" aria-haspopup="true" aria-expanded="false">
+      <span class="nav-acc-avatar">${initial}</span>
+      <span class="nav-acc-name">${name}</span>
+      <span class="nav-acc-caret">▾</span>
+    </button>
+    <div class="nav-acc-menu" id="nav-acc-menu">
+      <div class="nav-acc-email">${user.email}</div>
+      <a href="dashboard.html#profile">👤 My Profile</a>
+      <a href="dashboard.html#events">🎟️ My Events</a>
+      <a href="dashboard.html#results">📊 My Results</a>
+      <a href="admin.html" id="nav-acc-admin" style="display:none;">🛠️ Admin Panel</a>
+      <button type="button" class="nav-acc-logout" onclick="navLogout()">🚪 Log Out</button>
+    </div>
+  `;
+  link.replaceWith(wrap);
+
+  const trigger = wrap.querySelector('.nav-acc-trigger');
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = wrap.classList.toggle('open');
+    trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+  // Clicking a real link inside the dropdown should also close the mobile nav panel, same as the other nav links.
+  wrap.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMobileNav));
+
+  // Staff/admin users get an extra shortcut — fetched lazily so it never blocks the dropdown itself.
+  if(typeof getMyAccess === 'function') {
+    getMyAccess(user.uid).then(a => {
+      if(a && (a.permissions || []).length) {
+        const adminLink = document.getElementById('nav-acc-admin');
+        if(adminLink) adminLink.style.display = 'flex';
+      }
+    }).catch(() => {});
+  }
+}
+
+function navRenderLoggedOut() {
+  // Only matters if a dropdown was already rendered on this page (e.g. the session expired without a reload) —
+  // on a normal logged-out page load, #nav-account-link is already the plain "Account" link and nothing needs to change.
+  const wrap = document.querySelector('.nav-acc-wrap');
+  if(!wrap) return;
+  const link = document.createElement('a');
+  link.href = 'account.html';
+  link.id = 'nav-account-link';
+  link.textContent = '🔐 Account';
+  wrap.replaceWith(link);
+  link.addEventListener('click', closeMobileNav);
+}
+
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.nav-acc-wrap.open');
+  if(wrap && !wrap.contains(e.target)) wrap.classList.remove('open');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const check = setInterval(() => {
+    if(window.firebaseAuth && window.firebaseAuthFunctions) {
+      clearInterval(check);
+      window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, (user) => {
+        if(user && user.emailVerified) navRenderLoggedIn(user);
+        else navRenderLoggedOut();
+      });
+    }
+  }, 200);
+});
+
 /*===== SCROLL TO TOP BUTTON =====*/
 (function() {
   const btn = document.createElement('button');

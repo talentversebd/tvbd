@@ -546,37 +546,44 @@ async function addCertificate(cert) {
   }
 }
 
-/*===== CERTIFICATE TEMPLATE (admin's own design + where name / ID / QR go) =====*/
-async function loadCertTemplate(force) {
-  if(!force && cache.certTemplateLoaded) return cache.certTemplate || null;
+/*===== CERTIFICATE TEMPLATES =====
+   settings/certTemplate           = default design (used by every event without its own)
+   settings/certTpl_<eventId>      = design made for one specific event */
+function certTplDocId(eventId) { return eventId ? 'certTpl_' + eventId : 'certTemplate'; }
+
+async function loadCertTemplate(force, eventId) {
+  const key = certTplDocId(eventId);
+  cache.certTemplates = cache.certTemplates || {};
+  if(!force && key in cache.certTemplates) return cache.certTemplates[key];
   await waitForFirebase();
   const { doc, getDoc } = window.firebaseFunctions;
   try {
-    const snap = await getDoc(doc(window.firebaseDB, "settings", "certTemplate"));
-    cache.certTemplate = snap.exists() ? snap.data() : null;
-    cache.certTemplateLoaded = true;
+    const snap = await getDoc(doc(window.firebaseDB, "settings", key));
+    cache.certTemplates[key] = snap.exists() ? snap.data() : null;
   } catch(err) {
     console.error("Load cert template error:", err);
-    cache.certTemplate = cache.certTemplate || null;
+    if(!(key in cache.certTemplates)) cache.certTemplates[key] = null;
   }
-  return cache.certTemplate;
+  return cache.certTemplates[key];
 }
-async function saveCertTemplate(cfg) {
+async function saveCertTemplate(cfg, eventId) {
   await waitForFirebase();
   const { doc, setDoc } = window.firebaseFunctions;
   try {
     const data = { ...cfg, updatedAt: Date.now() };
-    await setDoc(doc(window.firebaseDB, "settings", "certTemplate"), data);
-    cache.certTemplate = data; cache.certTemplateLoaded = true;
+    await setDoc(doc(window.firebaseDB, "settings", certTplDocId(eventId)), data);
+    cache.certTemplates = cache.certTemplates || {};
+    cache.certTemplates[certTplDocId(eventId)] = data;
     return true;
   } catch(err) { console.error("Save cert template error:", err); return false; }
 }
-async function removeCertTemplate() {
+async function removeCertTemplate(eventId) {
   await waitForFirebase();
   const { doc, deleteDoc } = window.firebaseFunctions;
   try {
-    await deleteDoc(doc(window.firebaseDB, "settings", "certTemplate"));
-    cache.certTemplate = null; cache.certTemplateLoaded = true;
+    await deleteDoc(doc(window.firebaseDB, "settings", certTplDocId(eventId)));
+    cache.certTemplates = cache.certTemplates || {};
+    cache.certTemplates[certTplDocId(eventId)] = null;
     return true;
   } catch(err) { console.error("Remove cert template error:", err); return false; }
 }

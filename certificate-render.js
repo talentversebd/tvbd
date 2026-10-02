@@ -191,6 +191,7 @@
   function defaultCfg() {
     return {
       url: '',
+      examOnly: true,                 // only people who took the exam can get a certificate
       name: { x: 50, y: 48, size: 5, color: '#0f2557', font: 'serif-italic', maxW: 70 },
       id:   { x: 50, y: 92, size: 1.6, color: '#374151', show: true },
       qr:   { x: 88, y: 84, size: 9, color: '#000000', show: true }
@@ -198,7 +199,7 @@
   }
   function mergeCfg(c) {
     const d = defaultCfg(), o = c || {};
-    return { url: o.url || '', name: Object.assign(d.name, o.name || {}), id: Object.assign(d.id, o.id || {}), qr: Object.assign(d.qr, o.qr || {}) };
+    return { url: o.url || '', examOnly: o.examOnly !== false, name: Object.assign(d.name, o.name || {}), id: Object.assign(d.id, o.id || {}), qr: Object.assign(d.qr, o.qr || {}) };
   }
   function fontFor(kind, px) {
     if (kind === 'sans-bold') return `bold ${px}px ${SANS}`;
@@ -260,10 +261,32 @@
     return canvas;
   }
 
+  // which event does this certificate belong to? (new ones store eventId, older ones are matched by title)
+  async function findEventId(cert) {
+    if (cert.eventId) return cert.eventId;
+    const norm = v => String(v || '').trim().toLowerCase();
+    const get = () => (typeof window.getOlympiads === 'function' ? window.getOlympiads() : []) || [];
+    let list = get();
+    if (!list.length && typeof window.loadAllData === 'function') { try { await window.loadAllData(); } catch (e) {} list = get(); }
+    const o = list.find(x => norm(x.title) === norm(cert.event));
+    return o ? o.id : '';
+  }
+  // the event's own design if it has one, otherwise the default design
+  async function resolveCfg(cert) {
+    if (typeof window.loadCertTemplate !== 'function') return null;
+    try {
+      const eid = await findEventId(cert);
+      if (eid) {
+        const own = await window.loadCertTemplate(false, eid);
+        if (own && own.url) return own;
+      }
+    } catch (e) { console.error('Event template lookup failed', e); }
+    return window.loadCertTemplate(false);
+  }
+
   // cfgIn: pass a config to preview it (admin editor); leave undefined to use the saved one
   async function render(cert, cfgIn, opts) {
-    const cfg = cfgIn !== undefined ? cfgIn
-      : (typeof window.loadCertTemplate === 'function' ? await window.loadCertTemplate() : null);
+    const cfg = cfgIn !== undefined ? cfgIn : await resolveCfg(cert);
     if (cfg && cfg.url) {
       const img = await loadTemplateImage(cfg.url);
       if (img) return renderOnTemplate(cert, cfg, img, opts);

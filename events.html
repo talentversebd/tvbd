@@ -466,5 +466,19 @@ document.addEventListener('keydown', (e) => {
   }
 });
 </script>
+<script>
+// coming from the dashboard "View Details": open that event's popup
+(function () {
+  const id = new URLSearchParams(location.search).get('event');
+  if (!id) return;
+  let tries = 0;
+  const t = setInterval(() => {
+    const list = typeof getOlympiads === 'function' ? getOlympiads() : [];
+    const i = list.findIndex(o => o.id === id);
+    if (i > -1 && typeof openModal === 'function') { clearInterval(t); openModal(i); }
+    else if (++tries > 60) clearInterval(t);
+  }, 250);
+})();
+</script>
 </body>
 </html>

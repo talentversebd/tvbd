@@ -42,7 +42,7 @@ service cloud.firestore {
       allow write: if isMain()
                    || (id == 'founder'  && hasPerm('founder'))
                    || (id == 'popup'    && hasPerm('popup'))
-                   || (id == 'certTemplate' && hasPerm('certificates'))
+                   || ((id == 'certTemplate' || id.matches('certTpl_.*')) && hasPerm('certificates'))
                    || (id == 'election' && isEC());
     }
 

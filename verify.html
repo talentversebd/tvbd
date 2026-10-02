@@ -187,9 +187,7 @@
 
       <div class="verify-actions">
         <button onclick="printCertificate()" class="action-btn secondary" data-i18n="v_print">🖨️ Print</button>
-        <button onclick="downloadCert('img', this)" class="action-btn primary">⬇️ Download Certificate</button>
-        <button onclick="downloadCert('pdf', this)" class="action-btn secondary">📄 PDF</button>
-        <button onclick="shareLink()" class="action-btn primary" data-i18n="v_share">🔗 Share Link</button>
+<button onclick="shareLink()" class="action-btn primary" data-i18n="v_share">🔗 Share Link</button>
       </div>
 
       <div class="trust-info">
@@ -259,7 +257,6 @@
 <!-- Firebase -->
 <script type="module" src="firebase-config.js"></script>
 <script src="data.js"></script>
-<script src="certificate-render.js"></script>
 <script src="lang.js"></script>
 <script src="main.js"></script>
 
@@ -343,20 +340,6 @@ function showVerified(cert) {
 
 function showNotFound() {
   document.getElementById('v-notfound').style.display = 'block';
-}
-
-async function downloadCert(kind, btn) {
-  if(!currentCert || !window.tvbdCert) return;
-  const label = btn ? btn.textContent : '';
-  if(btn) { btn.disabled = true; btn.textContent = 'Preparing…'; }
-  try {
-    if(kind === 'pdf') await tvbdCert.downloadPdf(currentCert);
-    else await tvbdCert.downloadImage(currentCert);
-  } catch(e) {
-    console.error(e);
-    alert('Download failed. Please check your internet connection and try again.');
-  }
-  if(btn) { btn.disabled = false; btn.textContent = label; }
 }
 
 function printCertificate() {

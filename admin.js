@@ -920,13 +920,25 @@ async function saveMemberAccessUI(uid) {
 /*===== CERTIFICATE TEMPLATE EDITOR =====
    Upload your own designed certificate once, tap where the Name, Verify ID and
    QR code should be printed. All certificates then use that design. */
-let tplCfg = null, tplSel = 'name', tplTimer = null;
+let tplCfg = null, tplSel = 'name', tplTimer = null, tplTarget = '', tplHasOwn = false;
 
-async function openCertTemplate() {
-  const saved = await loadCertTemplate(true);
+async function openCertTemplate(targetId) {
+  tplTarget = targetId || '';
+  const events = typeof getOlympiads === 'function' ? getOlympiads() : [];
+  let saved = await loadCertTemplate(true, tplTarget || undefined);
+  tplHasOwn = !!saved;
+  if(!saved && tplTarget) {                       // new design for an event: start from the default positions, but no image yet
+    const base = await loadCertTemplate(true);
+    saved = base ? { ...base, url: '' } : null;
+  }
   tplCfg = tvbdCert.mergeCfg(saved);
   tplSel = 'name';
   const c = tplCfg;
+  const evOpts = `<option value="" ${tplTarget ? '' : 'selected'}>🌐 ডিফল্ট ডিজাইন (যে ইভেন্টের নিজস্ব ডিজাইন নেই, সেগুলোতে)</option>` +
+    events.map(o => `<option value="${bcEsc(o.id)}" ${tplTarget === o.id ? 'selected' : ''}>🎯 ${bcEsc(o.title)}</option>`).join('');
+  const status = tplTarget
+    ? (tplHasOwn ? '✅ এই ইভেন্টের নিজস্ব ডিজাইন আছে।' : 'ℹ️ এই ইভেন্টের নিজস্ব ডিজাইন এখনও নেই — আপলোড না করলে ডিফল্ট ডিজাইন ব্যবহার হবে।')
+    : 'এটা ডিফল্ট ডিজাইন — নিজস্ব ডিজাইন নেই এমন সব ইভেন্টে এটা ব্যবহার হবে।';
   const range = (el, key, min, max, step) =>
     `<input type="range" min="${min}" max="${max}" step="${step}" value="${c[el][key]}" oninput="tplSet('${el}','${key}',this.value)" style="width:100%;">`;
   const color = el =>
@@ -942,6 +954,11 @@ async function openCertTemplate() {
         <button onclick="closeUserOverlay('cert-tpl-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
       <p style="font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:10px;">১) আপনার ডিজাইন করা সার্টিফিকেটের ছবি (JPG/PNG) আপলোড করুন। ২) নিচে Name / Verify ID / QR বেছে ছবির যেখানে বসাতে চান সেখানে ট্যাপ করুন। ৩) Save করুন। ডিজাইনে নামের জায়গা ফাঁকা রাখবেন।</p>
+
+      <div class="fg"><label>কোন ইভেন্টের জন্য ডিজাইন?</label>
+        <select class="fi" onchange="openCertTemplate(this.value)">${evOpts}</select>
+        <p style="font-size:.76rem;color:var(--muted);margin-top:6px;line-height:1.7;">${status}</p>
+      </div>
 
       <div class="fg">
         <input type="file" accept="image/*" onchange="tplUpload(this)" style="font-size:.82rem;max-width:100%;">
@@ -978,6 +995,10 @@ async function openCertTemplate() {
         <div class="fg"><label>Size</label>${range('qr', 'size', 5, 25, 0.5)}</div>
         <div class="fg"><label>Color</label>${color('qr')}</div>
       </div>
+
+      <h4 style="font-size:.9rem;margin:16px 0 6px;">📝 সার্টিফিকেটের নিয়ম</h4>
+      <div class="chk-wrap" style="margin-bottom:4px;"><input type="checkbox" id="tpl-examonly" ${c.examOnly !== false ? 'checked' : ''} onchange="tplCfg.examOnly = this.checked"><label for="tpl-examonly"> শুধু যারা Exam দিয়েছে তারাই সার্টিফিকেট পাবে</label></div>
+      <p style="font-size:.74rem;color:var(--muted);line-height:1.7;margin-bottom:4px;">টিক থাকলে Bulk Generate-এ যারা Exam দেয়নি তাদের বাছা যাবে না। টিক তুলে দিলে রেজিস্টার করা সবাইকে বাছা যাবে।</p>
 
       <button class="save-btn" style="width:100%;margin-top:14px;" onclick="tplSave()">💾 Save Template</button>
       <button class="d-btn" style="width:100%;margin-top:10px;padding:10px;" onclick="tplRemove()">🗑 Template মুছুন (বিল্ট-ইন ডিজাইন ব্যবহার হবে)</button>
@@ -1024,7 +1045,7 @@ async function tplDraw() {
   if(!tplCfg.url) {
     pv.style.display = 'none';
     warn.style.display = 'block'; warn.style.color = 'var(--muted)';
-    warn.textContent = 'এখনও কোনো ডিজাইন বেছে নেওয়া হয়নি। এখন সার্টিফিকেটে বিল্ট-ইন ডিজাইন ব্যবহার হচ্ছে।';
+    warn.textContent = tplTarget ? 'এই ইভেন্টের জন্য ডিজাইনের ছবি আপলোড করুন।' : 'এখনও কোনো ডিফল্ট ডিজাইন বেছে নেওয়া হয়নি। এখন সার্টিফিকেটে বিল্ট-ইন ডিজাইন ব্যবহার হচ্ছে।';
     return;
   }
   const sample = {
@@ -1062,19 +1083,26 @@ function tplUseGithub() {
 }
 
 async function tplSave() {
-  if(!tplCfg.url) return toast('আগে ডিজাইনের ছবি আপলোড করুন।', true);
-  const ok = await saveCertTemplate(tplCfg);
+  if(tplTarget && !tplCfg.url) return toast('আগে এই ইভেন্টের ডিজাইনের ছবি আপলোড করুন।', true);
+  const ok = await saveCertTemplate(tplCfg, tplTarget || undefined);
   if(!ok) return toast('Save failed! Rules/internet চেক করুন।', true);
-  toast('Template saved! ✅');
+  toast(tplCfg.url ? 'Template saved! ✅' : 'Saved! (ডিজাইনের ছবি নেই, বিল্ট-ইন ডিজাইন ব্যবহার হবে)');
   closeUserOverlay('cert-tpl-ov');
 }
 
 async function tplRemove() {
-  if(!confirm('Template মুছে বিল্ট-ইন ডিজাইনে ফিরে যাবেন?')) return;
-  const ok = await removeCertTemplate();
+  if(tplTarget) {
+    if(!confirm('এই ইভেন্টের নিজস্ব ডিজাইন মুছে ডিফল্ট ডিজাইনে ফিরে যাবেন?')) return;
+    const ok = await removeCertTemplate(tplTarget);
+    if(!ok) return toast('Failed!', true);
+    toast('ইভেন্টের ডিজাইন মুছে গেছে — এখন ডিফল্ট ডিজাইন ব্যবহার হবে।');
+    return closeUserOverlay('cert-tpl-ov');
+  }
+  if(!confirm('ডিজাইনের ছবি সরিয়ে বিল্ট-ইন ডিজাইনে ফিরে যাবেন? (জায়গা ও নিয়মের সেটিং থেকে যাবে)')) return;
+  tplCfg.url = '';
+  const ok = await saveCertTemplate(tplCfg);
   if(!ok) return toast('Failed!', true);
-  tplCfg = tvbdCert.mergeCfg(null);
-  toast('Template মুছে গেছে।');
+  toast('ডিজাইন সরানো হয়েছে।');
   closeUserOverlay('cert-tpl-ov');
 }
 
@@ -1090,7 +1118,8 @@ function bcEsc(v) {
 }
 function bcNorm(v) { return String(v || '').trim().toLowerCase(); }
 // Only people who actually took the exam (quiz) get a certificate. If the event has no quiz linked, registered people are eligible.
-function bulkEligible(r) { return !!(r.hasQuiz || !(bulkEvent && bulkEvent.quizId)); }
+let bulkExamOnly = true;   // comes from the Template settings
+function bulkEligible(r) { return !!(!bulkExamOnly || r.hasQuiz || !(bulkEvent && bulkEvent.quizId)); }
 function bcIsWinner(pos) { return /champion|winner|runner|1st|2nd|3rd|first|second|third/i.test(String(pos || '')); }
 function bulkSelect(mode) {
   document.querySelectorAll('.bc-chk').forEach(c => {
@@ -1136,7 +1165,7 @@ function openBulkCert() {
         <button class="e-btn" onclick="bulkRecalc()">🔄 Positions আবার হিসাব (হাতে বদল মুছবে)</button>
       </div>
 
-      <p style="font-size:.76rem;color:var(--muted);line-height:1.7;margin:4px 0 8px;">📝 শুধু যারা এই ইভেন্টের Exam (কুইজ) দিয়েছে তারাই সার্টিফিকেট পাবে। যারা শুধু রেজিস্টার করেছে কিন্তু Exam দেয়নি, তাদের টিক দেওয়া যাবে না। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন। (ইভেন্টে কুইজ লিংক করা না থাকলে সব রেজিস্টার করা সদস্যকে বাছা যাবে।)</p>
+      <p id="bc-note" style="font-size:.76rem;color:var(--muted);line-height:1.7;margin:4px 0 8px;">📝 শুধু যারা এই ইভেন্টের Exam (কুইজ) দিয়েছে তারাই সার্টিফিকেট পাবে। যারা শুধু রেজিস্টার করেছে কিন্তু Exam দেয়নি, তাদের টিক দেওয়া যাবে না। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন। (ইভেন্টে কুইজ লিংক করা না থাকলে সব রেজিস্টার করা সদস্যকে বাছা যাবে।)</p>
       <datalist id="bc-pos-list">
         <option value="Champion"><option value="1st Runner Up"><option value="2nd Runner Up"><option value="Merit"><option value="Participant">
       </datalist>
@@ -1160,6 +1189,13 @@ async function bulkLoadEvent() {
     typeof loadQuizSubmissions === 'function' ? loadQuizSubmissions() : null,
     typeof loadCertificates === 'function' ? loadCertificates() : null
   ]);
+  const evTpl = await loadCertTemplate(true, bulkEvent.id);
+  const tplSetting = evTpl || await loadCertTemplate(true);
+  bulkExamOnly = !tplSetting || tplSetting.examOnly !== false;
+  const note = document.getElementById('bc-note');
+  if(note) note.innerHTML = bulkExamOnly
+    ? '📝 শুধু যারা এই ইভেন্টের Exam (কুইজ) দিয়েছে তারাই সার্টিফিকেট পাবে। যারা শুধু রেজিস্টার করেছে কিন্তু Exam দেয়নি, তাদের টিক দেওয়া যাবে না। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন। (Template এডিটর থেকে এই নিয়ম বন্ধ করা যায়।)'
+    : '📝 Exam-এর নিয়ম এখন বন্ধ আছে, তাই রেজিস্টার করা সবাইকে বাছা যাবে (Template এডিটরে চালু করা যায়)। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন।';
 
   const title = bcNorm(bulkEvent.title);
   const regs = getRegistrations().filter(r => bcNorm(r.olympiad) === title);
@@ -1275,7 +1311,7 @@ async function bulkGenerate() {
   let n = bulkNextNumber(prefix);
   const list = picked.map(i => {
     const r = bulkRows.find(x => x.i === i);
-    return { certId: prefix + String(n++).padStart(3, '0'), name: r.name, email: r.email || '', event: bulkEvent.title, position: pos[i], issueDate: date };
+    return { certId: prefix + String(n++).padStart(3, '0'), name: r.name, email: r.email || '', event: bulkEvent.title, eventId: bulkEvent.id, position: pos[i], issueDate: date };
   });
 
   const btn = document.getElementById('bc-go');

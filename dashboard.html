@@ -105,7 +105,6 @@
         <a href="#profile" style="background:var(--card);border:1px solid var(--bdr2);color:var(--txt);padding:9px 16px;border-radius:999px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;">👤 My Profile</a>
         <a href="#events" style="background:var(--card);border:1px solid var(--bdr2);color:var(--txt);padding:9px 16px;border-radius:999px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;">🎟️ My Events</a>
         <a href="#results" style="background:var(--card);border:1px solid var(--bdr2);color:var(--txt);padding:9px 16px;border-radius:999px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;">📊 My Results</a>
-        <a href="#certificates" style="background:var(--card);border:1px solid var(--bdr2);color:var(--txt);padding:9px 16px;border-radius:999px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;">🎓 My Certificates</a>
       </div>
 
       <div id="profile" style="scroll-margin-top:90px;">
@@ -162,12 +161,6 @@
       <div id="results" style="scroll-margin-top:90px;margin-top:20px;">
       <h3 style="font-family:Montserrat;font-weight:800;font-size:1.1rem;margin-bottom:14px;color:var(--txt);">📊 My Quiz Results</h3>
       <div id="db-results-list"></div>
-      </div>
-
-      <!-- MY CERTIFICATES -->
-      <div id="certificates" style="scroll-margin-top:90px;margin-top:20px;">
-      <h3 style="font-family:Montserrat;font-weight:800;font-size:1.1rem;margin-bottom:14px;color:var(--txt);">🎓 My Certificates</h3>
-      <div id="db-certs-list"></div>
       </div>
     </div>
 
@@ -536,12 +529,14 @@ async function dbLoadDashboard(user) {
   document.getElementById('db-welcome').textContent = `স্বাগতম, ${user.email}`;
   document.getElementById('db-email').textContent = user.email;
 
-  const [results, profile, myEvents, myCerts] = await Promise.all([
+  // order matters: results, profile, (quizzes), registrations, certificates, (events for the banners)
+  const [results, profile, , myEvents, myCerts] = await Promise.all([
     getQuizSubmissionsByEmail(user.email),
     getRegisteredUserById(user.uid),
     (typeof loadQuizzes === 'function' ? loadQuizzes() : Promise.resolve()),
     (typeof getRegistrationsByEmail === 'function' ? getRegistrationsByEmail(user.email) : Promise.resolve([])),
-    (typeof getCertificatesByEmail === 'function' ? getCertificatesByEmail(user.email) : Promise.resolve([]))
+    (typeof getCertificatesByEmail === 'function' ? getCertificatesByEmail(user.email) : Promise.resolve([])),
+    (typeof loadAllData === 'function' ? loadAllData() : Promise.resolve())
   ]);
   dbProfile = profile || {};
   // Make sure every account has a unique Member ID (older accounts get one now)
@@ -560,52 +555,57 @@ async function dbLoadDashboard(user) {
   const quizMap = {};
   quizzes.forEach(q => quizMap[q.id] = q);
 
-  // ---- MY EVENTS ----
+  // ---- MY EVENTS: banner cards, each with its own certificate button ----
+  window._dbCerts = myCerts || [];
+  const olys = typeof getOlympiads === 'function' ? getOlympiads() : [];
+  const nrm = v => String(v || '').trim().toLowerCase();
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const items = [...(myEvents || [])];
+  // a certificate for an event the person never registered for through the site still needs a place to be downloaded
+  (myCerts || []).forEach(c => {
+    if(!items.some(r => nrm(r.olympiad) === nrm(c.event))) items.push({ olympiad: c.event, segment: '', _certOnly: true });
+  });
+
   const eventsList = document.getElementById('db-events-list');
-  if(!myEvents || !myEvents.length) {
+  if(!items.length) {
     eventsList.innerHTML = `
       <div style="text-align:center;padding:40px 20px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;color:var(--muted);">
-        <div style="font-size:2rem;margin-bottom:10px;">🎟️</div>
-        <p style="font-size:.9rem;">তুমি এখনো কোনো event-এ register করোনি।</p>
-        <a href="register.html" style="display:inline-block;margin-top:14px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border-radius:8px;padding:9px 20px;font-size:.85rem;font-weight:700;text-decoration:none;">Register for an Event →</a>
+        <div style="font-size:2rem;margin-bottom:10px;">📅</div>
+        <p style="font-size:.9rem;">আপনি এখনও কোনো event-এ register করেননি।</p>
+        <a href="events.html" style="display:inline-block;margin-top:14px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border-radius:8px;padding:9px 20px;font-size:.85rem;font-weight:700;text-decoration:none;">Find New Events →</a>
       </div>`;
   } else {
-    eventsList.innerHTML = myEvents.map(r => {
-      const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+    const chip = 'background:rgba(255,255,255,.16);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;padding:7px 14px;font-size:.8rem;font-weight:600;';
+    const chipGreen = 'background:rgba(34,197,94,.28);border:1px solid rgba(74,222,128,.55);color:#bbf7d0;border-radius:999px;padding:7px 14px;font-size:.8rem;font-weight:600;';
+    eventsList.innerHTML = items.map(r => {
+      const o = olys.find(x => nrm(x.title) === nrm(r.olympiad));
+      const cert = (window._dbCerts || []).find(c => (o && c.eventId && c.eventId === o.id) || nrm(c.event) === nrm(r.olympiad));
+      const d = o && o.date ? new Date(o.date) : null;
+      const dateTxt = d && !isNaN(d) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+      const bg = o && o.img
+        ? `background-image:url('${esc(o.img)}');background-size:cover;background-position:center;`
+        : 'background:linear-gradient(135deg,#0f2557,#1e40af);';
       return `
-        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-          <div>
-            <div style="font-weight:700;color:var(--txt);margin-bottom:4px;">${r.olympiad || 'Event'}${r.segment ? ' — ' + r.segment : ''}</div>
-            <div style="font-size:.78rem;color:var(--muted);">Registered: ${dateStr}</div>
+      <div style="position:relative;border-radius:24px;overflow:hidden;min-height:340px;margin-bottom:18px;${bg}display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 10px 30px rgba(0,0,0,.25);">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.58) 48%,rgba(0,0,0,.08) 100%);"></div>
+        ${o && o.cat ? `<span style="position:absolute;top:16px;left:16px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff;border-radius:999px;padding:7px 14px;font-size:.74rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;">${esc(o.cat)}</span>` : ''}
+        <div style="position:relative;padding:20px;">
+          <h4 style="color:#fff;font-family:Montserrat;font-weight:800;font-size:1.4rem;line-height:1.25;margin-bottom:12px;">${esc(r.olympiad || 'Event')}</h4>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+            ${dateTxt ? `<span style="${chip}">📅 ${dateTxt}</span>` : ''}
+            ${r._certOnly ? '' : `<span style="${chipGreen}">✓ Registered</span>`}
+            ${r.segment ? `<span style="${chip}">${esc(r.segment)}</span>` : ''}
           </div>
-          <div style="font-size:.8rem;font-weight:700;color:#4ade80;background:rgba(74,222,128,.12);padding:6px 12px;border-radius:999px;">✅ Registered</div>
-        </div>`;
+          ${cert ? `
+          <div style="display:flex;gap:10px;margin-bottom:10px;">
+            <button onclick="dbDownloadCert('${cert.id}','img',this)" style="flex:1;background:#f59e0b;color:#fff;border:none;border-radius:999px;padding:13px 10px;font-size:.92rem;font-weight:700;cursor:pointer;">🏅 Certificate</button>
+            <button onclick="dbDownloadCert('${cert.id}','pdf',this)" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:999px;padding:13px 20px;font-size:.88rem;font-weight:700;cursor:pointer;">PDF</button>
+          </div>` : ''}
+          <a href="events.html${o ? '?event=' + encodeURIComponent(o.id) : ''}" style="display:block;text-align:center;background:#fff;color:#111827;border-radius:999px;padding:14px;font-size:.95rem;font-weight:800;text-decoration:none;">View Details</a>
+        </div>
+      </div>`;
     }).join('');
   }
-
-  // ---- MY CERTIFICATES ----
-  const certsList = document.getElementById('db-certs-list');
-  if(!myCerts || !myCerts.length) {
-    certsList.innerHTML = `
-      <div style="text-align:center;padding:40px 20px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;color:var(--muted);">
-        <div style="font-size:2rem;margin-bottom:10px;">🎓</div>
-        <p style="font-size:.9rem;">এখনো তোমার email-এর সাথে কোনো certificate যুক্ত নেই।</p>
-        <p style="font-size:.78rem;margin-top:6px;">Certificate ID জানা থাকলে <a href="verify.html" style="color:var(--blue-br);">Verify Certificate</a> পেজ থেকে সরাসরি ডাউনলোড করতে পারো।</p>
-      </div>`;
-  } else {
-    certsList.innerHTML = myCerts.map(c => `
-      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div>
-          <div style="font-weight:700;color:var(--txt);margin-bottom:4px;">${c.event || 'Certificate'} — ${c.position || ''}</div>
-          <div style="font-size:.78rem;color:var(--muted);font-family:monospace;">${c.certId}${c.issueDate ? ' · ' + c.issueDate : ''}</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button onclick="dbDownloadCert('${c.id}','img',this)" style="background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:.8rem;font-weight:700;cursor:pointer;">⬇️ Image</button>
-          <button onclick="dbDownloadCert('${c.id}','pdf',this)" style="background:var(--card2);border:1px solid var(--bdr2);color:var(--txt);border-radius:8px;padding:9px 16px;font-size:.8rem;font-weight:700;cursor:pointer;">📄 PDF</button>
-        </div>
-      </div>`).join('');
-  }
-  window._dbCerts = myCerts || [];
 
   const list = document.getElementById('db-results-list');
 

@@ -528,6 +528,37 @@ async function addCertificate(cert) {
   }
 }
 
+// Add many certificates at once (one read of existing IDs, then batched writes)
+async function addCertificatesBulk(list) {
+  await waitForFirebase();
+  const { collection, getDocs, doc, writeBatch } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(collection(db, "certificates"));
+    const taken = new Set();
+    snap.forEach(d => taken.add(String(d.data().certId || '').toUpperCase()));
+    const clash = list.find(c => taken.has(String(c.certId).toUpperCase()));
+    if(clash) return { success: false, error: `Certificate ID ${clash.certId} already exists!` };
+
+    const added = [];
+    for(let i = 0; i < list.length; i += 400) {
+      const batch = writeBatch(db);
+      list.slice(i, i + 400).forEach(c => {
+        const ref = doc(collection(db, "certificates"));
+        const data = { ...c, createdAt: Date.now(), status: "Verified" };
+        batch.set(ref, data);
+        added.push({ id: ref.id, ...data });
+      });
+      await batch.commit();
+    }
+    cache.certificates = [...added.reverse(), ...(cache.certificates || [])];
+    return { success: true, count: added.length };
+  } catch(err) {
+    console.error("Bulk add certificates error:", err);
+    return { success: false, error: err.message };
+  }
+}
+
 // Update certificate
 async function updateCertificate(id, cert) {
   await waitForFirebase();

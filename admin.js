@@ -389,6 +389,7 @@ function renderCertificatesTable() {
       <td><span class="bs bs-active">${c.position}</span></td>
       <td>${c.issueDate || 'N/A'}</td>
       <td class="tbl-acts">
+        <button class="e-btn" onclick="previewCertificate('${c.id}')" title="Download certificate">🎓</button>
         <button class="e-btn" onclick="viewCertificate('${c.id}')" title="View QR">👁️</button>
         <button class="e-btn" onclick="editCertificate('${c.id}')">Edit</button>
         <button class="d-btn" onclick="deleteCertificateAction('${c.id}')">Delete</button>
@@ -615,6 +616,42 @@ async function saveCertificate() {
   else toast(result.error || "Failed!", true);
 }
 async function deleteCertificateAction(id) { if(!confirm("Delete?")) return; if(await deleteCertificate(id)) { renderCertificatesTable(); renderDashboard(); toast("Deleted."); } }
+
+/*===== CERTIFICATE PREVIEW / DOWNLOAD (built-in design, nothing to upload) =====*/
+async function previewCertificate(id) {
+  const c = getCertificates().find(x => x.id === id);
+  if(!c) return;
+  const shell = inner => `
+    <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:18px;width:100%;max-width:640px;max-height:92vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h3 style="font-family:Montserrat;font-size:1.02rem;">🎓 ${bcEsc(c.certId)}</h3>
+        <button onclick="closeUserOverlay('cert-prev-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>${inner}</div>`;
+  openUserOverlay('cert-prev-ov', shell('<p style="color:var(--muted);padding:20px 0;text-align:center;">Generating…</p>'));
+  try {
+    const canvas = await tvbdCert.render(c);
+    const url = canvas.toDataURL('image/jpeg', 0.85);
+    openUserOverlay('cert-prev-ov', shell(`
+      <img src="${url}" style="width:100%;border-radius:8px;border:1px solid var(--bdr);margin-bottom:14px;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="save-btn" style="flex:1;min-width:150px;" onclick="certDownload('${c.id}','img',this)">⬇️ Image (PNG)</button>
+        <button class="save-btn" style="flex:1;min-width:150px;" onclick="certDownload('${c.id}','pdf',this)">📄 PDF</button>
+      </div>`));
+  } catch(e) {
+    console.error(e);
+    closeUserOverlay('cert-prev-ov');
+    toast('Certificate তৈরি করা যায়নি!', true);
+  }
+}
+async function certDownload(id, kind, btn) {
+  const c = getCertificates().find(x => x.id === id);
+  if(!c) return;
+  const label = btn.textContent; btn.disabled = true; btn.textContent = 'Preparing…';
+  try {
+    if(kind === 'pdf') await tvbdCert.downloadPdf(c); else await tvbdCert.downloadImage(c);
+  } catch(e) { console.error(e); toast('Download failed!', true); }
+  btn.disabled = false; btn.textContent = label;
+}
 
 function viewCertificate(id) {
   const c = getCertificates().find(x => x.id === id); if(!c) return;
@@ -875,6 +912,234 @@ async function saveMemberAccessUI(uid) {
   closeUserOverlay('member-access-ov');
   closeUserOverlay('user-detail-ov');
   loadRegisteredUsersUI();
+}
+
+/*===== BULK CERTIFICATE GENERATOR =====
+   Event -> registered participants (with quiz score) -> tick who gets a
+   certificate -> positions are suggested from the scores and can be edited by
+   hand -> certificates are saved with automatic IDs. */
+let bulkRows = [];
+let bulkEvent = null;
+
+function bcEsc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function bcNorm(v) { return String(v || '').trim().toLowerCase(); }
+
+function openBulkCert() {
+  const events = typeof getOlympiads === 'function' ? getOlympiads() : [];
+  if(!events.length) return toast('আগে ইভেন্ট যোগ করুন।', true);
+  const opts = events.map(o => `<option value="${bcEsc(o.id)}">${bcEsc(o.title)}</option>`).join('');
+  const year = new Date().getFullYear();
+  const today = new Date().toISOString().slice(0, 10);
+  bulkRows = []; bulkEvent = null;
+  openUserOverlay('bulk-cert-ov', `
+    <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:20px;width:100%;max-width:640px;max-height:92vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="font-family:Montserrat;font-size:1.05rem;">⚡ Bulk Certificate Generator</h3>
+        <button onclick="closeUserOverlay('bulk-cert-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>
+
+      <div class="fg"><label>Event</label>
+        <select class="fi" id="bc-event" onchange="bulkLoadEvent()"><option value="">-- ইভেন্ট বেছে নিন --</option>${opts}</select>
+      </div>
+      <div class="f-row">
+        <div class="fg"><label>Certificate ID prefix</label><input class="fi" id="bc-prefix" value="TVBD-${year}-" style="font-family:monospace;text-transform:uppercase;" oninput="bulkUpdateCount()"></div>
+        <div class="fg"><label>Issue date</label><input class="fi" type="date" id="bc-date" value="${today}"></div>
+      </div>
+      <div class="f-row">
+        <div class="fg"><label>Merit হবে কত % বা তার বেশি স্কোরে (ফাঁকা = সবাই Participant)</label><input class="fi" type="number" min="1" max="100" id="bc-merit" placeholder="e.g. 60"></div>
+        <div class="fg" style="display:flex;align-items:flex-end;"><div class="chk-wrap"><input type="checkbox" id="bc-seg"><label for="bc-seg"> প্রতিটি Segment আলাদা র‍্যাংক</label></div></div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px;">
+        <button class="e-btn" onclick="document.querySelectorAll('.bc-chk:not(:disabled)').forEach(c=>c.checked=true);bulkUpdateCount()">Select all</button>
+        <button class="e-btn" onclick="document.querySelectorAll('.bc-chk').forEach(c=>c.checked=false);bulkUpdateCount()">Clear</button>
+        <button class="e-btn" onclick="bulkRecalc()">🔄 Positions আবার হিসাব (হাতে বদল মুছবে)</button>
+      </div>
+
+      <datalist id="bc-pos-list">
+        <option value="Champion"><option value="1st Runner Up"><option value="2nd Runner Up"><option value="Merit"><option value="Participant">
+      </datalist>
+      <div id="bc-list" style="border-top:1px solid var(--bdr);"><p style="color:var(--muted);font-size:.85rem;padding:14px 4px;">ওপর থেকে একটা ইভেন্ট বেছে নিন।</p></div>
+
+      <p id="bc-summary" style="font-size:.8rem;color:var(--muted);margin:12px 0 4px;"></p>
+      <button class="save-btn" id="bc-go" style="width:100%;margin-top:6px;" onclick="bulkGenerate()">⚡ Generate Certificates</button>
+    </div>`);
+}
+
+async function bulkLoadEvent() {
+  const id = document.getElementById('bc-event').value;
+  const list = document.getElementById('bc-list');
+  bulkEvent = getOlympiads().find(o => o.id === id) || null;
+  bulkRows = [];
+  if(!bulkEvent) { list.innerHTML = ''; return bulkUpdateCount(); }
+  list.innerHTML = '<p style="color:var(--muted);font-size:.85rem;padding:14px 4px;">Loading…</p>';
+
+  await Promise.all([
+    typeof loadRegistrations === 'function' ? loadRegistrations() : null,
+    typeof loadQuizSubmissions === 'function' ? loadQuizSubmissions() : null,
+    typeof loadCertificates === 'function' ? loadCertificates() : null
+  ]);
+
+  const title = bcNorm(bulkEvent.title);
+  const regs = getRegistrations().filter(r => bcNorm(r.olympiad) === title);
+  const subs = getQuizSubmissions().filter(s => bulkEvent.quizId && s.quizId === bulkEvent.quizId);
+  const issued = new Set(getCertificates().filter(c => bcNorm(c.event) === title).map(c => bcNorm(c.name)));
+
+  const seen = new Set();
+  regs.forEach(r => {
+    const em = bcNorm(r.email);
+    if(seen.has(em)) return;             // same person registered twice
+    seen.add(em);
+    const sub = subs.find(s => bcNorm(s.email) === em);
+    const hasScore = sub && sub.totalScore != null;
+    bulkRows.push({
+      i: bulkRows.length,
+      name: r.name || '',
+      email: r.email || '',
+      segment: r.segment || '',
+      hasQuiz: !!sub,
+      pending: !!sub && !hasScore,
+      score: hasScore ? Number(sub.totalScore) : null,
+      possible: sub ? (Number(sub.totalPossible) || 0) : 0,
+      time: sub && sub.timeTakenSeconds != null ? Number(sub.timeTakenSeconds) : null,
+      issued: issued.has(bcNorm(r.name)),
+      position: 'Participant'
+    });
+  });
+
+  document.getElementById('bc-seg').checked = bulkRows.some(r => r.segment);
+  bulkRecalc();
+}
+
+// Champion / 1st / 2nd Runner Up from scores (ties: faster time wins), the rest Merit or Participant
+function bulkRecalc() {
+  const bySeg = document.getElementById('bc-seg').checked;
+  const meritPct = parseFloat(document.getElementById('bc-merit').value);
+  const groups = {};
+  bulkRows.forEach(r => { const k = bySeg ? r.segment : 'all'; (groups[k] = groups[k] || []).push(r); });
+  const titles = ['Champion', '1st Runner Up', '2nd Runner Up'];
+  Object.values(groups).forEach(g => {
+    const ranked = g.filter(r => r.score != null && r.score > 0)
+      .sort((a, b) => (b.score - a.score) || ((a.time ?? 1e12) - (b.time ?? 1e12)));
+    g.forEach(r => {
+      const idx = ranked.indexOf(r);
+      if(idx > -1 && idx < 3) r.position = titles[idx];
+      else if(!isNaN(meritPct) && r.score != null && r.possible > 0 && (r.score / r.possible * 100) >= meritPct) r.position = 'Merit';
+      else r.position = 'Participant';
+    });
+  });
+  bulkRender();
+}
+
+function bulkRender() {
+  const list = document.getElementById('bc-list');
+  if(!bulkRows.length) {
+    list.innerHTML = '<p style="color:var(--muted);font-size:.85rem;padding:14px 4px;line-height:1.7;">এই ইভেন্টে কেউ রেজিস্ট্রেশন করেনি (অথবা এই অ্যাকাউন্টের Registrations/Quiz Submissions দেখার অনুমতি নেই)।</p>';
+    return bulkUpdateCount();
+  }
+  const sorted = [...bulkRows].sort((a, b) => ((b.score ?? -1) - (a.score ?? -1)) || a.name.localeCompare(b.name));
+  list.innerHTML = sorted.map(r => {
+    const score = r.pending ? '⏳ Review pending' : r.score != null ? `${r.score}/${r.possible}` : (r.hasQuiz ? '—' : 'No quiz');
+    return `
+    <div style="display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;${r.issued ? 'opacity:.55;' : ''}">
+      <input type="checkbox" class="bc-chk" data-i="${r.i}" ${r.issued ? 'disabled' : 'checked'} style="width:18px;height:18px;" onchange="bulkUpdateCount()">
+      <div style="flex:1;min-width:150px;">
+        <div style="font-weight:700;font-size:.88rem;">${bcEsc(r.name)}</div>
+        <div style="font-size:.72rem;color:var(--muted);">${bcEsc(r.segment)}${r.segment ? ' · ' : ''}Score: ${score}${r.issued ? ' · ✅ Already issued' : ''}</div>
+      </div>
+      <input class="fi bc-pos" data-i="${r.i}" list="bc-pos-list" value="${bcEsc(r.position)}" ${r.issued ? 'disabled' : ''} style="width:150px;">
+    </div>`;
+  }).join('');
+  bulkUpdateCount();
+}
+
+function bulkNextNumber(prefix) {
+  let max = 0;
+  getCertificates().forEach(c => {
+    const id = String(c.certId || '').toUpperCase();
+    if(id.startsWith(prefix)) {
+      const n = parseInt(id.slice(prefix.length), 10);
+      if(!isNaN(n) && n > max) max = n;
+    }
+  });
+  return max + 1;
+}
+
+function bulkUpdateCount() {
+  const el = document.getElementById('bc-summary');
+  if(!el) return;
+  const n = document.querySelectorAll('.bc-chk:checked').length;
+  const prefix = (document.getElementById('bc-prefix').value || '').trim().toUpperCase();
+  if(!bulkRows.length || !prefix) { el.textContent = ''; return; }
+  const first = prefix + String(bulkNextNumber(prefix)).padStart(3, '0');
+  el.textContent = `${n} জন নির্বাচিত · প্রথম Certificate ID: ${first}`;
+}
+
+async function bulkGenerate() {
+  if(!bulkEvent) return toast('আগে ইভেন্ট বেছে নিন।', true);
+  const prefix = document.getElementById('bc-prefix').value.trim().toUpperCase();
+  const date = document.getElementById('bc-date').value;
+  if(!prefix || !date) return toast('ID prefix ও তারিখ দিন।', true);
+
+  const picked = Array.from(document.querySelectorAll('.bc-chk')).filter(c => c.checked).map(c => Number(c.dataset.i));
+  if(!picked.length) return toast('কমপক্ষে একজনকে বেছে নিন।', true);
+
+  const pos = {};
+  document.querySelectorAll('.bc-pos').forEach(el => { pos[el.dataset.i] = el.value.trim(); });
+  if(picked.some(i => !pos[i])) return toast('সবার Position লিখুন।', true);
+  if(!confirm(`${picked.length}টা সার্টিফিকেট তৈরি হবে। নিশ্চিত?`)) return;
+
+  let n = bulkNextNumber(prefix);
+  const list = picked.map(i => {
+    const r = bulkRows.find(x => x.i === i);
+    return { certId: prefix + String(n++).padStart(3, '0'), name: r.name, event: bulkEvent.title, position: pos[i], issueDate: date };
+  });
+
+  const btn = document.getElementById('bc-go');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  const res = await addCertificatesBulk(list);
+  btn.disabled = false; btn.textContent = '⚡ Generate Certificates';
+  if(!res.success) return toast(res.error || 'Failed!', true);
+
+  toast(`${res.count}টা সার্টিফিকেট তৈরি হয়েছে! ✅`);
+  if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
+  bulkCreated = list;
+  bulkShowResult();
+}
+
+/*----- after saving: download every certificate as images in ZIP files (40 per ZIP) -----*/
+let bulkCreated = [];
+const BULK_ZIP_SIZE = 40;
+
+function bulkShowResult() {
+  const parts = Math.ceil(bulkCreated.length / BULK_ZIP_SIZE);
+  const btns = Array.from({ length: parts }, (_, k) => {
+    const from = k * BULK_ZIP_SIZE + 1, to = Math.min((k + 1) * BULK_ZIP_SIZE, bulkCreated.length);
+    return `<button class="save-btn" id="bc-zip-${k}" style="width:100%;margin-top:10px;" onclick="bulkZipPart(${k})">⬇️ ${parts > 1 ? `ZIP ${k + 1} (${from}–${to})` : `সব সার্টিফিকেট ডাউনলোড (ZIP)`}</button>`;
+  }).join('');
+  openUserOverlay('bulk-cert-ov', `
+    <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:90vh;overflow:auto;text-align:center;">
+      <div style="font-size:2.4rem;margin-bottom:6px;">✅</div>
+      <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">${bulkCreated.length}টা সার্টিফিকেট তৈরি হয়েছে</h3>
+      <p style="font-size:.82rem;color:var(--muted);line-height:1.7;">প্রতিটা সার্টিফিকেটে নাম, ইভেন্ট, পজিশন, তারিখ ও QR কোড নিজে থেকে বসানো আছে। ছবি আকারে নামাতে নিচের বাটন চাপুন। ${parts > 1 ? 'ফোনে ভারী না হওয়ার জন্য ৪০টা করে ZIP আলাদা করা হয়েছে।' : ''}</p>
+      ${btns}
+      <button class="e-btn" style="width:100%;margin-top:14px;padding:10px;" onclick="closeUserOverlay('bulk-cert-ov')">Done</button>
+    </div>`);
+}
+
+async function bulkZipPart(k) {
+  const certs = bulkCreated.slice(k * BULK_ZIP_SIZE, (k + 1) * BULK_ZIP_SIZE);
+  const btn = document.getElementById('bc-zip-' + k);
+  const label = btn.textContent; btn.disabled = true;
+  try {
+    const blob = await tvbdCert.zipBlob(certs, (i, n) => { btn.textContent = `Generating ${i}/${n}…`; });
+    const evName = (bulkEvent && bulkEvent.title ? bulkEvent.title : 'event').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'event';
+    tvbdCert.download(blob, `Certificates_${evName}_part${k + 1}.zip`);
+    toast('Downloaded! ✅');
+  } catch(e) { console.error(e); toast('ZIP তৈরি করা যায়নি!', true); }
+  btn.disabled = false; btn.textContent = label;
 }
 
 async function loadPopupSettings() {

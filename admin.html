@@ -399,6 +399,11 @@ select.fi{cursor:pointer}
     </div>
   </div>
   
+  <div style="margin-bottom:16px;">
+    <button class="add-btn" onclick="openBulkCert()">⚡ Bulk Generate from Event</button>
+    <span style="font-size:.76rem;color:var(--muted);margin-left:10px;">ইভেন্টের অংশগ্রহণকারী বেছে একসাথে সার্টিফিকেট তৈরি করুন</span>
+  </div>
+
   <!-- Table -->
   <div class="tbl-wrap">
     <table class="tbl">
@@ -1002,6 +1007,7 @@ select.fi{cursor:pointer}
 <!-- Site Scripts -->
 <script src="data.js"></script>
 <script src="render.js"></script>
+<script src="certificate-render.js"></script>
 <script src="admin-auth.js"></script>
 <script src="admin.js"></script>
 <script src="main.js"></script>

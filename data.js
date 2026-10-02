@@ -469,6 +469,24 @@ function getCertificates() {
   return cache.certificates || [];
 }
 
+// Participant Dashboard: fetch a participant's own certificates by email ("My Certificates").
+// Only certificates that were issued with an email attached will show up this way —
+// older ones (or ones added without an email) still work via verify.html + Certificate ID.
+async function getCertificatesByEmail(email) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "certificates"), where("email", "==", email)));
+    const certs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    certs.sort((a, b) => String(b.issueDate || '').localeCompare(String(a.issueDate || '')));
+    return certs;
+  } catch(err) {
+    console.error("Get certificates by email error:", err);
+    return [];
+  }
+}
+
 // Get single certificate by Certificate ID (not Firestore ID)
 async function getCertificateById(certId) {
   await waitForFirebase();

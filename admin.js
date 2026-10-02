@@ -914,6 +914,167 @@ async function saveMemberAccessUI(uid) {
   loadRegisteredUsersUI();
 }
 
+/*===== CERTIFICATE TEMPLATE EDITOR =====
+   Upload your own designed certificate once, tap where the Name, Verify ID and
+   QR code should be printed. All certificates then use that design. */
+let tplCfg = null, tplSel = 'name', tplTimer = null;
+
+async function openCertTemplate() {
+  const saved = await loadCertTemplate(true);
+  tplCfg = tvbdCert.mergeCfg(saved);
+  tplSel = 'name';
+  const c = tplCfg;
+  const range = (el, key, min, max, step) =>
+    `<input type="range" min="${min}" max="${max}" step="${step}" value="${c[el][key]}" oninput="tplSet('${el}','${key}',this.value)" style="width:100%;">`;
+  const color = el =>
+    `<input type="color" value="${c[el].color}" oninput="tplSet('${el}','color',this.value)" style="width:100%;height:38px;border:none;background:none;padding:0;">`;
+  const font = ['serif-italic', 'serif', 'sans-bold'].map(f =>
+    `<option value="${f}" ${c.name.font === f ? 'selected' : ''}>${f === 'serif-italic' ? 'Serif Italic' : f === 'serif' ? 'Serif Bold' : 'Sans Bold'}</option>`).join('');
+  const pickBtn = (k, label) =>
+    `<button class="e-btn" id="tpl-b-${k}" onclick="tplPick('${k}')" style="flex:1;padding:10px 4px;">${label}</button>`;
+  openUserOverlay('cert-tpl-ov', `
+    <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:18px;width:100%;max-width:680px;max-height:94vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <h3 style="font-family:Montserrat;font-size:1.05rem;">🖼 Certificate Template</h3>
+        <button onclick="closeUserOverlay('cert-tpl-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:10px;">১) আপনার ডিজাইন করা সার্টিফিকেটের ছবি (JPG/PNG) আপলোড করুন। ২) নিচে Name / Verify ID / QR বেছে ছবির যেখানে বসাতে চান সেখানে ট্যাপ করুন। ৩) Save করুন। ডিজাইনে নামের জায়গা ফাঁকা রাখবেন।</p>
+
+      <div class="fg">
+        <input type="file" accept="image/*" onchange="tplUpload(this)" style="font-size:.82rem;max-width:100%;">
+        <button class="e-btn" style="margin-top:8px;" onclick="tplUseGithub()">GitHub-এর certificate-template.jpg ব্যবহার করুন</button>
+      </div>
+      <p id="tpl-warn" style="display:none;font-size:.78rem;line-height:1.7;margin:4px 0 8px;"></p>
+
+      <div class="fg"><label>প্রিভিউর নাম (শুধু দেখার জন্য)</label><input class="fi" id="tpl-sample" value="Abdur Rahman" oninput="tplRefresh()"></div>
+
+      <div style="display:flex;gap:8px;margin:6px 0;">${pickBtn('name', '✍️ Name')}${pickBtn('id', '🆔 Verify ID')}${pickBtn('qr', '▦ QR Code')}</div>
+      <p id="tpl-hint" style="font-size:.78rem;color:var(--blue-br);margin:4px 0 8px;"></p>
+      <canvas id="tpl-canvas" onclick="tplTap(event)" style="display:none;width:100%;border:1px solid var(--bdr);border-radius:8px;cursor:crosshair;background:#fff;touch-action:manipulation;"></canvas>
+
+      <h4 style="font-size:.9rem;margin:16px 0 6px;">✍️ Name</h4>
+      <div class="f-row">
+        <div class="fg"><label>Size</label>${range('name', 'size', 1.5, 12, 0.1)}</div>
+        <div class="fg"><label>সর্বোচ্চ চওড়া %</label>${range('name', 'maxW', 30, 95, 1)}</div>
+      </div>
+      <div class="f-row">
+        <div class="fg"><label>Color</label>${color('name')}</div>
+        <div class="fg"><label>Font</label><select class="fi" onchange="tplSet('name','font',this.value)">${font}</select></div>
+      </div>
+
+      <h4 style="font-size:.9rem;margin:12px 0 6px;">🆔 Verify ID</h4>
+      <div class="chk-wrap" style="margin-bottom:6px;"><input type="checkbox" id="tpl-id-show" ${c.id.show !== false ? 'checked' : ''} onchange="tplSet('id','show',this.checked)"><label for="tpl-id-show"> দেখাবে</label></div>
+      <div class="f-row">
+        <div class="fg"><label>Size</label>${range('id', 'size', 0.8, 3, 0.1)}</div>
+        <div class="fg"><label>Color</label>${color('id')}</div>
+      </div>
+
+      <h4 style="font-size:.9rem;margin:12px 0 6px;">▦ QR Code</h4>
+      <div class="chk-wrap" style="margin-bottom:6px;"><input type="checkbox" id="tpl-qr-show" ${c.qr.show !== false ? 'checked' : ''} onchange="tplSet('qr','show',this.checked)"><label for="tpl-qr-show"> দেখাবে</label></div>
+      <div class="f-row">
+        <div class="fg"><label>Size</label>${range('qr', 'size', 5, 25, 0.5)}</div>
+        <div class="fg"><label>Color</label>${color('qr')}</div>
+      </div>
+
+      <button class="save-btn" style="width:100%;margin-top:14px;" onclick="tplSave()">💾 Save Template</button>
+      <button class="d-btn" style="width:100%;margin-top:10px;padding:10px;" onclick="tplRemove()">🗑 Template মুছুন (বিল্ট-ইন ডিজাইন ব্যবহার হবে)</button>
+    </div>`);
+  tplPick('name');
+  tplRefresh();
+}
+
+function tplPick(k) {
+  tplSel = k;
+  ['name', 'id', 'qr'].forEach(x => {
+    const b = document.getElementById('tpl-b-' + x);
+    if(b) b.style.outline = x === k ? '2px solid var(--blue-br)' : 'none';
+  });
+  const names = { name: 'নামের', id: 'Verify ID-র', qr: 'QR কোডের' };
+  const h = document.getElementById('tpl-hint');
+  if(h) h.textContent = `নির্বাচিত: ${names[k]} মাঝখান — ছবির যেখানে ট্যাপ করবেন, সেখানে বসবে।`;
+}
+
+function tplTap(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = Math.min(100, Math.max(0, (e.clientX - rect.left) / rect.width * 100));
+  const y = Math.min(100, Math.max(0, (e.clientY - rect.top) / rect.height * 100));
+  tplCfg[tplSel].x = Math.round(x * 10) / 10;
+  tplCfg[tplSel].y = Math.round(y * 10) / 10;
+  tplRefresh();
+}
+
+function tplSet(el, key, val) {
+  if(key === 'size' || key === 'maxW') val = parseFloat(val);
+  tplCfg[el][key] = val;
+  tplRefresh();
+}
+
+function tplRefresh() {
+  clearTimeout(tplTimer);
+  tplTimer = setTimeout(tplDraw, 120);
+}
+
+async function tplDraw() {
+  const pv = document.getElementById('tpl-canvas');
+  const warn = document.getElementById('tpl-warn');
+  if(!pv || !tplCfg) return;
+  if(!tplCfg.url) {
+    pv.style.display = 'none';
+    warn.style.display = 'block'; warn.style.color = 'var(--muted)';
+    warn.textContent = 'এখনও কোনো ডিজাইন বেছে নেওয়া হয়নি। এখন সার্টিফিকেটে বিল্ট-ইন ডিজাইন ব্যবহার হচ্ছে।';
+    return;
+  }
+  const sample = {
+    certId: 'TVBD-2026-001',
+    name: (document.getElementById('tpl-sample').value || 'Sample Name').trim(),
+    event: 'Sample Event', position: 'Participant',
+    issueDate: new Date().toISOString().slice(0, 10)
+  };
+  const c = await tvbdCert.render(sample, tplCfg, { maxSide: 1400 });
+  if(c.templateFailed) {
+    pv.style.display = 'none';
+    warn.style.display = 'block'; warn.style.color = '#f87171';
+    warn.textContent = 'ছবিটা লোড করা যায়নি (ব্রাউজার ছবিটা ব্যবহার করতে দিচ্ছে না)। ছবিটা GitHub রিপোতে certificate-template.jpg নামে আপলোড করুন, তারপর ওপরের "GitHub-এর certificate-template.jpg ব্যবহার করুন" বাটন চাপুন।';
+    return;
+  }
+  warn.style.display = 'none';
+  pv.width = c.width; pv.height = c.height; pv.style.display = 'block';
+  pv.getContext('2d').drawImage(c, 0, 0);
+}
+
+async function tplUpload(input) {
+  const f = input.files && input.files[0];
+  if(!f) return;
+  toast('Uploading…');
+  const res = await uploadToImgBB(f);
+  if(!res || !res.success) return toast('Upload failed!', true);
+  tplCfg.url = res.url;
+  toast('Uploaded ✅');
+  tplDraw();
+}
+
+function tplUseGithub() {
+  tplCfg.url = 'certificate-template.jpg';
+  tplDraw();
+}
+
+async function tplSave() {
+  if(!tplCfg.url) return toast('আগে ডিজাইনের ছবি আপলোড করুন।', true);
+  const ok = await saveCertTemplate(tplCfg);
+  if(!ok) return toast('Save failed! Rules/internet চেক করুন।', true);
+  toast('Template saved! ✅');
+  closeUserOverlay('cert-tpl-ov');
+}
+
+async function tplRemove() {
+  if(!confirm('Template মুছে বিল্ট-ইন ডিজাইনে ফিরে যাবেন?')) return;
+  const ok = await removeCertTemplate();
+  if(!ok) return toast('Failed!', true);
+  tplCfg = tvbdCert.mergeCfg(null);
+  toast('Template মুছে গেছে।');
+  closeUserOverlay('cert-tpl-ov');
+}
+
 /*===== BULK CERTIFICATE GENERATOR =====
    Event -> registered participants (with quiz score) -> tick who gets a
    certificate -> positions are suggested from the scores and can be edited by
@@ -925,6 +1086,15 @@ function bcEsc(v) {
   return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function bcNorm(v) { return String(v || '').trim().toLowerCase(); }
+function bcIsWinner(pos) { return /champion|winner|runner|1st|2nd|3rd|first|second|third/i.test(String(pos || '')); }
+function bulkSelect(mode) {
+  document.querySelectorAll('.bc-chk').forEach(c => {
+    if(c.disabled) return;
+    const posEl = document.querySelector(`.bc-pos[data-i="${c.dataset.i}"]`);
+    c.checked = mode === 'all' ? true : !bcIsWinner(posEl ? posEl.value : '');
+  });
+  bulkUpdateCount();
+}
 
 function openBulkCert() {
   const events = typeof getOlympiads === 'function' ? getOlympiads() : [];
@@ -953,11 +1123,13 @@ function openBulkCert() {
       </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px;">
-        <button class="e-btn" onclick="document.querySelectorAll('.bc-chk:not(:disabled)').forEach(c=>c.checked=true);bulkUpdateCount()">Select all</button>
+        <button class="e-btn" onclick="bulkSelect('participants')">Winners বাদে সবাই</button>
+        <button class="e-btn" onclick="bulkSelect('all')">Select all</button>
         <button class="e-btn" onclick="document.querySelectorAll('.bc-chk').forEach(c=>c.checked=false);bulkUpdateCount()">Clear</button>
         <button class="e-btn" onclick="bulkRecalc()">🔄 Positions আবার হিসাব (হাতে বদল মুছবে)</button>
       </div>
 
+      <p style="font-size:.76rem;color:var(--muted);line-height:1.7;margin:4px 0 8px;">🏆 Champion / Runner Up (বিজয়ী)-দের ডিফল্টে টিক দেওয়া থাকে না, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন। বাকি অংশগ্রহণকারীদের সার্টিফিকেটে নাম, Verify ID ও QR কোড বসবে।</p>
       <datalist id="bc-pos-list">
         <option value="Champion"><option value="1st Runner Up"><option value="2nd Runner Up"><option value="Merit"><option value="Participant">
       </datalist>
@@ -1044,10 +1216,10 @@ function bulkRender() {
     const score = r.pending ? '⏳ Review pending' : r.score != null ? `${r.score}/${r.possible}` : (r.hasQuiz ? '—' : 'No quiz');
     return `
     <div style="display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;${r.issued ? 'opacity:.55;' : ''}">
-      <input type="checkbox" class="bc-chk" data-i="${r.i}" ${r.issued ? 'disabled' : 'checked'} style="width:18px;height:18px;" onchange="bulkUpdateCount()">
+      <input type="checkbox" class="bc-chk" data-i="${r.i}" ${r.issued ? 'disabled' : (bcIsWinner(r.position) ? '' : 'checked')} style="width:18px;height:18px;" onchange="bulkUpdateCount()">
       <div style="flex:1;min-width:150px;">
         <div style="font-weight:700;font-size:.88rem;">${bcEsc(r.name)}</div>
-        <div style="font-size:.72rem;color:var(--muted);">${bcEsc(r.segment)}${r.segment ? ' · ' : ''}Score: ${score}${r.issued ? ' · ✅ Already issued' : ''}</div>
+        <div style="font-size:.72rem;color:var(--muted);">${bcEsc(r.segment)}${r.segment ? ' · ' : ''}Score: ${score}${r.issued ? ' · ✅ Already issued' : (bcIsWinner(r.position) ? ' · 🏆 Winner — আপনি মেইল করবেন' : '')}</div>
       </div>
       <input class="fi bc-pos" data-i="${r.i}" list="bc-pos-list" value="${bcEsc(r.position)}" ${r.issued ? 'disabled' : ''} style="width:150px;">
     </div>`;
@@ -1123,7 +1295,7 @@ function bulkShowResult() {
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:90vh;overflow:auto;text-align:center;">
       <div style="font-size:2.4rem;margin-bottom:6px;">✅</div>
       <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">${bulkCreated.length}টা সার্টিফিকেট তৈরি হয়েছে</h3>
-      <p style="font-size:.82rem;color:var(--muted);line-height:1.7;">প্রতিটা সার্টিফিকেটে নাম, ইভেন্ট, পজিশন, তারিখ ও QR কোড নিজে থেকে বসানো আছে। ছবি আকারে নামাতে নিচের বাটন চাপুন। ${parts > 1 ? 'ফোনে ভারী না হওয়ার জন্য ৪০টা করে ZIP আলাদা করা হয়েছে।' : ''}</p>
+      <p style="font-size:.82rem;color:var(--muted);line-height:1.7;">প্রতিটা সার্টিফিকেটে নাম, Verify ID ও QR কোড নিজে থেকে বসানো আছে। ছবি আকারে নামাতে নিচের বাটন চাপুন। ${parts > 1 ? 'ফোনে ভারী না হওয়ার জন্য ৪০টা করে ZIP আলাদা করা হয়েছে।' : ''}</p>
       ${btns}
       <button class="e-btn" style="width:100%;margin-top:14px;padding:10px;" onclick="closeUserOverlay('bulk-cert-ov')">Done</button>
     </div>`);

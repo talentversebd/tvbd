@@ -528,6 +528,41 @@ async function addCertificate(cert) {
   }
 }
 
+/*===== CERTIFICATE TEMPLATE (admin's own design + where name / ID / QR go) =====*/
+async function loadCertTemplate(force) {
+  if(!force && cache.certTemplateLoaded) return cache.certTemplate || null;
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try {
+    const snap = await getDoc(doc(window.firebaseDB, "settings", "certTemplate"));
+    cache.certTemplate = snap.exists() ? snap.data() : null;
+    cache.certTemplateLoaded = true;
+  } catch(err) {
+    console.error("Load cert template error:", err);
+    cache.certTemplate = cache.certTemplate || null;
+  }
+  return cache.certTemplate;
+}
+async function saveCertTemplate(cfg) {
+  await waitForFirebase();
+  const { doc, setDoc } = window.firebaseFunctions;
+  try {
+    const data = { ...cfg, updatedAt: Date.now() };
+    await setDoc(doc(window.firebaseDB, "settings", "certTemplate"), data);
+    cache.certTemplate = data; cache.certTemplateLoaded = true;
+    return true;
+  } catch(err) { console.error("Save cert template error:", err); return false; }
+}
+async function removeCertTemplate() {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  try {
+    await deleteDoc(doc(window.firebaseDB, "settings", "certTemplate"));
+    cache.certTemplate = null; cache.certTemplateLoaded = true;
+    return true;
+  } catch(err) { console.error("Remove cert template error:", err); return false; }
+}
+
 // Add many certificates at once (one read of existing IDs, then batched writes)
 async function addCertificatesBulk(list) {
   await waitForFirebase();

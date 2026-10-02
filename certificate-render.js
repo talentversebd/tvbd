@@ -1,6 +1,7 @@
 /*===== TVBD CERTIFICATE RENDERER =====
-   Draws a finished certificate (name, event, position, date, QR code) straight
-   from the certificate data - no template needs to be uploaded.
+   Draws a finished certificate. If the admin saved their own certificate design
+   (settings/certTemplate) the name, Verify ID and QR code are printed on it;
+   otherwise a built-in design is used.
    Also contains a tiny PDF writer and ZIP writer, so nothing else is required.
    Used by admin.html (download / bulk ZIP) and verify.html (participant download). */
 (function () {
@@ -80,7 +81,7 @@
   }
 
   /* ---------- the certificate drawing ---------- */
-  async function render(cert) {
+  async function renderBuiltIn(cert) {
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
@@ -183,6 +184,96 @@
     return canvas;
   }
 
+  /* ---------- certificate on the admin's OWN design ----------
+     The admin uploads a designed certificate (image) once and taps where the
+     Name, Verify ID and QR code should go. Every certificate is that image with
+     those three things printed on it. */
+  function defaultCfg() {
+    return {
+      url: '',
+      name: { x: 50, y: 48, size: 5, color: '#0f2557', font: 'serif-italic', maxW: 70 },
+      id:   { x: 50, y: 92, size: 1.6, color: '#374151', show: true },
+      qr:   { x: 88, y: 84, size: 9, color: '#000000', show: true }
+    };
+  }
+  function mergeCfg(c) {
+    const d = defaultCfg(), o = c || {};
+    return { url: o.url || '', name: Object.assign(d.name, o.name || {}), id: Object.assign(d.id, o.id || {}), qr: Object.assign(d.qr, o.qr || {}) };
+  }
+  function fontFor(kind, px) {
+    if (kind === 'sans-bold') return `bold ${px}px ${SANS}`;
+    if (kind === 'serif') return `bold ${px}px ${SERIF}`;
+    return `italic bold ${px}px ${SERIF}`;
+  }
+  const tplImgCache = {};
+  function loadTemplateImage(url) {
+    if (tplImgCache[url]) return tplImgCache[url];
+    tplImgCache[url] = new Promise(resolve => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => { delete tplImgCache[url]; resolve(null); };
+      img.src = url;
+    });
+    return tplImgCache[url];
+  }
+
+  async function renderOnTemplate(cert, cfgIn, img, opts) {
+    const cfg = mergeCfg(cfgIn);
+    const maxSide = (opts && opts.maxSide) || 2800;
+    let w = img.naturalWidth, h = img.naturalHeight;
+    const sc = Math.min(1, maxSide / Math.max(w, h));
+    w = Math.round(w * sc); h = Math.round(h * sc);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+    // name
+    const n = cfg.name, name = String(cert.name || '').trim();
+    ctx.fillStyle = n.color;
+    fitFont(ctx, name, (n.maxW / 100) * w, (n.size / 100) * w, 14, px => fontFor(n.font, px));
+    ctx.fillText(name, (n.x / 100) * w, (n.y / 100) * h);
+
+    // verify id
+    if (cfg.id.show !== false) {
+      ctx.fillStyle = cfg.id.color;
+      ctx.font = `bold ${Math.max(10, (cfg.id.size / 100) * w)}px ${SANS}`;
+      ctx.fillText('Verify ID: ' + (cert.certId || ''), (cfg.id.x / 100) * w, (cfg.id.y / 100) * h);
+    }
+
+    // qr code
+    if (cfg.qr.show !== false) {
+      const qr = await getQR(VERIFY_BASE + encodeURIComponent(cert.certId || ''));
+      const S = (cfg.qr.size / 100) * w, pad = S * 0.07;
+      const qx = (cfg.qr.x / 100) * w - S / 2, qy = (cfg.qr.y / 100) * h - S / 2;
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(qx - pad, qy - pad, S + pad * 2, S + pad * 2);
+      if (qr) {
+        const cnt = qr.getModuleCount(), cell = S / cnt;
+        ctx.fillStyle = cfg.qr.color;
+        for (let r = 0; r < cnt; r++) for (let c = 0; c < cnt; c++) {
+          if (qr.isDark(r, c)) ctx.fillRect(qx + c * cell, qy + r * cell, cell + 0.6, cell + 0.6);
+        }
+      }
+    }
+    return canvas;
+  }
+
+  // cfgIn: pass a config to preview it (admin editor); leave undefined to use the saved one
+  async function render(cert, cfgIn, opts) {
+    const cfg = cfgIn !== undefined ? cfgIn
+      : (typeof window.loadCertTemplate === 'function' ? await window.loadCertTemplate() : null);
+    if (cfg && cfg.url) {
+      const img = await loadTemplateImage(cfg.url);
+      if (img) return renderOnTemplate(cert, cfg, img, opts);
+      const fb = await renderBuiltIn(cert);       // template could not be loaded -> built-in design
+      fb.templateFailed = true;
+      return fb;
+    }
+    return renderBuiltIn(cert);
+  }
+
   /* ---------- file builders ---------- */
   function canvasBlob(canvas, type, q) {
     return new Promise(res => canvas.toBlob(res, type, q));
@@ -198,7 +289,7 @@
   function pdfFromJpeg(jpeg, wpx, hpx) {
     const enc = new TextEncoder(); const parts = []; let len = 0; const off = [];
     const push = b => { const u = typeof b === 'string' ? enc.encode(b) : b; parts.push(u); len += u.length; };
-    const PW = 841.89, PH = 595.28;
+    const PW = wpx >= hpx ? 841.89 : 595.28, PH = PW * hpx / wpx;
     push('%PDF-1.4\n');
     off[1] = len; push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
     off[2] = len; push('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
@@ -265,7 +356,7 @@
     async downloadPdf(cert) {
       const canvas = await render(cert);
       const jpeg = new Uint8Array(await (await canvasBlob(canvas, 'image/jpeg', 0.92)).arrayBuffer());
-      download(new Blob([pdfFromJpeg(jpeg, W, H)], { type: 'application/pdf' }), `Certificate_${safe(cert.certId)}.pdf`);
+      download(new Blob([pdfFromJpeg(jpeg, canvas.width, canvas.height)], { type: 'application/pdf' }), `Certificate_${safe(cert.certId)}.pdf`);
     },
     // many certificates -> one ZIP of JPEG images
     async zipBlob(certs, onProgress) {
@@ -279,6 +370,7 @@
       }
       return zip(files);
     },
+    defaultCfg, mergeCfg,
     _pdfFromJpeg: pdfFromJpeg, _zip: zip, _kindOf: kindOf
   };
 })();

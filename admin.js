@@ -1093,8 +1093,11 @@ function bcIsWinner(pos) { return /champion|winner|runner|1st|2nd|3rd|first|seco
 function bulkSelect(mode) {
   document.querySelectorAll('.bc-chk').forEach(c => {
     if(c.disabled) return;
+    if(mode === 'all') { c.checked = true; return; }
+    const r = bulkRows.find(x => x.i === Number(c.dataset.i));
     const posEl = document.querySelector(`.bc-pos[data-i="${c.dataset.i}"]`);
-    c.checked = mode === 'all' ? true : !bcIsWinner(posEl ? posEl.value : '');
+    // "participants" mode = actually attempted the quiz (not just registered) and isn't a winner
+    c.checked = !!(r && r.hasQuiz) && !bcIsWinner(posEl ? posEl.value : '');
   });
   bulkUpdateCount();
 }
@@ -1126,13 +1129,13 @@ function openBulkCert() {
       </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px;">
-        <button class="e-btn" onclick="bulkSelect('participants')">Winners বাদে সবাই</button>
+        <button class="e-btn" onclick="bulkSelect('participants')">Quiz দিয়েছে এমন সবাই (Winners বাদে)</button>
         <button class="e-btn" onclick="bulkSelect('all')">Select all</button>
         <button class="e-btn" onclick="document.querySelectorAll('.bc-chk').forEach(c=>c.checked=false);bulkUpdateCount()">Clear</button>
         <button class="e-btn" onclick="bulkRecalc()">🔄 Positions আবার হিসাব (হাতে বদল মুছবে)</button>
       </div>
 
-      <p style="font-size:.76rem;color:var(--muted);line-height:1.7;margin:4px 0 8px;">🏆 Champion / Runner Up (বিজয়ী)-দের ডিফল্টে টিক দেওয়া থাকে না, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন। বাকি অংশগ্রহণকারীদের সার্টিফিকেটে নাম, Verify ID ও QR কোড বসবে।</p>
+      <p style="font-size:.76rem;color:var(--muted);line-height:1.7;margin:4px 0 8px;">✅ শুধু যারা আসলে quiz attempt করেছে (শুধু register করে quiz দেয়নি এমন কাউকে না) তাদেরই ডিফল্টে টিক দেওয়া থাকে। 🏆 Champion / Runner Up (বিজয়ী)-দের ডিফল্টে টিক দেওয়া থাকে না, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন। দরকার হলে "Select all" দিয়ে সবাইকে ম্যানুয়ালি বেছে নিতে পারবেন।</p>
       <datalist id="bc-pos-list">
         <option value="Champion"><option value="1st Runner Up"><option value="2nd Runner Up"><option value="Merit"><option value="Participant">
       </datalist>
@@ -1219,7 +1222,7 @@ function bulkRender() {
     const score = r.pending ? '⏳ Review pending' : r.score != null ? `${r.score}/${r.possible}` : (r.hasQuiz ? '—' : 'No quiz');
     return `
     <div style="display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;${r.issued ? 'opacity:.55;' : ''}">
-      <input type="checkbox" class="bc-chk" data-i="${r.i}" ${r.issued ? 'disabled' : (bcIsWinner(r.position) ? '' : 'checked')} style="width:18px;height:18px;" onchange="bulkUpdateCount()">
+      <input type="checkbox" class="bc-chk" data-i="${r.i}" ${r.issued ? 'disabled' : ((r.hasQuiz && !bcIsWinner(r.position)) ? 'checked' : '')} style="width:18px;height:18px;" onchange="bulkUpdateCount()">
       <div style="flex:1;min-width:150px;">
         <div style="font-weight:700;font-size:.88rem;">${bcEsc(r.name)}</div>
         <div style="font-size:.72rem;color:var(--muted);">${bcEsc(r.segment)}${r.segment ? ' · ' : ''}Score: ${score}${r.issued ? ' · ✅ Already issued' : (bcIsWinner(r.position) ? ' · 🏆 Winner — আপনি মেইল করবেন' : '')}</div>

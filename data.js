@@ -1396,6 +1396,19 @@ async function loadRegisteredUsers() {
 }
 function getRegisteredUsers() { return cache.registeredUsers || []; }
 
+// A signed-in participant's own event registrations (used to gate quizzes).
+async function getMyRegistrations(email) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  try {
+    const snap = await getDocs(query(collection(window.firebaseDB, "registrations"), where("email", "==", email)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(err) {
+    console.error("Get my registrations error:", err);
+    return [];
+  }
+}
+
 /*===== MEMBER ID (unique code per account) + MEMBER ACCESS =====
    Every account gets a short unique Member ID like TV-7K3M9Q. The code is
    "claimed" in member_codes/{code} (create-only, so it can never be reused or

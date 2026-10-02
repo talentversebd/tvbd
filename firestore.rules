@@ -70,7 +70,10 @@ service cloud.firestore {
     }
     match /registrations/{id} {
       allow create: if true;
-      allow read, update, delete: if isMain() || hasPerm('registrations');
+      // a participant can read their own registrations (needed for registered-only quizzes)
+      allow read: if isMain() || hasPerm('registrations')
+                  || (signedIn() && resource.data.email == request.auth.token.email);
+      allow update, delete: if isMain() || hasPerm('registrations');
     }
 
     // ---- Quiz submissions ----

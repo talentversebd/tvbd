@@ -362,6 +362,27 @@ async function showQuizEntry(id) {
     }
   }
 
+  // Only registered participants may take this exam?
+  const gate = await qzCheckRegistration(quiz);
+  if(gate.required && !gate.ok) {
+    const names = gate.events.map(o => o.title).join(', ');
+    if(gate.reason === 'login') {
+      return qzShowBlockedScreen('🔒', 'Log In প্রয়োজন',
+        `এই পরীক্ষায় শুধু <strong>${names}</strong> ইভেন্টে রেজিস্ট্রেশন করা অংশগ্রহণকারীরা অংশ নিতে পারবেন। আগে আপনার অ্যাকাউন্টে Log In করুন।`,
+        `<a href="account.html?redirect=${encodeURIComponent(location.href)}" class="qz-btn" style="display:inline-flex;width:auto;padding:10px 24px;margin-top:14px;">Log In / Sign Up</a>`);
+    }
+    return qzShowBlockedScreen('🔒', 'রেজিস্ট্রেশন প্রয়োজন',
+      `এই পরীক্ষায় শুধু রেজিস্ট্রেশন করা অংশগ্রহণকারীরা অংশ নিতে পারবেন। আগে <strong>${names}</strong> ইভেন্টে Register করুন, তারপর এখানে ফিরে আসুন।`);
+  }
+  if(gate.required && gate.ok) {
+    // Lock the exam to the registered account's email so nobody sits it under someone else's name.
+    const nm = document.getElementById('qz-in-name'), em = document.getElementById('qz-in-email'), ph = document.getElementById('qz-in-phone');
+    if(nm && gate.reg && gate.reg.name) nm.value = gate.reg.name;
+    if(ph && gate.reg && gate.reg.phone) ph.value = gate.reg.phone;
+    if(em) { em.value = gate.user.email; em.readOnly = true; }
+    quiz._lockedEmail = gate.user.email;
+  }
+
   document.getElementById('qz-view-list').classList.add('qz-hidden');
   document.getElementById('qz-view-entry').classList.remove('qz-hidden');
   document.getElementById('qz-e-title').innerHTML = quiz.title;
@@ -370,7 +391,7 @@ async function showQuizEntry(id) {
   document.getElementById('qz-e-qcount').textContent = `📋 ${(quiz.questions || []).length} questions`;
 }
 
-function qzShowBlockedScreen(icon, title, msg) {
+function qzShowBlockedScreen(icon, title, msg, extraHtml) {
   document.getElementById('qz-view-list').classList.remove('qz-hidden');
   document.getElementById('qz-list-loading').style.display = 'none';
   document.getElementById('qz-empty').style.display = 'block';
@@ -378,7 +399,43 @@ function qzShowBlockedScreen(icon, title, msg) {
     <div class="ei">${icon}</div>
     <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:8px;">${title}</h3>
     <p>${msg}</p>
-    <a href="events.html" style="color:var(--lblue);font-size:.85rem;">← Back to Events</a>`;
+    ${extraHtml || ''}
+    <a href="events.html" style="color:var(--lblue);font-size:.85rem;display:block;margin-top:14px;">← Back to Events</a>`;
+}
+
+/*===== REGISTERED-PARTICIPANTS-ONLY CHECK =====
+   If this quiz is linked to an event that has registration turned on (and the
+   admin left "only registered participants" ticked), the person must be logged
+   in AND have registered for that event. */
+function qzGetUser() {
+  return new Promise(resolve => {
+    let done = false;
+    const finish = u => { if(!done) { done = true; resolve(u); } };
+    const t = setInterval(() => {
+      if(window.firebaseAuth && window.firebaseAuthFunctions) {
+        clearInterval(t);
+        try {
+          const unsub = window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, u => { finish(u); if(typeof unsub === 'function') unsub(); });
+        } catch(e) { finish(null); }
+      }
+    }, 100);
+    setTimeout(() => { clearInterval(t); finish(null); }, 8000);
+  });
+}
+
+async function qzCheckRegistration(quiz) {
+  try { if(typeof loadAllData === 'function') await loadAllData(); } catch(e) {}
+  const events = (typeof getOlympiads === 'function' ? getOlympiads() : [])
+    .filter(o => o.quizId === quiz.id && o.regEnabled && o.quizRegisteredOnly !== false);
+  if(!events.length) return { required: false };
+
+  const user = await qzGetUser();
+  if(!user || !user.emailVerified) return { required: true, ok: false, reason: 'login', events };
+
+  const regs = await getMyRegistrations(user.email);
+  const titles = events.map(o => (o.title || '').trim().toLowerCase());
+  const reg = regs.find(r => titles.includes((r.olympiad || '').trim().toLowerCase()));
+  return { required: true, ok: !!reg, reason: reg ? '' : 'noreg', user, reg, events };
 }
 
 async function startQuiz() {
@@ -387,6 +444,9 @@ async function startQuiz() {
   const phone = document.getElementById('qz-in-phone').value.trim();
 
   if(!name || !email || !phone) return toast("Name, email and phone are required!", true);
+  if(qzCurrentQuiz._lockedEmail && email.toLowerCase() !== qzCurrentQuiz._lockedEmail.toLowerCase()) {
+    return toast("এই পরীক্ষা শুধু আপনার রেজিস্টার্ড ইমেইল দিয়েই দেওয়া যাবে।", true);
+  }
 
   // Re-check the schedule window right before starting (it may have changed
   // since the entry page loaded).

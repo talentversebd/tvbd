@@ -443,6 +443,7 @@ function openOlympiadForm() {
   document.getElementById('of-cat').value = 'Mathematics';
   document.getElementById('of-st').value = 'upcoming';
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = false;
+  const qr = document.getElementById('of-qreg'); if(qr) qr.checked = true;
   document.getElementById('of-iprev').innerHTML = '';
   populateQuizDropdown('');
   populateRegFormDropdown('');
@@ -466,6 +467,7 @@ function editOlympiad(id) {
   document.getElementById('of-fd').value = o.fullDesc||'';
   document.getElementById('of-iu').value = o.img||'';
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = o.regEnabled||false;
+  const qr = document.getElementById('of-qreg'); if(qr) qr.checked = o.quizRegisteredOnly !== false;
   document.getElementById('of-iprev').innerHTML = o.img ? `<img src="${o.img}">` : '';
   populateQuizDropdown(o.quizId || '');
   populateRegFormDropdown(o.registrationFormId || '');
@@ -476,7 +478,7 @@ async function saveOlympiad() {
   const desc = document.getElementById('of-ds').value.trim();
   if(!title || !desc) return toast("Title & description required!", true);
   const segments = document.getElementById('of-segments').value.split(',').map(s => s.trim()).filter(Boolean);
-  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '', registrationFormId:document.getElementById('of-regform')?.value || '' };
+  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '', registrationFormId:document.getElementById('of-regform')?.value || '', quizRegisteredOnly:(document.getElementById('of-qreg')?.checked ?? true) };
   const eid = document.getElementById('of-eid').value;
   const ok = eid === '' ? await addOlympiad(o) : await updateOlympiad(eid, o);
   if(ok) { renderOlympiadTable(); renderDashboard(); closeFM('ofm'); toast("Saved! ✅"); }

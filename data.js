@@ -1039,15 +1039,47 @@ async function getQuizById(id) {
   }
 }
 
+/*===== SECURE QUIZZES =====
+   A "secure" quiz keeps its questions in the public quizzes document WITHOUT the correct
+   answers. The answers live in quiz_keys/{quizId} which only admins can read. Students'
+   answers are graded afterwards by an admin (autoGradeQuizzes). */
+function qzSplitKeys(quiz) {
+  const keys = {};
+  const questions = (quiz.questions || []).map(q => {
+    if(q.type === 'mcq') {
+      keys[q.id] = Number(q.correctIndex);
+      const { correctIndex, ...rest } = q;
+      return rest;
+    }
+    return q;
+  });
+  return { pub: { ...quiz, questions, secure: true }, keys };
+}
+
+async function loadQuizKey(id) {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try {
+    const snap = await getDoc(doc(window.firebaseDB, "quiz_keys", id));
+    return snap.exists() ? (snap.data().answers || {}) : null;
+  } catch(err) {
+    console.error("Load quiz key error:", err);
+    return null;
+  }
+}
+
 async function addQuiz(quiz) {
   await waitForFirebase();
-  const { collection, addDoc } = window.firebaseFunctions;
+  const { collection, addDoc, doc, setDoc } = window.firebaseFunctions;
   const db = window.firebaseDB;
   try {
     quiz.createdAt = Date.now();
-    const ref = await addDoc(collection(db, "quizzes"), quiz);
+    let pub = quiz, keys = null;
+    if(quiz.secure) { const sp = qzSplitKeys(quiz); pub = sp.pub; keys = sp.keys; }
+    const ref = await addDoc(collection(db, "quizzes"), pub);
+    if(keys) await setDoc(doc(db, "quiz_keys", ref.id), { answers: keys, updatedAt: Date.now() });
     if(!cache.quizzes) cache.quizzes = [];
-    cache.quizzes.unshift({ id: ref.id, ...quiz });
+    cache.quizzes.unshift({ id: ref.id, ...pub });
     return { success: true, id: ref.id };
   } catch(err) {
     console.error("Add quiz error:", err);
@@ -1057,19 +1089,102 @@ async function addQuiz(quiz) {
 
 async function updateQuiz(id, quiz) {
   await waitForFirebase();
-  const { doc, updateDoc } = window.firebaseFunctions;
+  const { doc, updateDoc, setDoc, deleteDoc } = window.firebaseFunctions;
   const db = window.firebaseDB;
   try {
     quiz.updatedAt = Date.now();
-    await updateDoc(doc(db, "quizzes", id), quiz);
+    let pub = quiz;
+    if(quiz.questions && quiz.secure) {
+      const sp = qzSplitKeys(quiz); pub = sp.pub;
+      await updateDoc(doc(db, "quizzes", id), pub);
+      await setDoc(doc(db, "quiz_keys", id), { answers: sp.keys, updatedAt: Date.now() });
+    } else {
+      await updateDoc(doc(db, "quizzes", id), quiz);
+      if(quiz.questions && quiz.secure === false) await deleteDoc(doc(db, "quiz_keys", id)).catch(() => {});
+    }
     if(cache.quizzes) {
       const idx = cache.quizzes.findIndex(x => x.id === id);
-      if(idx > -1) cache.quizzes[idx] = { id, ...cache.quizzes[idx], ...quiz };
+      if(idx > -1) cache.quizzes[idx] = { id, ...cache.quizzes[idx], ...pub };
     }
     return { success: true };
   } catch(err) {
     console.error("Update quiz error:", err);
     return { success: false, error: err.message };
+  }
+}
+
+// One-time: move the answers of every existing quiz out of the public document
+async function secureAllQuizzes() {
+  await waitForFirebase();
+  const { collection, getDocs, doc, writeBatch } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(collection(db, "quizzes"));
+    const todo = snap.docs.filter(d => {
+      const q = d.data();
+      return !q.secure && (q.questions || []).some(x => x.type === 'mcq' && x.correctIndex !== undefined);
+    });
+    for(let i = 0; i < todo.length; i += 200) {
+      const batch = writeBatch(db);
+      todo.slice(i, i + 200).forEach(d => {
+        const sp = qzSplitKeys(d.data());
+        batch.update(d.ref, { questions: sp.pub.questions, secure: true });
+        batch.set(doc(db, "quiz_keys", d.id), { answers: sp.keys, updatedAt: Date.now() });
+      });
+      await batch.commit();
+    }
+    await loadQuizzes();
+    return todo.length;
+  } catch(err) {
+    console.error("Secure all quizzes error:", err);
+    return -1;
+  }
+}
+
+// Admin: grade the MCQ part of every secure quiz's ungraded submissions
+async function autoGradeQuizzes() {
+  await waitForFirebase();
+  const { collection, getDocs, query, where, writeBatch } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  let graded = 0, missingKeys = 0;
+  try {
+    const quizzes = (await loadQuizzes()).filter(q => q.secure);
+    for(const quiz of quizzes) {
+      const snap = await getDocs(query(collection(db, "quiz_submissions"), where("quizId", "==", quiz.id)));
+      const pending = snap.docs.filter(d => d.data().mcqScore == null);
+      if(!pending.length) continue;
+      const keys = await loadQuizKey(quiz.id);
+      if(!keys) { missingKeys++; continue; }
+      const qs = quiz.questions || [];
+      const mcqTotal = qs.filter(q => q.type === 'mcq').reduce((a, q) => a + (Number(q.points) || 1), 0);
+      const shortTotal = qs.filter(q => q.type === 'short').reduce((a, q) => a + (Number(q.points) || 1), 0);
+      const hasShort = shortTotal > 0;
+      for(let i = 0; i < pending.length; i += 400) {
+        const batch = writeBatch(db);
+        pending.slice(i, i + 400).forEach(d => {
+          const sub = d.data();
+          let mcqScore = 0;
+          qs.forEach(q => {
+            if(q.type !== 'mcq') return;
+            const given = (sub.answers || {})[q.id];
+            if(given !== undefined && Number(given) === Number(keys[q.id])) mcqScore += Number(q.points) || 1;
+          });
+          const shortScore = sub.shortScore != null ? Number(sub.shortScore) : null;
+          const totalScore = hasShort ? (shortScore != null ? mcqScore + shortScore : null) : mcqScore;
+          batch.update(d.ref, {
+            mcqScore, mcqTotal, shortTotal, totalPossible: mcqTotal + shortTotal,
+            totalScore, status: totalScore != null ? 'reviewed' : 'pending_review', gradedAt: Date.now()
+          });
+          graded++;
+        });
+        await batch.commit();
+      }
+    }
+    if(typeof loadQuizSubmissions === 'function') await loadQuizSubmissions();
+    return { graded, missingKeys };
+  } catch(err) {
+    console.error("Auto grade error:", err);
+    return { graded, missingKeys, error: err.message };
   }
 }
 
@@ -1119,26 +1234,39 @@ async function addQuizSubmission(sub, quiz) {
       return { success: false, error: "You have already submitted this exam.", alreadySubmitted: true };
     }
 
-    let mcqScore = 0, mcqTotal = 0, hasShort = false;
-    (quiz.questions || []).forEach(q => {
-      if(q.type === 'mcq') {
-        mcqTotal += Number(q.points) || 1;
-        const given = sub.answers[q.id];
-        if(given !== undefined && Number(given) === Number(q.correctIndex)) {
-          mcqScore += Number(q.points) || 1;
+    if(quiz.secure) {
+      // the answer key is private: only record what was answered, an admin grades it later
+      const qs = quiz.questions || [];
+      sub.mcqScore = null;
+      sub.mcqTotal = qs.filter(q => q.type === 'mcq').reduce((x, q) => x + (Number(q.points) || 1), 0);
+      sub.shortScore = null;
+      sub.shortTotal = qs.filter(q => q.type === 'short').reduce((x, q) => x + (Number(q.points) || 1), 0);
+      sub.totalScore = null;
+      sub.totalPossible = sub.mcqTotal + sub.shortTotal;
+      sub.status = 'pending_grading';
+      sub.secure = true;
+    } else {
+      let mcqScore = 0, mcqTotal = 0, hasShort = false;
+      (quiz.questions || []).forEach(q => {
+        if(q.type === 'mcq') {
+          mcqTotal += Number(q.points) || 1;
+          const given = sub.answers[q.id];
+          if(given !== undefined && Number(given) === Number(q.correctIndex)) {
+            mcqScore += Number(q.points) || 1;
+          }
+        } else {
+          hasShort = true;
         }
-      } else {
-        hasShort = true;
-      }
-    });
+      });
 
-    sub.mcqScore = mcqScore;
-    sub.mcqTotal = mcqTotal;
-    sub.shortScore = null;
-    sub.shortTotal = (quiz.questions || []).filter(q => q.type === 'short').reduce((a,q) => a + (Number(q.points)||1), 0);
-    sub.totalScore = hasShort ? null : mcqScore;
-    sub.totalPossible = mcqTotal + sub.shortTotal;
-    sub.status = hasShort ? 'pending_review' : 'reviewed';
+      sub.mcqScore = mcqScore;
+      sub.mcqTotal = mcqTotal;
+      sub.shortScore = null;
+      sub.shortTotal = (quiz.questions || []).filter(q => q.type === 'short').reduce((a,q) => a + (Number(q.points)||1), 0);
+      sub.totalScore = hasShort ? null : mcqScore;
+      sub.totalPossible = mcqTotal + sub.shortTotal;
+      sub.status = hasShort ? 'pending_review' : 'reviewed';
+    }
     sub.submittedAt = Date.now();
     sub.startedAt = sub.startedAt || null;
     sub.timeTakenSeconds = sub.startedAt ? Math.max(0, Math.round((sub.submittedAt - sub.startedAt) / 1000)) : null;

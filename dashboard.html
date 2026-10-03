@@ -667,7 +667,7 @@ async function dbLoadDashboard(user) {
     list.innerHTML = results.map(r => {
       const quiz = quizMap[r.quizId];
       const title = quiz ? quiz.title : 'Quiz';
-      const pending = r.status === 'pending_review';
+      const pending = r.status === 'pending_review' || r.status === 'pending_grading';
       const scoreText = pending
         ? `<span style="color:#fbbf24;">⏳ Pending review</span>`
         : `<strong style="color:var(--blue-br);">${r.totalScore ?? r.mcqScore ?? 0} / ${r.totalPossible ?? 0}</strong>`;

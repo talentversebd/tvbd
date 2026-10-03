@@ -258,6 +258,10 @@ select.fi{cursor:pointer}
 
       <!-- QUIZZES -->
       <div class="adm-sec" id="quiz-adm">
+        <div style="margin-bottom:14px;">
+          <button class="e-btn" onclick="secureAllQuizzesUI()" style="padding:9px 14px;">🔒 সব কুইজের উত্তর সুরক্ষিত করুন</button>
+          <span style="font-size:.74rem;color:var(--muted);margin-left:8px;">একবার চাপলে পুরোনো কুইজের সঠিক উত্তর খোলা ডাটাবেস থেকে সরে যাবে</span>
+        </div>
         <div class="tbl-wrap">
           <table class="tbl">
             <thead><tr><th>Title</th><th>Questions</th><th>Duration</th><th>Schedule</th><th>Status</th><th>Actions</th></tr></thead>
@@ -268,6 +272,10 @@ select.fi{cursor:pointer}
 
       <!-- QUIZ SUBMISSIONS -->
       <div class="adm-sec" id="qsub-adm">
+        <div style="margin-bottom:14px;">
+          <button class="add-btn" onclick="autoGradeUI()">⚡ MCQ অটো-গ্রেড</button>
+          <span style="font-size:.74rem;color:var(--muted);margin-left:8px;">Secure কুইজের জমা পড়া উত্তরের MCQ স্কোর বসায়। এরপর লিখিত উত্তর থাকলে নিচে Review করে নম্বর দিন।</span>
+        </div>
         <div class="tbl-wrap">
           <table class="tbl">
             <thead><tr><th>Student</th><th>Quiz</th><th>MCQ Score</th><th>Short Score</th><th>Total</th><th>Status</th><th>Started</th><th>Submitted</th><th>Time Taken</th><th>Actions</th></tr></thead>
@@ -1117,6 +1125,11 @@ select.fi{cursor:pointer}
       <div class="fg"><label>End / Deadline (optional)</label><input class="fi" type="datetime-local" id="qf-end"></div>
     </div>
     <p style="font-size:.72rem;color:var(--muted);margin:-10px 0 14px;">Leave both blank to keep the exam open any time it's Published. If set, the exam auto-opens/closes at these times — no need to change Status manually.</p>
+
+    <div class="fg">
+      <div class="chk-wrap"><input type="checkbox" id="qf-secure" checked><label for="qf-secure"> 🔒 Secure mode — সঠিক উত্তর লুকানো থাকবে</label></div>
+      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.7;">টিক থাকলে সঠিক উত্তর সবার জন্য খোলা ডাটাবেসে থাকে না। তবে শিক্ষার্থী পরীক্ষা শেষে সাথে সাথে স্কোর দেখবে না। Quiz Submissions থেকে <strong>⚡ MCQ অটো-গ্রেড</strong> চাপলে স্কোর বসবে এবং তারপর ফলাফল দেখা যাবে। টিক তুললে আগের মতো সাথে সাথে স্কোর দেখাবে (কিন্তু উত্তর ডাটাবেসে খোলা থাকবে)।</p>
+    </div>
 
     <div class="fg">
       <label>Questions</label>

@@ -934,6 +934,26 @@ async function migrateCertEmailsUI() {
   if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
 }
 
+/*===== SECURE QUIZZES: one-click helpers =====*/
+async function secureAllQuizzesUI() {
+  if(!confirm('সব পুরোনো কুইজের সঠিক উত্তর খোলা ডাটাবেস থেকে সরিয়ে বন্ধ জায়গায় রাখা হবে। এরপর সেগুলোর নতুন জমা সাথে সাথে স্কোর দেখাবে না (আপনি অটো-গ্রেড করবেন)। শুরু করবেন?')) return;
+  toast('কাজ চলছে…');
+  const n = await secureAllQuizzes();
+  if(n < 0) return toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);
+  toast(n ? `${n}টা কুইজের উত্তর সুরক্ষিত হয়েছে ✅` : 'সব কুইজ আগে থেকেই সুরক্ষিত ✅');
+  if(typeof renderQuizTable === 'function') renderQuizTable();
+}
+
+async function autoGradeUI() {
+  toast('গ্রেডিং চলছে…');
+  const r = await autoGradeQuizzes();
+  if(r.error) return toast('গ্রেডিং ব্যর্থ! (Quiz Submissions ও Quizzes-এর অনুমতি আছে কি না দেখুন)', true);
+  let msg = r.graded ? `${r.graded}টা সাবমিশন গ্রেড হয়েছে ✅` : 'গ্রেড করার মতো নতুন সাবমিশন নেই।';
+  if(r.missingKeys) msg += ` (${r.missingKeys}টা কুইজের উত্তরের চাবি পড়া যায়নি)`;
+  toast(msg, !!r.missingKeys);
+  if(typeof renderQuizSubmissionsTable === 'function') renderQuizSubmissionsTable();
+}
+
 /*===== CERTIFICATE TEMPLATE EDITOR =====
    Upload your own designed certificate once, tap where the Name, Verify ID and
    QR code should be printed. All certificates then use that design. */
@@ -1730,6 +1750,7 @@ function openQuizForm() {
   document.getElementById('qf-desc').value = '';
   document.getElementById('qf-duration').value = '';
   document.getElementById('qf-status').value = 'draft';
+  document.getElementById('qf-secure').checked = true;
   document.getElementById('qf-start').value = '';
   document.getElementById('qf-end').value = '';
   document.getElementById('qf-questions').innerHTML = '';
@@ -1774,15 +1795,21 @@ function toggleQfOptions(sel) {
   row.querySelector('.qf-opts').style.display = sel.value === 'short' ? 'none' : '';
 }
 
-function editQuiz(id) {
-  const q = getQuizzes().find(x => x.id === id);
+async function editQuiz(id) {
+  let q = getQuizzes().find(x => x.id === id);
   if(!q) return;
+  if(q.secure) {                                    // the correct answers live in the private quiz_keys document
+    const keys = await loadQuizKey(id);
+    if(!keys) toast('উত্তরের চাবি পড়া যায়নি — সঠিক উত্তর নতুন করে বেছে নিন।', true);
+    q = { ...q, questions: (q.questions || []).map(x => x.type === 'mcq' ? { ...x, correctIndex: keys ? keys[x.id] : undefined } : x) };
+  }
   document.getElementById('qfm-title').textContent = "Edit Quiz";
   document.getElementById('qf-eid').value = id;
   document.getElementById('qf-title').value = q.title || '';
   document.getElementById('qf-desc').value = q.description || '';
   document.getElementById('qf-duration').value = q.duration || '';
   document.getElementById('qf-status').value = q.status || 'draft';
+  document.getElementById('qf-secure').checked = !!q.secure;
   document.getElementById('qf-start').value = qfTimestampToLocalInput(q.startAt);
   document.getElementById('qf-end').value = qfTimestampToLocalInput(q.endAt);
   document.getElementById('qf-questions').innerHTML = '';
@@ -1826,7 +1853,7 @@ async function saveQuiz() {
     }
   }
 
-  const quiz = { title, description, duration, status, startAt, endAt, questions };
+  const quiz = { title, description, duration, status, startAt, endAt, questions, secure: document.getElementById('qf-secure').checked };
 
   const result = eid ? await updateQuiz(eid, quiz) : await addQuiz(quiz);
   if(result.success) {
@@ -1891,7 +1918,9 @@ function renderQuizSubmissionsTable() {
     const quiz = quizzes.find(q => q.id === s.quizId);
     const statusBadge = s.status === 'reviewed'
       ? `<span class="bs bs-active">Reviewed</span>`
-      : `<span class="bs bs-upcoming">Pending Review</span>`;
+      : s.status === 'pending_grading'
+        ? `<span class="bs bs-past">Not graded</span>`
+        : `<span class="bs bs-upcoming">Pending Review</span>`;
     const startedStr = s.startedAt ? new Date(s.startedAt).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
     const submittedStr = s.submittedAt ? new Date(s.submittedAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
     let timeTakenStr = '—';
@@ -1903,7 +1932,7 @@ function renderQuizSubmissionsTable() {
     <tr>
       <td><strong>${s.name}</strong><br><span style="color:var(--muted);font-size:.75rem;">${s.email || ''} ${s.phone ? '· ' + s.phone : ''}</span></td>
       <td>${quiz ? quiz.title : '(deleted quiz)'}</td>
-      <td>${s.mcqScore ?? 0} / ${s.mcqTotal ?? 0}</td>
+      <td>${s.mcqScore == null ? '—' : s.mcqScore + ' / ' + (s.mcqTotal ?? 0)}</td>
       <td>${s.shortScore === null || s.shortScore === undefined ? '—' : s.shortScore + ' / ' + s.shortTotal}</td>
       <td><strong>${s.totalScore === null || s.totalScore === undefined ? '—' : s.totalScore + ' / ' + s.totalPossible}</strong></td>
       <td>${statusBadge}</td>
@@ -1925,10 +1954,14 @@ async function deleteQuizSubmissionAction(id) {
   else toast("Delete failed!", true);
 }
 
-function openGradeModal(id) {
+async function openGradeModal(id) {
   const sub = getQuizSubmissions().find(x => x.id === id);
   if(!sub) return;
-  const quiz = getQuizzes().find(q => q.id === sub.quizId);
+  let quiz = getQuizzes().find(q => q.id === sub.quizId);
+  if(quiz && quiz.secure) {
+    const keys = await loadQuizKey(quiz.id);
+    quiz = { ...quiz, questions: (quiz.questions || []).map(x => x.type === 'mcq' ? { ...x, correctIndex: keys ? keys[x.id] : undefined } : x) };
+  }
   document.getElementById('qg-sid').value = id;
 
   const shortQuestions = (quiz?.questions || []).filter(q => q.type === 'short');
@@ -1946,7 +1979,7 @@ function openGradeModal(id) {
     <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:16px;">
       <strong>${sub.name}</strong><br>
       <span style="color:var(--muted);font-size:.82rem;">${sub.email || ''} ${sub.phone ? '· ' + sub.phone : ''} ${sub.registrationId ? '· Reg ID: ' + sub.registrationId : ''}</span><br>
-      <span style="color:var(--lblue);font-size:.85rem;">MCQ auto-score: ${sub.mcqScore ?? 0} / ${sub.mcqTotal ?? 0}</span><br>
+      <span style="color:var(--lblue);font-size:.85rem;">MCQ auto-score: ${sub.mcqScore == null ? 'এখনও গ্রেড হয়নি (⚡ MCQ অটো-গ্রেড চাপুন)' : sub.mcqScore + ' / ' + (sub.mcqTotal ?? 0)}</span><br>
       <span style="color:var(--muted);font-size:.78rem;">Started: ${startedStr} · Submitted: ${submittedStr} · Time taken: ${timeTakenStr}</span>
     </div>`;
 

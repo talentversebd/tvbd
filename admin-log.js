@@ -64,6 +64,13 @@
     deleteCustomForm:     { section: 'Forms', action: 'delete', id: 0, list: 'getCustomForms', keys: T },
     deleteFormResponse:   { section: 'Forms', action: 'delete response', fixed: 'Form response' },
 
+    secureAllQuizzes:     { section: 'Quizzes', action: 'secure', fixed: 'All quizzes (answers hidden)' },
+    autoGradeQuizzes:     { section: 'Quiz Submissions', action: 'auto-grade', fixed: 'MCQ answers' },
+
+    addAnnouncement:      { section: 'Notifications', action: 'add', label: a => a[0] || '', details: a => (a[1] || '').slice(0, 120) },
+    deleteAnnouncement:   { section: 'Notifications', action: 'delete', id: 0, list: 'getAnnouncements', keys: T },
+    addNotificationRecord:{ section: 'Email Notifications', action: 'send', label: a => (a[0] && (a[0].subject || a[0].title)) || 'Email campaign', details: a => (a[0] && (a[0].audience || a[0].recipients)) ? String(a[0].audience || a[0].recipients).slice(0, 120) : '' },
+
     saveMemberAccess:     { section: 'Member Access', action: 'grant', label: a => `${(a[1] && a[1].name) || ''} (${(a[1] && a[1].memberCode) || ''})`, details: a => ((a[1] && a[1].permissions) || []).join(', ') },
     removeMemberAccess:   { section: 'Member Access', action: 'revoke', label: a => {
         const m = (typeof window.getMemberAccessMap === 'function' ? window.getMemberAccessMap() : {})[a[0]];
@@ -108,7 +115,7 @@
       } catch (e) { /* the description is optional */ }
 
       const result = await orig.apply(this, args);
-      const failed = result === false || (result && (result.success === false || result.error));
+      const failed = result === false || (typeof result === 'number' && result < 0) || (result && (result.success === false || result.error));
       if (!failed) write({ section: spec.section, action: spec.action, target, details });
       return result;
     };

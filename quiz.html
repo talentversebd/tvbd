@@ -589,6 +589,22 @@ async function submitQuiz(auto) {
   }
 
   const r = result.result;
+
+  // secure quiz: the answer key is private, so there is no instant score and no answer review
+  if(r.secure) {
+    box.innerHTML = `
+      <div class="ri">✅</div>
+      <h2>Quiz Submitted!</h2>
+      <p style="color:var(--muted);">Thanks, ${r.name}! আপনার উত্তর জমা হয়েছে।</p>
+      <div class="qz-score-box">
+        <div class="qz-score-num" style="font-size:1.4rem;">⏳ Result Pending</div>
+        <div class="qz-score-label">ফলাফল গ্রেডিংয়ের পর প্রকাশ করা হবে</div>
+      </div>
+      <p style="color:var(--muted);font-size:.85rem;">ফলাফল প্রকাশ হলে আপনার Dashboard-এর <strong>My Quiz Results</strong>-এ দেখতে পারবেন।</p>
+      <a href="events.html" class="qz-btn" style="display:inline-flex;margin-top:16px;width:auto;padding:12px 28px;">Back to Events</a>`;
+    return;
+  }
+
   const reviewHtml = qzBuildReviewHtml(qzCurrentQuiz, r);
 
   if(r.status === 'reviewed') {

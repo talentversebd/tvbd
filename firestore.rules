@@ -35,7 +35,18 @@ service cloud.firestore {
     match /networkPages/{id}  { allow read: if true; allow write: if isMain() || hasPerm('network'); }
     match /news/{id}          { allow read: if true; allow write: if isMain() || hasPerm('news'); }
     match /quizzes/{id}       { allow read: if true; allow write: if isMain() || hasPerm('quizzes'); }
-    match /certificates/{id}  { allow read: if true; allow write: if isMain() || hasPerm('certificates'); }
+    // certificates are public (the verify page needs them) but must NEVER contain an email;
+    // the owner's email lives in certificate_owners (private)
+    match /certificates/{id} {
+      allow read: if true;
+      allow create, update: if (isMain() || hasPerm('certificates')) && !('email' in request.resource.data);
+      allow delete: if isMain() || hasPerm('certificates');
+    }
+    match /certificate_owners/{id} {
+      allow create, update, delete: if isMain() || hasPerm('certificates');
+      allow read: if isMain() || hasPerm('certificates')
+                  || (signedIn() && resource.data.email == request.auth.token.email);
+    }
 
     match /settings/{id} {
       allow read: if true;
@@ -106,6 +117,16 @@ service cloud.firestore {
     match /member_access/{uid} {
       allow get: if signedIn() && request.auth.uid == uid;   // a member can read their own
       allow read, write: if isMain();
+    }
+
+    // ---- Admin activity log: admins & permitted members add entries, only the main admin reads / cleans them ----
+    match /admin_logs/{id} {
+      allow create: if signedIn()
+                    && request.resource.data.email == request.auth.token.email
+                    && request.resource.data.keys().hasOnly(['at','uid','email','section','action','target','details'])
+                    && (isMain() || isEC() || isFormAdmin()
+                        || exists(/databases/$(database)/documents/member_access/$(request.auth.uid)));
+      allow read, delete: if isMain();
     }
 
     // ---- Anything not listed above is closed ----

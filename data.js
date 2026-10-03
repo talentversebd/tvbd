@@ -474,11 +474,25 @@ function getCertificates() {
 // older ones (or ones added without an email) still work via verify.html + Certificate ID.
 async function getCertificatesByEmail(email) {
   await waitForFirebase();
-  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  const { collection, getDocs, getDoc, doc, query, where } = window.firebaseFunctions;
   const db = window.firebaseDB;
+  const em = String(email || '').trim().toLowerCase();
   try {
-    const snap = await getDocs(query(collection(db, "certificates"), where("email", "==", email)));
-    const certs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // owners are kept in a PRIVATE collection (certificate_owners); the certificates themselves are public
+    const ownSnap = await getDocs(query(collection(db, "certificate_owners"), where("email", "==", em)));
+    const found = await Promise.all(ownSnap.docs.map(async o => {
+      const c = await getDoc(doc(db, "certificates", o.id));
+      return c.exists() ? { id: c.id, ...c.data() } : null;
+    }));
+    let certs = found.filter(Boolean);
+
+    // older certificates that still carry the email inside the public document (until migrated)
+    try {
+      const legacy = await getDocs(query(collection(db, "certificates"), where("email", "==", em)));
+      legacy.docs.forEach(d => { if(!certs.some(c => c.id === d.id)) certs.push({ id: d.id, ...d.data() }); });
+    } catch(e) { /* ignore */ }
+
+    certs = certs.map(c => { const x = { ...c }; delete x.email; return x; });
     certs.sort((a, b) => String(b.issueDate || '').localeCompare(String(a.issueDate || '')));
     return certs;
   } catch(err) {
@@ -532,17 +546,69 @@ async function addCertificate(cert) {
       return { success: false, error: "Certificate ID already exists!" };
     }
     
-    cert.createdAt = Date.now();
-    cert.status = "Verified";
-    const ref = await addDoc(collection(db, "certificates"), cert);
-    
+    // the participant's email must never sit in the public certificate document
+    const email = String(cert.email || '').trim().toLowerCase();
+    const pub = { ...cert }; delete pub.email;
+    pub.createdAt = Date.now();
+    pub.status = "Verified";
+    const ref = await addDoc(collection(db, "certificates"), pub);
+    if(email) {
+      const { doc, setDoc } = window.firebaseFunctions;
+      await setDoc(doc(db, "certificate_owners", ref.id), { email, certId: pub.certId, createdAt: Date.now() });
+      cache.certOwners = cache.certOwners || {};
+      cache.certOwners[ref.id] = email;
+    }
+
     if(!cache.certificates) cache.certificates = [];
-    cache.certificates.unshift({ id: ref.id, ...cert });
+    cache.certificates.unshift({ id: ref.id, ...pub });
     
     return { success: true, id: ref.id };
   } catch(err) {
     console.error("Add certificate error:", err);
     return { success: false, error: err.message };
+  }
+}
+
+/*===== CERTIFICATE OWNERS (private emails) =====*/
+async function loadCertificateOwners() {
+  await waitForFirebase();
+  const { collection, getDocs } = window.firebaseFunctions;
+  try {
+    const snap = await getDocs(collection(window.firebaseDB, "certificate_owners"));
+    const map = {};
+    snap.docs.forEach(d => { map[d.id] = d.data().email || ''; });
+    cache.certOwners = map;
+  } catch(err) {
+    console.error("Load certificate owners error:", err);
+    cache.certOwners = cache.certOwners || {};
+  }
+  return cache.certOwners;
+}
+function getCertificateOwnerEmail(id) { return (cache.certOwners || {})[id] || ''; }
+
+// One-time clean-up: move emails out of public certificate documents into certificate_owners
+async function migrateCertificateEmails() {
+  await waitForFirebase();
+  const { collection, getDocs, doc, writeBatch, deleteField } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(collection(db, "certificates"));
+    const todo = snap.docs.filter(d => Object.prototype.hasOwnProperty.call(d.data(), 'email'));
+    for(let i = 0; i < todo.length; i += 200) {
+      const batch = writeBatch(db);
+      todo.slice(i, i + 200).forEach(d => {
+        const data = d.data();
+        const email = String(data.email || '').trim().toLowerCase();
+        if(email) batch.set(doc(db, "certificate_owners", d.id), { email, certId: data.certId || '', createdAt: Date.now() });
+        batch.update(d.ref, { email: deleteField() });
+      });
+      await batch.commit();
+    }
+    await loadCertificates();
+    return todo.length;
+  } catch(err) {
+    console.error("Migrate certificate emails error:", err);
+    return -1;
   }
 }
 
@@ -588,6 +654,37 @@ async function removeCertTemplate(eventId) {
   } catch(err) { console.error("Remove cert template error:", err); return false; }
 }
 
+/*===== ADMIN ACTIVITY LOG (read by the main admin only) =====*/
+async function loadAdminLogs(max) {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy, limit } = window.firebaseFunctions;
+  try {
+    const snap = await getDocs(query(collection(window.firebaseDB, "admin_logs"), orderBy("at", "desc"), limit(max || 300)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(err) {
+    console.error("Load admin logs error:", err);
+    return [];
+  }
+}
+async function deleteOldAdminLogs(beforeTs) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where, writeBatch } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "admin_logs"), where("at", "<", beforeTs)));
+    const docs = snap.docs;
+    for(let i = 0; i < docs.length; i += 400) {
+      const batch = writeBatch(db);
+      docs.slice(i, i + 400).forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
+    return docs.length;
+  } catch(err) {
+    console.error("Delete old admin logs error:", err);
+    return -1;
+  }
+}
+
 // Add many certificates at once (one read of existing IDs, then batched writes)
 async function addCertificatesBulk(list) {
   await waitForFirebase();
@@ -601,12 +698,19 @@ async function addCertificatesBulk(list) {
     if(clash) return { success: false, error: `Certificate ID ${clash.certId} already exists!` };
 
     const added = [];
-    for(let i = 0; i < list.length; i += 400) {
+    cache.certOwners = cache.certOwners || {};
+    for(let i = 0; i < list.length; i += 200) {          // 2 writes per certificate -> 400 per batch
       const batch = writeBatch(db);
-      list.slice(i, i + 400).forEach(c => {
+      list.slice(i, i + 200).forEach(c => {
+        const email = String(c.email || '').trim().toLowerCase();
+        const pub = { ...c }; delete pub.email;            // email is stored privately, never in the public document
         const ref = doc(collection(db, "certificates"));
-        const data = { ...c, createdAt: Date.now(), status: "Verified" };
+        const data = { ...pub, createdAt: Date.now(), status: "Verified" };
         batch.set(ref, data);
+        if(email) {
+          batch.set(doc(db, "certificate_owners", ref.id), { email, certId: pub.certId, createdAt: Date.now() });
+          cache.certOwners[ref.id] = email;
+        }
         added.push({ id: ref.id, ...data });
       });
       await batch.commit();
@@ -622,15 +726,27 @@ async function addCertificatesBulk(list) {
 // Update certificate
 async function updateCertificate(id, cert) {
   await waitForFirebase();
-  const { doc, updateDoc } = window.firebaseFunctions;
+  const { doc, updateDoc, setDoc, deleteDoc, deleteField } = window.firebaseFunctions;
   const db = window.firebaseDB;
   try {
-    cert.updatedAt = Date.now();
-    await updateDoc(doc(db, "certificates", id), cert);
+    const email = String(cert.email || '').trim().toLowerCase();
+    const pub = { ...cert }; delete pub.email;
+    pub.updatedAt = Date.now();
+    // email: deleteField() also scrubs any old public copy of the email
+    await updateDoc(doc(db, "certificates", id), { ...pub, email: deleteField() });
+
+    cache.certOwners = cache.certOwners || {};
+    if(email) {
+      await setDoc(doc(db, "certificate_owners", id), { email, certId: pub.certId || '', createdAt: Date.now() });
+      cache.certOwners[id] = email;
+    } else {
+      await deleteDoc(doc(db, "certificate_owners", id)).catch(() => {});
+      delete cache.certOwners[id];
+    }
     
     if(cache.certificates) {
       const idx = cache.certificates.findIndex(x => x.id === id);
-      if(idx > -1) cache.certificates[idx] = { id, ...cert };
+      if(idx > -1) cache.certificates[idx] = { id, ...pub };
     }
     
     return { success: true };
@@ -647,6 +763,8 @@ async function deleteCertificate(id) {
   const db = window.firebaseDB;
   try {
     await deleteDoc(doc(db, "certificates", id));
+    await deleteDoc(doc(db, "certificate_owners", id)).catch(() => {});
+    if(cache.certOwners) delete cache.certOwners[id];
     if(cache.certificates) {
       cache.certificates = cache.certificates.filter(x => x.id !== id);
     }

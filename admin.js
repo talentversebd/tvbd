@@ -182,6 +182,7 @@ function goSec(btn) {
     'network-adm': 'Our Network',
     'founder-adm': "Founder's Message",
     'users-adm': "Registered Users",
+    'log-adm': 'Activity Log',
     'msg-adm': 'Contact Messages',
     'reg-adm': 'Registrations',
     'cert-adm': 'Certificates',
@@ -218,6 +219,7 @@ function goSec(btn) {
   if(secId === 'set-adm' && typeof loadRegistrationSettings === 'function') loadRegistrationSettings();
   if(secId === 'founder-adm' && typeof loadFounderSettingsUI === 'function') loadFounderSettingsUI();
   if(secId === 'users-adm' && typeof loadRegisteredUsersUI === 'function') loadRegisteredUsersUI();
+  if(secId === 'log-adm') loadActivityLogUI();
   if(secId === 'popup-adm' && typeof loadPopupSettings === 'function') loadPopupSettings();
   if(secId === 'quiz-adm' && typeof loadQuizzes === 'function') loadQuizzes().then(() => renderQuizTable());
   if(secId === 'qsub-adm' && typeof loadQuizSubmissions === 'function') {
@@ -591,14 +593,15 @@ function openCertificateForm() {
   document.getElementById('cf-date').value = new Date().toISOString().split('T')[0];
   openFM('cfm');
 }
-function editCertificate(id) {
+async function editCertificate(id) {
   const c = getCertificates().find(x => x.id === id); if(!c) return;
+  await loadCertificateOwners();        // the email lives in a private collection
   document.getElementById('cfm-title').textContent = "Edit Certificate";
   document.getElementById('cf-eid').value = id;
   document.getElementById('cf-certid').value = c.certId||'';
   document.getElementById('cf-certid').disabled = true;
   document.getElementById('cf-name').value = c.name||'';
-  document.getElementById('cf-email').value = c.email||'';
+  document.getElementById('cf-email').value = getCertificateOwnerEmail(id) || c.email || '';
   document.getElementById('cf-event').value = c.event||'';
   document.getElementById('cf-position').value = c.position||'';
   document.getElementById('cf-date').value = c.issueDate||'';
@@ -915,6 +918,16 @@ async function saveMemberAccessUI(uid) {
   closeUserOverlay('member-access-ov');
   closeUserOverlay('user-detail-ov');
   loadRegisteredUsersUI();
+}
+
+/*===== ONE-TIME: hide participant emails from the public certificate documents =====*/
+async function migrateCertEmailsUI() {
+  if(!confirm('পুরোনো সার্টিফিকেট থেকে ইমেইল সরিয়ে সুরক্ষিত জায়গায় রাখা হবে। শুরু করবেন?')) return;
+  toast('কাজ চলছে…');
+  const n = await migrateCertificateEmails();
+  if(n < 0) return toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);
+  toast(n ? `${n}টা সার্টিফিকেটের ইমেইল সুরক্ষিত হয়েছে ✅` : 'সব ইমেইল আগে থেকেই সুরক্ষিত আছে ✅');
+  if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
 }
 
 /*===== CERTIFICATE TEMPLATE EDITOR =====
@@ -1357,6 +1370,54 @@ async function bulkZipPart(k) {
     toast('Downloaded! ✅');
   } catch(e) { console.error(e); toast('ZIP তৈরি করা যায়নি!', true); }
   btn.disabled = false; btn.textContent = label;
+}
+
+/*===== ACTIVITY LOG VIEWER (main admin only) =====*/
+let activityLogs = [];
+
+async function loadActivityLogUI() {
+  const tbody = document.getElementById('logtbl');
+  if(!tbody) return;
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Loading…</td></tr>`;
+  activityLogs = await loadAdminLogs(300);
+  const sel = document.getElementById('log-section');
+  const keep = sel.value;
+  const secs = [...new Set(activityLogs.map(l => l.section).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">সব সেকশন</option>' + secs.map(x => `<option value="${bcEsc(x)}" ${x === keep ? 'selected' : ''}>${bcEsc(x)}</option>`).join('');
+  renderActivityLog();
+}
+
+function renderActivityLog() {
+  const tbody = document.getElementById('logtbl');
+  if(!tbody) return;
+  const sec = document.getElementById('log-section').value;
+  const q = (document.getElementById('log-search').value || '').trim().toLowerCase();
+  const rows = activityLogs.filter(l =>
+    (!sec || l.section === sec) &&
+    (!q || [l.email, l.target, l.details, l.section, l.action].join(' ').toLowerCase().includes(q)));
+  document.getElementById('log-count').textContent = rows.length ? `${rows.length}টা এন্ট্রি` : '';
+  if(!rows.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">কোনো লগ নেই।</td></tr>`;
+    return;
+  }
+  const color = a => /delete|revoke/.test(a) ? '#f87171' : /add/.test(a) ? '#4ade80' : '#60a5fa';
+  tbody.innerHTML = rows.map(l => `
+    <tr>
+      <td style="white-space:nowrap;">${fmtUserDate(l.at)}</td>
+      <td>${escUser(l.email)}</td>
+      <td><span style="color:${color(l.action || '')};font-weight:700;text-transform:capitalize;">${bcEsc(l.action)}</span></td>
+      <td>${escUser(l.section)}</td>
+      <td>${escUser(l.target)}</td>
+      <td style="color:var(--muted);">${escUser(l.details)}</td>
+    </tr>`).join('');
+}
+
+async function clearOldLogsUI() {
+  if(!confirm('৩০ দিনের পুরোনো সব লগ মুছে যাবে। নিশ্চিত?')) return;
+  const n = await deleteOldAdminLogs(Date.now() - 30 * 24 * 3600 * 1000);
+  if(n < 0) return toast('মুছতে ব্যর্থ!', true);
+  toast(`${n}টা পুরোনো লগ মুছে গেছে।`);
+  loadActivityLogUI();
 }
 
 async function loadPopupSettings() {

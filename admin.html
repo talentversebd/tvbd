@@ -172,6 +172,7 @@ select.fi{cursor:pointer}
 
 <div class="adm-ns">Accounts</div>
 <button class="adm-nb" data-sec="users-adm" onclick="goSec(this)"><span class="ico">👥</span>Registered Users</button>
+<button class="adm-nb" data-sec="log-adm" onclick="goSec(this)"><span class="ico">📜</span>Activity Log</button>
 
 <div class="adm-ns">Verification</div>
 <button class="adm-nb" data-sec="cert-adm" onclick="goSec(this)"><span class="ico">📜</span>Certificates</button>
@@ -268,6 +269,29 @@ select.fi{cursor:pointer}
           <table class="tbl">
             <thead><tr><th>Student</th><th>Quiz</th><th>MCQ Score</th><th>Short Score</th><th>Total</th><th>Status</th><th>Started</th><th>Submitted</th><th>Time Taken</th><th>Actions</th></tr></thead>
             <tbody id="qstbl"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ACTIVITY LOG (main admin only) -->
+      <div class="adm-sec" id="log-adm">
+        <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">📜 Activity Log</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+            অ্যাডমিন ও সদস্যরা কে কখন কী যোগ, এডিট বা মুছেছে তার তালিকা (সর্বশেষ ৩০০টা)। শুধু সফল পরিবর্তন লেখা হয়। এই তালিকা শুধু আপনি দেখতে পারবেন।
+          </p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+          <select class="fi" id="log-section" style="width:auto;min-width:150px;" onchange="renderActivityLog()"><option value="">সব সেকশন</option></select>
+          <input class="fi" id="log-search" placeholder="ইমেইল / আইটেম খুঁজুন…" style="flex:1;min-width:170px;" oninput="renderActivityLog()">
+          <button class="add-btn" onclick="loadActivityLogUI()">🔄 Refresh</button>
+          <button class="d-btn" style="padding:9px 14px;" onclick="clearOldLogsUI()">🗑 ৩০ দিনের আগের মুছুন</button>
+        </div>
+        <p id="log-count" style="font-size:.78rem;color:var(--muted);margin-bottom:8px;"></p>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>সময়</th><th>কে</th><th>কাজ</th><th>সেকশন</th><th>আইটেম</th><th>বিস্তারিত</th></tr></thead>
+            <tbody id="logtbl"></tbody>
           </table>
         </div>
       </div>
@@ -400,6 +424,7 @@ select.fi{cursor:pointer}
   </div>
   
   <div style="margin-bottom:16px;">
+    <button class="e-btn" onclick="migrateCertEmailsUI()" style="margin-right:8px;padding:9px 14px;">🔒 ইমেইল সুরক্ষিত করুন</button>
     <button class="add-btn" onclick="openCertTemplate()" style="margin-right:8px;">🖼 Certificate Template</button>
     <button class="add-btn" onclick="openBulkCert()">⚡ Bulk Generate from Event</button>
     <span style="font-size:.76rem;color:var(--muted);margin-left:10px;display:block;margin-top:8px;line-height:1.7;">১) আপনার ডিজাইন করা সার্টিফিকেটের ছবি আপলোড করে Name / Verify ID / QR-এর জায়গা ঠিক করুন · ২) তারপর Bulk Generate দিয়ে অংশগ্রহণকারীদের সার্টিফিকেট তৈরি করুন। (বিজয়ীদের আপনি নিজে মেইল করবেন)</span>
@@ -1017,6 +1042,7 @@ select.fi{cursor:pointer}
 <script src="data.js"></script>
 <script src="render.js"></script>
 <script src="certificate-render.js"></script>
+<script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
 <script src="admin.js"></script>
 <script src="main.js"></script>

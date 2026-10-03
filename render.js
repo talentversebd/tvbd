@@ -49,22 +49,27 @@ function renderHome() {
   const fphone = document.getElementById('f-phone');
   const faddr = document.getElementById('f-addr');
 
-  if(badge) badge.textContent = h.badge;
-  if(title) title.innerHTML = h.title.replace('[','<span>').replace(']','</span>');
-  if(sub) sub.textContent = h.sub;
-  if(b1) b1.textContent = h.b1;
-  if(b2) b2.textContent = h.b2;
-  if(odesc) odesc.textContent = h.odesc;
+  // Texts the admin never customised keep their data-i18n translation (English/Bangla toggle).
+  // Only customised texts are written over them.
+  const dflt = (typeof DEFAULT_HOME !== 'undefined') ? DEFAULT_HOME : {};
+  const custom = k => h[k] !== undefined && h[k] !== dflt[k];
+  if(badge && custom('badge')) badge.textContent = h.badge;
+  if(title && custom('title')) title.innerHTML = h.title.replace('[','<span>').replace(']','</span>');
+  if(sub && custom('sub')) sub.textContent = h.sub;
+  if(b1 && custom('b1')) b1.textContent = h.b1;
+  if(b2 && custom('b2')) b2.textContent = h.b2;
+  if(odesc && custom('odesc')) odesc.textContent = h.odesc;
   if(s1n) s1n.textContent = h.s1n;
-  if(s1l) s1l.textContent = h.s1l;
+  if(s1l && custom('s1l')) s1l.textContent = h.s1l;
   if(s2n) s2n.textContent = h.s2n;
-  if(s2l) s2l.textContent = h.s2l;
+  if(s2l && custom('s2l')) s2l.textContent = h.s2l;
   if(s3n) s3n.textContent = h.s3n;
-  if(s3l) s3l.textContent = h.s3l;
-  if(quote) quote.textContent = h.quote;
+  if(s3l && custom('s3l')) s3l.textContent = h.s3l;
+  if(quote && custom('quote')) quote.textContent = h.quote;
   if(femail) { femail.textContent = h.femail; femail.href = 'mailto:' + h.femail; }
   if(fphone) { fphone.textContent = h.fphone; fphone.href = 'tel:' + h.fphone; }
-  if(faddr) faddr.textContent = h.faddr;
+  if(faddr && custom('faddr')) faddr.textContent = h.faddr;
+  if(typeof applyLanguage === 'function') applyLanguage();
 }
 
 /*===== RENDER OLYMPIADS =====*/

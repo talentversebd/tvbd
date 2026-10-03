@@ -649,8 +649,21 @@ select.fi{cursor:pointer}
           <div class="fg"><label>Subject *</label><input class="fi" id="ntf-subject" placeholder="e.g. New Event: National Science Olympiad 2026"></div>
           <div class="fg"><label>Message *</label><textarea class="fi" id="ntf-message" style="min-height:160px;" placeholder="Write your announcement here..."></textarea></div>
 
+          <div class="fg">
+            <label>Secret Key (Apps Script) *</label>
+            <input class="fi" id="ntf-secret" type="password" placeholder="Script e ja secret dichho sheta" autocomplete="off">
+            <div id="ntf-quota" style="font-size:.75rem;color:var(--muted);margin-top:6px;"></div>
+          </div>
+
+          <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;margin-bottom:14px;cursor:pointer;">
+            <input type="checkbox" id="ntf-also-dash" checked> 🔔 ইমেইলের সাথে ড্যাশবোর্ডের ঘণ্টায়ও দেখান
+          </label>
+
           <button id="ntf-send-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="sendNotificationCampaign()">
             📨 Send Notification
+          </button>
+          <button type="button" class="fc-btn" style="width:100%;padding:12px;margin-top:10px;" onclick="postDashboardOnly()">
+            🔔 শুধু ড্যাশবোর্ডে পোস্ট করুন (ইমেইল ছাড়া)
           </button>
 
           <!-- Progress -->

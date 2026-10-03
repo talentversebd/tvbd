@@ -97,7 +97,16 @@
           <span class="eyebrow" style="margin-bottom:2px;">Logged in as</span>
           <div id="db-email" style="font-weight:700;color:var(--txt);"></div>
         </div>
-        <button onclick="dbLogout()" style="background:var(--card);border:1px solid var(--bdr);color:var(--txt);padding:9px 18px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;">🚪 Log Out</button>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button id="db-bell" onclick="dbToggleBell()" aria-label="Notifications" style="position:relative;background:var(--card);border:1px solid var(--bdr);color:var(--txt);width:40px;height:40px;border-radius:50%;font-size:1.1rem;cursor:pointer;">🔔<span id="db-bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#ef4444;color:#fff;font-size:.68rem;font-weight:800;line-height:18px;text-align:center;"></span></button>
+          <button onclick="dbLogout()" style="background:var(--card);border:1px solid var(--bdr);color:var(--txt);padding:9px 18px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;">🚪 Log Out</button>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS PANEL -->
+      <div id="db-bell-panel" style="display:none;background:var(--card);border:1px solid var(--bdr2);border-radius:12px;padding:6px;margin-bottom:20px;max-height:340px;overflow-y:auto;">
+        <div style="font-weight:800;font-size:.9rem;padding:10px 12px;">🔔 নোটিফিকেশন</div>
+        <div id="db-bell-list"></div>
       </div>
 
       <!-- DASHBOARD QUICK TABS -->
@@ -524,6 +533,42 @@ document.addEventListener('DOMContentLoaded', () => {
 let dbUser = null;
 let dbProfile = null;
 
+/*===== NOTIFICATION BELL =====*/
+function dbEsc(t) { return String(t || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function dbSeenKey() { return 'tvbd_ann_seen_' + (dbUser ? dbUser.uid : ''); }
+function dbGetSeen() { try { return Number(localStorage.getItem(dbSeenKey())) || 0; } catch(e) { return 0; } }
+
+async function dbLoadBell() {
+  if(typeof loadAnnouncements !== 'function') return;
+  const list = await loadAnnouncements();
+  const seen = dbGetSeen();
+  const unread = list.filter(a => (a.createdAt || 0) > seen).length;
+  const badge = document.getElementById('db-bell-badge');
+  badge.textContent = unread > 9 ? '9+' : unread;
+  badge.style.display = unread ? 'block' : 'none';
+
+  document.getElementById('db-bell-list').innerHTML = list.length ? list.map(a => `
+    <div style="padding:12px;border-top:1px solid var(--bdr);${(a.createdAt || 0) > seen ? 'background:rgba(59,130,246,.08);' : ''}">
+      <div style="font-weight:700;font-size:.88rem;margin-bottom:4px;">${dbEsc(a.title)}</div>
+      <div style="font-size:.82rem;color:var(--muted);line-height:1.6;white-space:pre-wrap;">${dbEsc(a.message)}</div>
+      <div style="font-size:.7rem;color:var(--muted);margin-top:6px;">${a.createdAt ? new Date(a.createdAt).toLocaleString() : ''}</div>
+    </div>`).join('')
+    : '<div style="padding:16px;color:var(--muted);font-size:.85rem;">এখনো কোনো নোটিফিকেশন নেই।</div>';
+}
+
+function dbToggleBell() {
+  const panel = document.getElementById('db-bell-panel');
+  const opening = panel.style.display === 'none';
+  panel.style.display = opening ? 'block' : 'none';
+  if(opening) {
+    // mark everything as read (the highlight stays until the panel is reopened)
+    const list = (typeof getAnnouncements === 'function' ? getAnnouncements() : []);
+    const newest = list.reduce((m, a) => Math.max(m, a.createdAt || 0), 0);
+    try { if(newest) localStorage.setItem(dbSeenKey(), String(newest)); } catch(e) {}
+    document.getElementById('db-bell-badge').style.display = 'none';
+  }
+}
+
 async function dbLoadDashboard(user) {
   dbUser = user;
   document.getElementById('db-welcome').textContent = `স্বাগতম, ${user.email}`;
@@ -544,6 +589,7 @@ async function dbLoadDashboard(user) {
     try { const mc = await ensureMemberCode(user.uid, dbProfile); if(mc) dbProfile.memberCode = mc; } catch(e) {}
   }
   dbRenderProfile();
+  dbLoadBell();
   // Official members with admin access get a shortcut to the panel
   if(typeof getMyAccess === 'function') {
     getMyAccess(user.uid).then(a => {

@@ -1743,6 +1743,42 @@ async function getRegisteredUserById(uid) {
   }
 }
 
+/*===== DASHBOARD ANNOUNCEMENTS (bell icon) =====*/
+
+async function addAnnouncement(title, message) {
+  await waitForFirebase();
+  const { collection, addDoc } = window.firebaseFunctions;
+  try {
+    await addDoc(collection(window.firebaseDB, "announcements"), { title, message, createdAt: Date.now() });
+    return true;
+  } catch(err) {
+    console.error("Add announcement error:", err);
+    return false;
+  }
+}
+
+async function loadAnnouncements() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy, limit } = window.firebaseFunctions;
+  try {
+    const snap = await getDocs(query(collection(window.firebaseDB, "announcements"), orderBy("createdAt", "desc"), limit(20)));
+    cache.announcements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(err) {
+    console.error("Load announcements error:", err);
+    cache.announcements = cache.announcements || [];
+  }
+  return cache.announcements;
+}
+
+async function deleteAnnouncement(id) {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  try { await deleteDoc(doc(window.firebaseDB, "announcements", id)); return true; }
+  catch(err) { console.error("Delete announcement error:", err); return false; }
+}
+
+function getAnnouncements() { return cache.announcements || []; }
+
 /*===== EMAIL NOTIFICATION CAMPAIGNS =====*/
 
 async function addNotificationRecord(rec) {

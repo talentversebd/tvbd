@@ -2032,16 +2032,17 @@ function applyNotifyTemplate(key) {
 }
 
 async function initNotifyPanel() {
-  // Warn if the "send to users" EmailJS template hasn't been configured yet
+  // Sending now goes through a Google Apps Script web app (free Gmail quota)
   const warn = document.getElementById('ntf-config-warning');
-  if(!window.EMAILJS_CONFIG || !window.EMAILJS_CONFIG.notifyTemplateId) {
+  if(!notifyScriptUrl()) {
     warn.style.display = 'block';
-    warn.innerHTML = '⚠️ No EmailJS "notify" template configured yet — sending is disabled. See <code>firebase-config.js</code> → <code>EMAILJS_CONFIG.notifyTemplateId</code> for setup instructions.';
+    warn.innerHTML = '⚠️ Apps Script URL set kora hoyni — sending bondho. <code>firebase-config.js</code> → <code>EMAILJS_CONFIG.notifyScriptUrl</code> e Web App URL boshao.';
     document.getElementById('ntf-send-btn').disabled = true;
   } else {
     warn.style.display = 'none';
     document.getElementById('ntf-send-btn').disabled = false;
   }
+  try { document.getElementById('ntf-secret').value = localStorage.getItem('tvbd_notify_secret') || ''; } catch(e) {}
 
   // Populate quiz dropdown
   if(typeof loadQuizzes === 'function') await loadQuizzes();
@@ -2094,48 +2095,88 @@ function updateNotifyAudiencePreview() {
     count > 0 ? `📬 ${count} recipient${count !== 1 ? 's' : ''} will receive this email.` : '⚠️ No valid email addresses found for this audience yet.';
 }
 
+async function postDashboardOnly() {
+  const subject = document.getElementById('ntf-subject').value.trim();
+  const message = document.getElementById('ntf-message').value.trim();
+  if(!subject || !message) return toast("Subject and message are required!", true);
+  if(!confirm("এটি সব লগইন করা ইউজারের ড্যাশবোর্ডের ঘণ্টায় দেখাবে। চালিয়ে যাবেন?")) return;
+  const ok = await addAnnouncement(subject, message);
+  toast(ok ? "ড্যাশবোর্ডে পোস্ট হয়েছে! 🔔" : "পোস্ট হয়নি — Firestore rules চেক করুন", !ok);
+}
+
+function notifyScriptUrl() {
+  return (window.EMAILJS_CONFIG && window.EMAILJS_CONFIG.notifyScriptUrl || '').trim();
+}
+
+// text/plain avoids a CORS preflight, which Apps Script web apps can't answer.
+async function notifyCall(payload) {
+  const res = await fetch(notifyScriptUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
+}
+
 async function sendNotificationCampaign() {
   const subject = document.getElementById('ntf-subject').value.trim();
   const message = document.getElementById('ntf-message').value.trim();
   const audience = document.getElementById('ntf-audience').value;
+  const secret = document.getElementById('ntf-secret').value.trim();
   const recipients = getNotifyRecipientEmails();
 
   if(!subject || !message) return toast("Subject and message are required!", true);
   if(!recipients.length) return toast("No recipients found for this audience!", true);
-  if(!window.EMAILJS_CONFIG || !window.EMAILJS_CONFIG.notifyTemplateId) {
-    return toast("EmailJS notify template isn't configured yet — see Settings notes.", true);
-  }
-  if(!confirm(`Send this email to ${recipients.length} recipient(s)? This can't be undone.`)) return;
+  if(!notifyScriptUrl()) return toast("Apps Script URL set kora hoyni — firebase-config.js dekho.", true);
+  if(!secret) return toast("Secret Key din!", true);
+  try { localStorage.setItem('tvbd_notify_secret', secret); } catch(e) {}
 
   const btn = document.getElementById('ntf-send-btn');
   btn.disabled = true;
+
+  // Check today's remaining Gmail quota first
+  try {
+    const q = await notifyCall({ action: 'quota', secret });
+    if(!q.ok) { btn.disabled = false; return toast(q.error || "Secret Key bhul!", true); }
+    document.getElementById('ntf-quota').textContent = `Aj ar ${q.remaining} ta email pathano jabe.`;
+    if(recipients.length > q.remaining) {
+      btn.disabled = false;
+      return toast(`Quota kom! Aj mat ${q.remaining} ta pathano jabe, kintu recipient ${recipients.length} jon.`, true);
+    }
+  } catch(err) {
+    console.error(err);
+    btn.disabled = false;
+    return toast("Apps Script er sathe connect hoyni. URL ar deployment check korun.", true);
+  }
+
+  if(!confirm(`Send this email to ${recipients.length} recipient(s)? This can't be undone.`)) { btn.disabled = false; return; }
+
   const progressWrap = document.getElementById('ntf-progress-wrap');
   const progressBar = document.getElementById('ntf-progress-bar');
   const progressText = document.getElementById('ntf-progress-text');
   progressWrap.style.display = 'block';
 
+  const BATCH = 20;
   let sent = 0, failed = 0;
-  for(let i = 0; i < recipients.length; i++) {
-    const to = recipients[i];
+  for(let i = 0; i < recipients.length; i += BATCH) {
+    const chunk = recipients.slice(i, i + BATCH);
     try {
-      await emailjs.send(
-        window.EMAILJS_CONFIG.serviceId,
-        window.EMAILJS_CONFIG.notifyTemplateId,
-        { to_email: to, subject, message },
-        window.EMAILJS_CONFIG.publicKey
-      );
-      sent++;
+      const r = await notifyCall({ action: 'send', secret, recipients: chunk, subject, message });
+      if(r.ok) { sent += r.sent; failed += r.failed; }
+      else { failed += chunk.length; console.error("Notify batch error:", r.error); }
     } catch(err) {
-      console.error("Notify send failed for", to, err);
-      failed++;
+      console.error("Notify batch failed", err);
+      failed += chunk.length;
     }
-    const pct = Math.round(((i + 1) / recipients.length) * 100);
-    progressBar.style.width = pct + '%';
-    progressText.textContent = `Sending... ${i + 1} / ${recipients.length} (${sent} sent, ${failed} failed)`;
-    // Small delay to stay well under EmailJS rate limits
-    await new Promise(r => setTimeout(r, 400));
+    const done = Math.min(i + BATCH, recipients.length);
+    progressBar.style.width = Math.round((done / recipients.length) * 100) + '%';
+    progressText.textContent = `Sending... ${done} / ${recipients.length} (${sent} sent, ${failed} failed)`;
   }
 
+  if(sent > 0 && document.getElementById('ntf-also-dash').checked) {
+    const ok = await addAnnouncement(subject, message);
+    if(!ok) toast("ইমেইল গেছে, কিন্তু ড্যাশবোর্ডে পোস্ট হয়নি (Firestore rules চেক করুন)", true);
+  }
   await addNotificationRecord({ subject, audience, recipientCount: recipients.length, sent, failed });
   await loadNotificationHistory();
   renderNotifyHistory();

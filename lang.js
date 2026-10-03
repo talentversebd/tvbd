@@ -187,7 +187,7 @@ const translations = {
     cf_submit: "Send Message 🚀",
 
     // Toast / misc
-    lang_switch: "বাং",
+    lang_switch: "বাংলা",
   },
 
   bn: {
@@ -366,7 +366,7 @@ const translations = {
     cf_submit: "মেসেজ পাঠান 🚀",
 
     // Toast / misc
-    lang_switch: "EN",
+    lang_switch: "English",
   }
 };
 
@@ -2200,15 +2200,30 @@ const I18N_PAIRS = [
     };
   });
 
-  // Pages without a language button (vote, forms) get a small floating one
+  // One floating language button on every page (bottom-left, away from the
+  // scroll-to-top button and toasts on the right). The old in-menu button is removed.
   function ensureToggle() {
-    if (document.querySelector('.lang-toggle-btn')) return;
+    document.querySelectorAll('.lang-toggle-btn:not(.lang-toggle-float)').forEach(el => el.remove());
+    if (document.querySelector('.lang-toggle-float')) return;
+    if (!document.getElementById('i18n-float-css')) {
+      const st = document.createElement('style');
+      st.id = 'i18n-float-css';
+      st.textContent = '.lang-toggle-btn.lang-toggle-float{position:fixed;left:14px;right:auto;width:auto;max-width:none;margin:0;justify-content:center;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9998;'
+        + 'display:inline-flex;align-items:center;gap:6px;background:#0b1730;color:#fff;border:1px solid rgba(96,165,250,.55);'
+        + 'border-radius:999px;padding:10px 16px;font-weight:800;font-size:.85rem;line-height:1;cursor:pointer;'
+        + 'box-shadow:0 6px 20px rgba(0,0,0,.4);transition:transform .15s,background .2s;-webkit-tap-highlight-color:transparent;}'
+        + '.lang-toggle-btn.lang-toggle-float:hover{background:#12274d;transform:translateY(-2px);}'
+        + '.lang-toggle-btn.lang-toggle-float:active{transform:scale(.96);}'
+        + '@media(max-width:700px){.lang-toggle-btn.lang-toggle-float{left:12px;width:auto;margin:0;padding:9px 14px;font-size:.8rem;}}'
+        + '@media print{.lang-toggle-btn.lang-toggle-float{display:none!important;}}';
+      document.head.appendChild(st);
+    }
     const b = document.createElement('button');
+    b.type = 'button';
     b.className = 'lang-toggle-btn lang-toggle-float';
     b.setAttribute('aria-label', 'Switch language');
     b.setAttribute('data-no-i18n', '');
     b.setAttribute('onclick', 'toggleLang()');
-    b.style.cssText = 'position:fixed;left:14px;bottom:14px;z-index:9999;background:#0b1730;color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:9px 14px;font-weight:700;font-size:.8rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);';
     b.innerHTML = '🌐 <span class="lang-toggle-label"></span>';
     document.body.appendChild(b);
   }

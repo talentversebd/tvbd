@@ -1742,3 +1742,35 @@ async function getRegisteredUserById(uid) {
     return null;
   }
 }
+
+/*===== EMAIL NOTIFICATION CAMPAIGNS =====*/
+
+async function addNotificationRecord(rec) {
+  await waitForFirebase();
+  const { collection, addDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    rec.sentAt = Date.now();
+    await addDoc(collection(db, "notification_campaigns"), rec);
+    return true;
+  } catch(err) {
+    console.error("Add notification record error:", err);
+    return false;
+  }
+}
+
+async function loadNotificationHistory() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "notification_campaigns"), orderBy("sentAt", "desc")));
+    cache.notificationHistory = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return cache.notificationHistory;
+  } catch(err) {
+    console.error("Load notification history error:", err);
+    cache.notificationHistory = cache.notificationHistory || [];
+    return cache.notificationHistory;
+  }
+}
+function getNotificationHistory() { return cache.notificationHistory || []; }

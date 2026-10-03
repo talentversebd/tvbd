@@ -40,8 +40,13 @@ window.IMGBB_KEY = "b374ae6a3edcf12a90a5b7be9ec39f50";
 
 window.EMAILJS_CONFIG = {
   serviceId: "service_5d6f3df",
-  templateId: "template_gylaytb",
-  publicKey: "oUx7nluCmNJyGq1L30cFJ"
+  templateId: "template_gylaytb",   // used for admin-notification emails (contact form, registration alerts) — always sends to the fixed admin inbox set inside this template
+  // Used for emails sent OUT to users (event/result/exam announcements from the
+  // "Email Notifications" admin panel). This must be a DIFFERENT EmailJS template
+  // whose "To Email" field is set to {{to_email}} (not a fixed address), with
+  // {{subject}} and {{message}} used in the subject/body. Create it in the EmailJS
+  // dashboard and paste its ID here — until then, bulk notifications can't be sent.
+  notifyTemplateId: ""
 };
 
 console.log("🔥 Firebase Initialized (Firestore + Auth)!");

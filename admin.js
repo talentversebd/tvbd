@@ -187,6 +187,7 @@ function goSec(btn) {
     'reg-adm': 'Registrations',
     'cert-adm': 'Certificates',
     'popup-adm': 'Popup Notice',
+    'notify-adm': 'Email Notifications',
     'set-adm': 'System Settings'
   };
   const ptitle = document.getElementById('adm-ptitle');
@@ -221,6 +222,7 @@ function goSec(btn) {
   if(secId === 'users-adm' && typeof loadRegisteredUsersUI === 'function') loadRegisteredUsersUI();
   if(secId === 'log-adm') loadActivityLogUI();
   if(secId === 'popup-adm' && typeof loadPopupSettings === 'function') loadPopupSettings();
+  if(secId === 'notify-adm' && typeof initNotifyPanel === 'function') initNotifyPanel();
   if(secId === 'quiz-adm' && typeof loadQuizzes === 'function') loadQuizzes().then(() => renderQuizTable());
   if(secId === 'qsub-adm' && typeof loadQuizSubmissions === 'function') {
     Promise.all([loadQuizzes(), loadQuizSubmissions()]).then(() => renderQuizSubmissionsTable());
@@ -2003,4 +2005,160 @@ async function saveQuizGrade() {
   } else {
     toast(result.error || "Failed to save score!", true);
   }
+}
+
+/*===== EMAIL NOTIFICATIONS =====*/
+
+const NOTIFY_TEMPLATES = {
+  event: {
+    subject: "New Event: [Event Name] — TalentVerse Bangladesh",
+    message: "Hello,\n\nWe're excited to announce a new event: [Event Name]!\n\nDate: [Date]\nRegistration deadline: [Deadline]\n\nRegister now at https://talentversebd.github.io/tvbd/register.html\n\nSee you there!\n— TalentVerse Bangladesh"
+  },
+  result: {
+    subject: "Results Published — [Event/Quiz Name]",
+    message: "Hello,\n\nThe results for [Event/Quiz Name] have been published!\n\nCheck your result here: [link]\n\nThank you for participating.\n— TalentVerse Bangladesh"
+  },
+  exam: {
+    subject: "Reminder: [Exam Name] starts soon!",
+    message: "Hello,\n\nThis is a reminder that [Exam Name] begins on [Date/Time].\n\nMake sure to join on time at https://talentversebd.github.io/tvbd/quiz.html\n\nGood luck!\n— TalentVerse Bangladesh"
+  }
+};
+
+function applyNotifyTemplate(key) {
+  const t = NOTIFY_TEMPLATES[key];
+  if(!t) return;
+  document.getElementById('ntf-subject').value = t.subject;
+  document.getElementById('ntf-message').value = t.message;
+}
+
+async function initNotifyPanel() {
+  // Warn if the "send to users" EmailJS template hasn't been configured yet
+  const warn = document.getElementById('ntf-config-warning');
+  if(!window.EMAILJS_CONFIG || !window.EMAILJS_CONFIG.notifyTemplateId) {
+    warn.style.display = 'block';
+    warn.innerHTML = '⚠️ No EmailJS "notify" template configured yet — sending is disabled. See <code>firebase-config.js</code> → <code>EMAILJS_CONFIG.notifyTemplateId</code> for setup instructions.';
+    document.getElementById('ntf-send-btn').disabled = true;
+  } else {
+    warn.style.display = 'none';
+    document.getElementById('ntf-send-btn').disabled = false;
+  }
+
+  // Populate quiz dropdown
+  if(typeof loadQuizzes === 'function') await loadQuizzes();
+  const quizSelect = document.getElementById('ntf-quiz-select');
+  const quizzes = typeof getQuizzes === 'function' ? getQuizzes() : [];
+  quizSelect.innerHTML = quizzes.map(q => `<option value="${q.id}">${q.title}</option>`).join('') || '<option value="">(no quizzes yet)</option>';
+
+  // Make sure audience data is loaded so the count preview works instantly
+  await Promise.all([
+    typeof loadRegisteredUsers === 'function' ? loadRegisteredUsers() : null,
+    typeof loadRegistrations === 'function' ? loadRegistrations() : null,
+    typeof loadQuizSubmissions === 'function' ? loadQuizSubmissions() : null
+  ]);
+
+  document.getElementById('ntf-audience').value = 'users';
+  updateNotifyAudiencePreview();
+  renderNotifyHistory();
+}
+
+function getNotifyRecipientEmails() {
+  const audience = document.getElementById('ntf-audience').value;
+  let emails = [];
+
+  if(audience === 'users') {
+    emails = (getRegisteredUsers() || []).map(u => u.email);
+  } else if(audience === 'registrations') {
+    emails = (getRegistrations() || []).map(r => r.email);
+  } else if(audience === 'quiz') {
+    const quizId = document.getElementById('ntf-quiz-select').value;
+    emails = (getQuizSubmissions() || []).filter(s => s.quizId === quizId).map(s => s.email);
+  } else if(audience === 'custom') {
+    const raw = document.getElementById('ntf-custom-emails').value;
+    emails = raw.split(/[\n,]/).map(e => e.trim()).filter(Boolean);
+  }
+
+  // Dedupe + basic validity filter
+  const seen = new Set();
+  return emails
+    .map(e => (e || '').trim().toLowerCase())
+    .filter(e => e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && !seen.has(e) && seen.add(e));
+}
+
+function updateNotifyAudiencePreview() {
+  const audience = document.getElementById('ntf-audience').value;
+  document.getElementById('ntf-quiz-wrap').classList.toggle('qz-hidden', audience !== 'quiz');
+  document.getElementById('ntf-custom-wrap').classList.toggle('qz-hidden', audience !== 'custom');
+
+  const count = getNotifyRecipientEmails().length;
+  document.getElementById('ntf-audience-count').textContent =
+    count > 0 ? `📬 ${count} recipient${count !== 1 ? 's' : ''} will receive this email.` : '⚠️ No valid email addresses found for this audience yet.';
+}
+
+async function sendNotificationCampaign() {
+  const subject = document.getElementById('ntf-subject').value.trim();
+  const message = document.getElementById('ntf-message').value.trim();
+  const audience = document.getElementById('ntf-audience').value;
+  const recipients = getNotifyRecipientEmails();
+
+  if(!subject || !message) return toast("Subject and message are required!", true);
+  if(!recipients.length) return toast("No recipients found for this audience!", true);
+  if(!window.EMAILJS_CONFIG || !window.EMAILJS_CONFIG.notifyTemplateId) {
+    return toast("EmailJS notify template isn't configured yet — see Settings notes.", true);
+  }
+  if(!confirm(`Send this email to ${recipients.length} recipient(s)? This can't be undone.`)) return;
+
+  const btn = document.getElementById('ntf-send-btn');
+  btn.disabled = true;
+  const progressWrap = document.getElementById('ntf-progress-wrap');
+  const progressBar = document.getElementById('ntf-progress-bar');
+  const progressText = document.getElementById('ntf-progress-text');
+  progressWrap.style.display = 'block';
+
+  let sent = 0, failed = 0;
+  for(let i = 0; i < recipients.length; i++) {
+    const to = recipients[i];
+    try {
+      await emailjs.send(
+        window.EMAILJS_CONFIG.serviceId,
+        window.EMAILJS_CONFIG.notifyTemplateId,
+        { to_email: to, subject, message },
+        window.EMAILJS_CONFIG.publicKey
+      );
+      sent++;
+    } catch(err) {
+      console.error("Notify send failed for", to, err);
+      failed++;
+    }
+    const pct = Math.round(((i + 1) / recipients.length) * 100);
+    progressBar.style.width = pct + '%';
+    progressText.textContent = `Sending... ${i + 1} / ${recipients.length} (${sent} sent, ${failed} failed)`;
+    // Small delay to stay well under EmailJS rate limits
+    await new Promise(r => setTimeout(r, 400));
+  }
+
+  await addNotificationRecord({ subject, audience, recipientCount: recipients.length, sent, failed });
+  await loadNotificationHistory();
+  renderNotifyHistory();
+
+  progressText.textContent = `Done! ${sent} sent, ${failed} failed.`;
+  toast(failed === 0 ? `Sent to all ${sent} recipients! 🎉` : `Sent to ${sent}, ${failed} failed.`, failed > 0);
+  btn.disabled = false;
+}
+
+function renderNotifyHistory() {
+  const tbody = document.getElementById('ntf-history-tbl');
+  const history = getNotificationHistory();
+  if(!history.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No campaigns sent yet.</td></tr>`;
+    return;
+  }
+  const audienceLabels = { users: 'Registered Users', registrations: 'Registrations', quiz: 'Quiz Participants', custom: 'Custom List' };
+  tbody.innerHTML = history.map(h => `
+    <tr>
+      <td><strong>${h.subject}</strong></td>
+      <td>${audienceLabels[h.audience] || h.audience}</td>
+      <td>${h.recipientCount}</td>
+      <td>${h.sent} sent${h.failed ? `, ${h.failed} failed` : ''}</td>
+      <td style="color:var(--muted);font-size:.78rem;">${h.sentAt ? new Date(h.sentAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
+    </tr>`).join('');
 }

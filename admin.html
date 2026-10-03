@@ -11,6 +11,7 @@
 #admin-wrap{position:fixed;inset:0;z-index:4000;display:flex;flex-direction:column;background:var(--bg)}
 .adm-login{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(37,99,235,.12) 0%,transparent 70%),var(--bg)}
 .adm-login.hidden{display:none}
+.qz-hidden{display:none !important}
 .login-box{background:var(--card);border:1px solid var(--bdr2);border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:var(--glow);text-align:center}
 @media(max-width:440px){.login-box{padding:28px 20px;margin:0 12px}}
 .login-box img{width:68px;height:68px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-br);margin-bottom:16px;background:#fff}
@@ -179,6 +180,7 @@ select.fi{cursor:pointer}
 <div class="adm-ns">Notice & Settings</div>
 <button class="adm-nb" data-sec="founder-adm" onclick="goSec(this)"><span class="ico">👤</span>Founder's Message</button>
 <button class="adm-nb" data-sec="popup-adm" onclick="goSec(this)"><span class="ico">📢</span>Popup Notice</button>
+<button class="adm-nb" data-sec="notify-adm" onclick="goSec(this)"><span class="ico">📧</span>Email Notifications</button>
 <button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
       </nav>
       <div class="adm-sb-footer">
@@ -596,6 +598,82 @@ select.fi{cursor:pointer}
     
   </div>
 </div>
+
+      <!-- EMAIL NOTIFICATIONS -->
+      <div class="adm-sec" id="notify-adm">
+        <div class="set-wrap" style="max-width:760px;">
+
+          <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:22px;">
+            <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">📧 Email Notifications</h3>
+            <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+              Send an email to a group of people — e.g. announcing a new event, publishing results, or reminding
+              everyone about an upcoming exam. Pick an audience below, write your message, and send.
+            </p>
+            <div id="ntf-config-warning" style="display:none;margin-top:12px;padding:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;font-size:.78rem;color:#f87171;"></div>
+          </div>
+
+          <!-- Quick templates -->
+          <div class="fg">
+            <label>Quick Template (optional)</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="fc-btn" onclick="applyNotifyTemplate('event')">🏆 New Event</button>
+              <button type="button" class="fc-btn" onclick="applyNotifyTemplate('result')">📢 Results Published</button>
+              <button type="button" class="fc-btn" onclick="applyNotifyTemplate('exam')">⏰ Exam Reminder</button>
+            </div>
+          </div>
+
+          <!-- Audience -->
+          <div class="fg">
+            <label>Send To</label>
+            <select class="fi" id="ntf-audience" onchange="updateNotifyAudiencePreview()">
+              <option value="users">All Registered Users (account.html sign-ups)</option>
+              <option value="registrations">All Olympiad/Event Registrations</option>
+              <option value="quiz">Quiz Participants (pick a quiz below)</option>
+              <option value="custom">Custom list (paste emails)</option>
+            </select>
+          </div>
+
+          <div class="fg qz-hidden" id="ntf-quiz-wrap">
+            <label>Which quiz?</label>
+            <select class="fi" id="ntf-quiz-select" onchange="updateNotifyAudiencePreview()"></select>
+          </div>
+
+          <div class="fg qz-hidden" id="ntf-custom-wrap">
+            <label>Email addresses (comma or newline separated)</label>
+            <textarea class="fi" id="ntf-custom-emails" style="min-height:90px;" placeholder="a@email.com, b@email.com&#10;c@email.com" oninput="updateNotifyAudiencePreview()"></textarea>
+          </div>
+
+          <div id="ntf-audience-count" style="font-size:.82rem;color:var(--lblue);margin-bottom:18px;">— select an audience —</div>
+
+          <!-- Message -->
+          <div class="fg"><label>Subject *</label><input class="fi" id="ntf-subject" placeholder="e.g. New Event: National Science Olympiad 2026"></div>
+          <div class="fg"><label>Message *</label><textarea class="fi" id="ntf-message" style="min-height:160px;" placeholder="Write your announcement here..."></textarea></div>
+
+          <button id="ntf-send-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="sendNotificationCampaign()">
+            📨 Send Notification
+          </button>
+
+          <!-- Progress -->
+          <div id="ntf-progress-wrap" style="display:none;margin-top:16px;">
+            <div style="background:var(--card2);border-radius:100px;height:10px;overflow:hidden;">
+              <div id="ntf-progress-bar" style="background:linear-gradient(135deg,var(--blue),var(--blue-dk));height:100%;width:0%;transition:width .2s;"></div>
+            </div>
+            <p id="ntf-progress-text" style="font-size:.8rem;color:var(--muted);margin-top:8px;text-align:center;"></p>
+          </div>
+
+          <!-- History -->
+          <div style="margin-top:32px;">
+            <h3 style="font-family:Montserrat;font-size:1rem;font-weight:800;margin-bottom:14px;">Send History</h3>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead><tr><th>Subject</th><th>Audience</th><th>Recipients</th><th>Sent</th><th>Date</th></tr></thead>
+                <tbody id="ntf-history-tbl"><tr class="empty-row"><td colspan="5">No campaigns sent yet.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
 
       <!-- SETTINGS -->
       <div class="adm-sec" id="set-adm">

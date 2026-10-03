@@ -452,12 +452,21 @@ function openOlympiadForm() {
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = false;
   const qr = document.getElementById('of-qreg'); if(qr) qr.checked = true;
   document.getElementById('of-iprev').innerHTML = '';
+  const gl = document.getElementById('of-group'); if(gl) gl.value = '';
+  window._ofGroupLoaded = true;
   populateQuizDropdown('');
   populateRegFormDropdown('');
   openFM('ofm');
 }
 function editOlympiad(id) {
   const o = getOlympiads().find(x => x.id === id); if(!o) return;
+  window._ofGroupLoaded = false;
+  const glEl = document.getElementById('of-group'); if(glEl) glEl.value = '';
+  getEventLink(id).then(u => {                        // the group link is stored privately, not in the event itself
+    if(document.getElementById('of-eid').value !== id) return;
+    const el = document.getElementById('of-group'); if(el) el.value = u || '';
+    window._ofGroupLoaded = true;
+  });
   document.getElementById('ofm-title').textContent = "Edit Olympiad";
   document.getElementById('of-eid').value = id;
   document.getElementById('of-t').value = o.title||'';
@@ -487,7 +496,13 @@ async function saveOlympiad() {
   const segments = document.getElementById('of-segments').value.split(',').map(s => s.trim()).filter(Boolean);
   const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '', registrationFormId:document.getElementById('of-regform')?.value || '', quizRegisteredOnly:(document.getElementById('of-qreg')?.checked ?? true) };
   const eid = document.getElementById('of-eid').value;
+  const groupUrl = (document.getElementById('of-group')?.value || '').trim();
+  if(groupUrl && !/^https?:\/\//i.test(groupUrl)) return toast("Group link must start with http:// or https://", true);
   const ok = eid === '' ? await addOlympiad(o) : await updateOlympiad(eid, o);
+  if(ok && (eid === '' || window._ofGroupLoaded)) {
+    const targetId = eid || (getOlympiads()[0] && getOlympiads()[0].id);   // a new event is put first in the list
+    if(targetId) await saveEventLink(targetId, groupUrl);
+  }
   if(ok) { renderOlympiadTable(); renderDashboard(); closeFM('ofm'); toast("Saved! ✅"); }
 }
 async function deleteOlympiad(id) { if(!confirm("Delete?")) return; if(await deleteOlympiadData(id)) { renderOlympiadTable(); renderDashboard(); toast("Deleted."); } }

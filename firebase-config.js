@@ -40,11 +40,15 @@ window.IMGBB_KEY = "b374ae6a3edcf12a90a5b7be9ec39f50";
 
 window.EMAILJS_CONFIG = {
   serviceId: "service_5d6f3df",
-  templateId: "template_7dgcsgw",   // "Contact Us" template — admin-notification emails (contact form, registration alerts), always sends to the fixed admin inbox set inside this template
-  // "Auto-Reply" template, repurposed to send OUT to users (event/result/exam
-  // announcements from the "Email Notifications" admin panel). Its To Email field
-  // is {{to_email}}, Subject is {{subject}}, Content is {{message}}.
-  notifyTemplateId: "template_3taiikn"
+  templateId: "template_7dgcsgw"   // "Contact Us" template — admin-notification emails (contact form, registration alerts), always sends to the fixed admin inbox set inside this template
+};
+
+// Google Apps Script web app — sends bulk "Email Notifications" (new event /
+// results / exam reminder announcements) straight from the admin's own Gmail,
+// instead of EmailJS. Must match the SECRET_KEY set inside Code.gs.
+window.NOTIFY_MAILER = {
+  scriptUrl: "https://script.google.com/macros/s/AKfycbyzhCAQBmj4287xiykwDBjyTO1a1gd04zlY5t6mSL8p9rvUNzMJdroQXdiYzmyVTM-j1Q/exec",
+  key: "tvbd-9f2e7c4a1b"
 };
 
 console.log("🔥 Firebase Initialized (Firestore + Auth)!");

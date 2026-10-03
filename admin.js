@@ -2082,11 +2082,11 @@ function applyNotifyTemplate(key) {
 }
 
 async function initNotifyPanel() {
-  // Warn if the "send to users" EmailJS template hasn't been configured yet
+  // Warn if the Google Apps Script mailer hasn't been configured yet
   const warn = document.getElementById('ntf-config-warning');
-  if(!window.EMAILJS_CONFIG || !window.EMAILJS_CONFIG.notifyTemplateId) {
+  if(!window.NOTIFY_MAILER || !window.NOTIFY_MAILER.scriptUrl) {
     warn.style.display = 'block';
-    warn.innerHTML = '⚠️ No EmailJS "notify" template configured yet — sending is disabled. See <code>firebase-config.js</code> → <code>EMAILJS_CONFIG.notifyTemplateId</code> for setup instructions.';
+    warn.innerHTML = '⚠️ No Apps Script mailer configured yet — sending is disabled. See <code>firebase-config.js</code> → <code>NOTIFY_MAILER.scriptUrl</code> for setup instructions.';
     document.getElementById('ntf-send-btn').disabled = true;
   } else {
     warn.style.display = 'none';
@@ -2152,8 +2152,8 @@ async function sendNotificationCampaign() {
 
   if(!subject || !message) return toast("Subject and message are required!", true);
   if(!recipients.length) return toast("No recipients found for this audience!", true);
-  if(!window.EMAILJS_CONFIG || !window.EMAILJS_CONFIG.notifyTemplateId) {
-    return toast("EmailJS notify template isn't configured yet — see Settings notes.", true);
+  if(!window.NOTIFY_MAILER || !window.NOTIFY_MAILER.scriptUrl) {
+    return toast("Apps Script mailer isn't configured yet — see Settings notes.", true);
   }
   if(!confirm(`Send this email to ${recipients.length} recipient(s)? This can't be undone.`)) return;
 
@@ -2168,13 +2168,15 @@ async function sendNotificationCampaign() {
   for(let i = 0; i < recipients.length; i++) {
     const to = recipients[i];
     try {
-      await emailjs.send(
-        window.EMAILJS_CONFIG.serviceId,
-        window.EMAILJS_CONFIG.notifyTemplateId,
-        { to_email: to, subject, message },
-        window.EMAILJS_CONFIG.publicKey
-      );
-      sent++;
+      // Sent as text/plain (no custom headers) so the browser skips a CORS
+      // preflight — Apps Script still parses it fine via e.postData.contents.
+      const res = await fetch(window.NOTIFY_MAILER.scriptUrl, {
+        method: 'POST',
+        body: JSON.stringify({ key: window.NOTIFY_MAILER.key, to_email: to, subject, message })
+      });
+      const data = await res.json();
+      if(data.success) sent++;
+      else { failed++; console.error("Notify send failed for", to, data.error); }
     } catch(err) {
       console.error("Notify send failed for", to, err);
       failed++;
@@ -2182,7 +2184,7 @@ async function sendNotificationCampaign() {
     const pct = Math.round(((i + 1) / recipients.length) * 100);
     progressBar.style.width = pct + '%';
     progressText.textContent = `Sending... ${i + 1} / ${recipients.length} (${sent} sent, ${failed} failed)`;
-    // Small delay to stay well under EmailJS rate limits
+    // Small delay to stay well under Gmail's sending rate
     await new Promise(r => setTimeout(r, 400));
   }
 

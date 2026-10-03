@@ -188,6 +188,7 @@ function goSec(btn) {
     'cert-adm': 'Certificates',
     'popup-adm': 'Popup Notice',
     'notify-adm': 'Email Notifications',
+    'bell-adm': 'Notifications',
     'set-adm': 'System Settings'
   };
   const ptitle = document.getElementById('adm-ptitle');
@@ -223,6 +224,7 @@ function goSec(btn) {
   if(secId === 'log-adm') loadActivityLogUI();
   if(secId === 'popup-adm' && typeof loadPopupSettings === 'function') loadPopupSettings();
   if(secId === 'notify-adm' && typeof initNotifyPanel === 'function') initNotifyPanel();
+  if(secId === 'bell-adm' && typeof initBellPanel === 'function') initBellPanel();
   if(secId === 'quiz-adm' && typeof loadQuizzes === 'function') loadQuizzes().then(() => renderQuizTable());
   if(secId === 'qsub-adm' && typeof loadQuizSubmissions === 'function') {
     Promise.all([loadQuizzes(), loadQuizSubmissions()]).then(() => renderQuizSubmissionsTable());
@@ -2032,17 +2034,16 @@ function applyNotifyTemplate(key) {
 }
 
 async function initNotifyPanel() {
-  // Sending now goes through a Google Apps Script web app (free Gmail quota)
+  // Warn if the "send to users" EmailJS template hasn't been configured yet
   const warn = document.getElementById('ntf-config-warning');
-  if(!notifyScriptUrl()) {
+  if(!window.EMAILJS_CONFIG || !window.EMAILJS_CONFIG.notifyTemplateId) {
     warn.style.display = 'block';
-    warn.innerHTML = '⚠️ Apps Script URL set kora hoyni — sending bondho. <code>firebase-config.js</code> → <code>EMAILJS_CONFIG.notifyScriptUrl</code> e Web App URL boshao.';
+    warn.innerHTML = '⚠️ No EmailJS "notify" template configured yet — sending is disabled. See <code>firebase-config.js</code> → <code>EMAILJS_CONFIG.notifyTemplateId</code> for setup instructions.';
     document.getElementById('ntf-send-btn').disabled = true;
   } else {
     warn.style.display = 'none';
     document.getElementById('ntf-send-btn').disabled = false;
   }
-  try { document.getElementById('ntf-secret').value = localStorage.getItem('tvbd_notify_secret') || ''; } catch(e) {}
 
   // Populate quiz dropdown
   if(typeof loadQuizzes === 'function') await loadQuizzes();
@@ -2095,88 +2096,48 @@ function updateNotifyAudiencePreview() {
     count > 0 ? `📬 ${count} recipient${count !== 1 ? 's' : ''} will receive this email.` : '⚠️ No valid email addresses found for this audience yet.';
 }
 
-async function postDashboardOnly() {
-  const subject = document.getElementById('ntf-subject').value.trim();
-  const message = document.getElementById('ntf-message').value.trim();
-  if(!subject || !message) return toast("Subject and message are required!", true);
-  if(!confirm("এটি সব লগইন করা ইউজারের ড্যাশবোর্ডের ঘণ্টায় দেখাবে। চালিয়ে যাবেন?")) return;
-  const ok = await addAnnouncement(subject, message);
-  toast(ok ? "ড্যাশবোর্ডে পোস্ট হয়েছে! 🔔" : "পোস্ট হয়নি — Firestore rules চেক করুন", !ok);
-}
-
-function notifyScriptUrl() {
-  return (window.EMAILJS_CONFIG && window.EMAILJS_CONFIG.notifyScriptUrl || '').trim();
-}
-
-// text/plain avoids a CORS preflight, which Apps Script web apps can't answer.
-async function notifyCall(payload) {
-  const res = await fetch(notifyScriptUrl(), {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload)
-  });
-  return await res.json();
-}
-
 async function sendNotificationCampaign() {
   const subject = document.getElementById('ntf-subject').value.trim();
   const message = document.getElementById('ntf-message').value.trim();
   const audience = document.getElementById('ntf-audience').value;
-  const secret = document.getElementById('ntf-secret').value.trim();
   const recipients = getNotifyRecipientEmails();
 
   if(!subject || !message) return toast("Subject and message are required!", true);
   if(!recipients.length) return toast("No recipients found for this audience!", true);
-  if(!notifyScriptUrl()) return toast("Apps Script URL set kora hoyni — firebase-config.js dekho.", true);
-  if(!secret) return toast("Secret Key din!", true);
-  try { localStorage.setItem('tvbd_notify_secret', secret); } catch(e) {}
+  if(!window.EMAILJS_CONFIG || !window.EMAILJS_CONFIG.notifyTemplateId) {
+    return toast("EmailJS notify template isn't configured yet — see Settings notes.", true);
+  }
+  if(!confirm(`Send this email to ${recipients.length} recipient(s)? This can't be undone.`)) return;
 
   const btn = document.getElementById('ntf-send-btn');
   btn.disabled = true;
-
-  // Check today's remaining Gmail quota first
-  try {
-    const q = await notifyCall({ action: 'quota', secret });
-    if(!q.ok) { btn.disabled = false; return toast(q.error || "Secret Key bhul!", true); }
-    document.getElementById('ntf-quota').textContent = `Aj ar ${q.remaining} ta email pathano jabe.`;
-    if(recipients.length > q.remaining) {
-      btn.disabled = false;
-      return toast(`Quota kom! Aj mat ${q.remaining} ta pathano jabe, kintu recipient ${recipients.length} jon.`, true);
-    }
-  } catch(err) {
-    console.error(err);
-    btn.disabled = false;
-    return toast("Apps Script er sathe connect hoyni. URL ar deployment check korun.", true);
-  }
-
-  if(!confirm(`Send this email to ${recipients.length} recipient(s)? This can't be undone.`)) { btn.disabled = false; return; }
-
   const progressWrap = document.getElementById('ntf-progress-wrap');
   const progressBar = document.getElementById('ntf-progress-bar');
   const progressText = document.getElementById('ntf-progress-text');
   progressWrap.style.display = 'block';
 
-  const BATCH = 20;
   let sent = 0, failed = 0;
-  for(let i = 0; i < recipients.length; i += BATCH) {
-    const chunk = recipients.slice(i, i + BATCH);
+  for(let i = 0; i < recipients.length; i++) {
+    const to = recipients[i];
     try {
-      const r = await notifyCall({ action: 'send', secret, recipients: chunk, subject, message });
-      if(r.ok) { sent += r.sent; failed += r.failed; }
-      else { failed += chunk.length; console.error("Notify batch error:", r.error); }
+      await emailjs.send(
+        window.EMAILJS_CONFIG.serviceId,
+        window.EMAILJS_CONFIG.notifyTemplateId,
+        { to_email: to, subject, message },
+        window.EMAILJS_CONFIG.publicKey
+      );
+      sent++;
     } catch(err) {
-      console.error("Notify batch failed", err);
-      failed += chunk.length;
+      console.error("Notify send failed for", to, err);
+      failed++;
     }
-    const done = Math.min(i + BATCH, recipients.length);
-    progressBar.style.width = Math.round((done / recipients.length) * 100) + '%';
-    progressText.textContent = `Sending... ${done} / ${recipients.length} (${sent} sent, ${failed} failed)`;
+    const pct = Math.round(((i + 1) / recipients.length) * 100);
+    progressBar.style.width = pct + '%';
+    progressText.textContent = `Sending... ${i + 1} / ${recipients.length} (${sent} sent, ${failed} failed)`;
+    // Small delay to stay well under EmailJS rate limits
+    await new Promise(r => setTimeout(r, 400));
   }
 
-  if(sent > 0 && document.getElementById('ntf-also-dash').checked) {
-    const ok = await addAnnouncement(subject, message);
-    if(!ok) toast("ইমেইল গেছে, কিন্তু ড্যাশবোর্ডে পোস্ট হয়নি (Firestore rules চেক করুন)", true);
-  }
   await addNotificationRecord({ subject, audience, recipientCount: recipients.length, sent, failed });
   await loadNotificationHistory();
   renderNotifyHistory();
@@ -2201,5 +2162,77 @@ function renderNotifyHistory() {
       <td>${h.recipientCount}</td>
       <td>${h.sent} sent${h.failed ? `, ${h.failed} failed` : ''}</td>
       <td style="color:var(--muted);font-size:.78rem;">${h.sentAt ? new Date(h.sentAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
+    </tr>`).join('');
+}
+
+
+/*===== DASHBOARD NOTIFICATIONS (bell icon) =====*/
+
+const BELL_TEMPLATES = {
+  event: {
+    subject: "নতুন ইভেন্ট: [ইভেন্টের নাম]",
+    message: "আমরা নতুন ইভেন্ট [ইভেন্টের নাম] ঘোষণা করছি!\n\nতারিখ: [তারিখ]\nরেজিস্ট্রেশনের শেষ সময়: [শেষ তারিখ]\n\nএখনই রেজিস্ট্রেশন করুন: https://talentversebd.github.io/tvbd/register.html"
+  },
+  result: {
+    subject: "ফলাফল প্রকাশিত — [ইভেন্ট/কুইজের নাম]",
+    message: "[ইভেন্ট/কুইজের নাম]-এর ফলাফল প্রকাশ করা হয়েছে।\n\nনিজের ফলাফল দেখুন ড্যাশবোর্ডের 'My Results' অংশে।\n\nঅংশগ্রহণের জন্য ধন্যবাদ!"
+  },
+  exam: {
+    subject: "রিমাইন্ডার: [পরীক্ষার নাম] শুরু হচ্ছে",
+    message: "[পরীক্ষার নাম] শুরু হবে [তারিখ/সময়]।\n\nসময়মতো যোগ দিন: https://talentversebd.github.io/tvbd/quiz.html\n\nশুভকামনা!"
+  }
+};
+
+function applyBellTemplate(key) {
+  const t = BELL_TEMPLATES[key];
+  if(!t) return;
+  document.getElementById('bn-subject').value = t.subject;
+  document.getElementById('bn-message').value = t.message;
+}
+
+async function initBellPanel() {
+  await loadAnnouncements();
+  renderBellList();
+}
+
+async function postBellNotification() {
+  const subject = document.getElementById('bn-subject').value.trim();
+  const message = document.getElementById('bn-message').value.trim();
+  if(!subject || !message) return toast("শিরোনাম ও বার্তা দুটোই দিন!", true);
+  if(!confirm("এটি সব লগইন করা ইউজারের ড্যাশবোর্ডের ঘণ্টায় দেখাবে। চালিয়ে যাবেন?")) return;
+
+  const btn = document.getElementById('bn-send-btn');
+  btn.disabled = true;
+  const ok = await addAnnouncement(subject, message);
+  btn.disabled = false;
+  if(!ok) return toast("পোস্ট হয়নি — Firestore rules চেক করুন", true);
+
+  document.getElementById('bn-subject').value = '';
+  document.getElementById('bn-message').value = '';
+  toast("ড্যাশবোর্ডে পোস্ট হয়েছে! 🔔");
+  await loadAnnouncements();
+  renderBellList();
+}
+
+async function deleteBellNotification(id) {
+  if(!confirm("এই নোটিফিকেশনটি মুছে ফেলবেন? ইউজারদের ড্যাশবোর্ড থেকেও চলে যাবে।")) return;
+  const ok = await deleteAnnouncement(id);
+  toast(ok ? "মুছে ফেলা হয়েছে" : "মোছা যায়নি", !ok);
+  await loadAnnouncements();
+  renderBellList();
+}
+
+function renderBellList() {
+  const tbody = document.getElementById('bn-list');
+  const list = getAnnouncements();
+  if(!list.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="3">এখনো কোনো নোটিফিকেশন পোস্ট করা হয়নি।</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(a => `
+    <tr>
+      <td><strong>${escUser(a.title)}</strong><br><span style="color:var(--muted);font-size:.78rem;white-space:pre-wrap;">${escUser(a.message)}</span></td>
+      <td style="color:var(--muted);font-size:.78rem;white-space:nowrap;">${a.createdAt ? new Date(a.createdAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
+      <td><button class="fc-btn" onclick="deleteBellNotification('${a.id}')">🗑️ Delete</button></td>
     </tr>`).join('');
 }

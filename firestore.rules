@@ -48,6 +48,9 @@ service cloud.firestore {
                   || (signedIn() && resource.data.email == request.auth.token.email);
     }
 
+    // dashboard bell announcements: any signed-in user reads, only admin writes
+    match /announcements/{id} { allow read: if signedIn(); allow write: if isMain(); }
+
     match /settings/{id} {
       allow read: if true;
       allow write: if isMain()

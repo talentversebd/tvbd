@@ -181,6 +181,7 @@ select.fi{cursor:pointer}
 <button class="adm-nb" data-sec="founder-adm" onclick="goSec(this)"><span class="ico">👤</span>Founder's Message</button>
 <button class="adm-nb" data-sec="popup-adm" onclick="goSec(this)"><span class="ico">📢</span>Popup Notice</button>
 <button class="adm-nb" data-sec="notify-adm" onclick="goSec(this)"><span class="ico">📧</span>Email Notifications</button>
+<button class="adm-nb" data-sec="bell-adm" onclick="goSec(this)"><span class="ico">🔔</span>Notifications</button>
 <button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
       </nav>
       <div class="adm-sb-footer">
@@ -649,21 +650,8 @@ select.fi{cursor:pointer}
           <div class="fg"><label>Subject *</label><input class="fi" id="ntf-subject" placeholder="e.g. New Event: National Science Olympiad 2026"></div>
           <div class="fg"><label>Message *</label><textarea class="fi" id="ntf-message" style="min-height:160px;" placeholder="Write your announcement here..."></textarea></div>
 
-          <div class="fg">
-            <label>Secret Key (Apps Script) *</label>
-            <input class="fi" id="ntf-secret" type="password" placeholder="Script e ja secret dichho sheta" autocomplete="off">
-            <div id="ntf-quota" style="font-size:.75rem;color:var(--muted);margin-top:6px;"></div>
-          </div>
-
-          <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;margin-bottom:14px;cursor:pointer;">
-            <input type="checkbox" id="ntf-also-dash" checked> 🔔 ইমেইলের সাথে ড্যাশবোর্ডের ঘণ্টায়ও দেখান
-          </label>
-
           <button id="ntf-send-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="sendNotificationCampaign()">
             📨 Send Notification
-          </button>
-          <button type="button" class="fc-btn" style="width:100%;padding:12px;margin-top:10px;" onclick="postDashboardOnly()">
-            🔔 শুধু ড্যাশবোর্ডে পোস্ট করুন (ইমেইল ছাড়া)
           </button>
 
           <!-- Progress -->
@@ -681,6 +669,46 @@ select.fi{cursor:pointer}
               <table class="tbl">
                 <thead><tr><th>Subject</th><th>Audience</th><th>Recipients</th><th>Sent</th><th>Date</th></tr></thead>
                 <tbody id="ntf-history-tbl"><tr class="empty-row"><td colspan="5">No campaigns sent yet.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- DASHBOARD NOTIFICATIONS (bell) -->
+      <div class="adm-sec" id="bell-adm">
+        <div class="set-wrap" style="max-width:760px;">
+
+          <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:22px;">
+            <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">🔔 Notifications</h3>
+            <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+              এখানে পোস্ট করা ঘোষণা সব লগইন করা ইউজারের ড্যাশবোর্ডের ঘণ্টায় (🔔) দেখাবে — যেমন নতুন ইভেন্ট, ফলাফল প্রকাশ বা পরীক্ষার রিমাইন্ডার।
+            </p>
+          </div>
+
+          <div class="fg">
+            <label>Quick Template (optional)</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="fc-btn" onclick="applyBellTemplate('event')">🏆 নতুন ইভেন্ট</button>
+              <button type="button" class="fc-btn" onclick="applyBellTemplate('result')">📢 ফলাফল প্রকাশ</button>
+              <button type="button" class="fc-btn" onclick="applyBellTemplate('exam')">⏰ পরীক্ষার রিমাইন্ডার</button>
+            </div>
+          </div>
+
+          <div class="fg"><label>শিরোনাম *</label><input class="fi" id="bn-subject" placeholder="যেমন: নতুন ইভেন্ট: জাতীয় বিজ্ঞান অলিম্পিয়াড ২০২৬"></div>
+          <div class="fg"><label>বার্তা *</label><textarea class="fi" id="bn-message" style="min-height:160px;" placeholder="ঘোষণাটি এখানে লিখুন..."></textarea></div>
+
+          <button id="bn-send-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="postBellNotification()">
+            🔔 ড্যাশবোর্ডে পোস্ট করুন
+          </button>
+
+          <div style="margin-top:32px;">
+            <h3 style="font-family:Montserrat;font-size:1rem;font-weight:800;margin-bottom:14px;">পোস্ট করা নোটিফিকেশন</h3>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead><tr><th>নোটিফিকেশন</th><th>তারিখ</th><th></th></tr></thead>
+                <tbody id="bn-list"><tr class="empty-row"><td colspan="3">এখনো কোনো নোটিফিকেশন পোস্ট করা হয়নি।</td></tr></tbody>
               </table>
             </div>
           </div>

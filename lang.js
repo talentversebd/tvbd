@@ -19,6 +19,7 @@ const translations = {
     nav_news: "News",
     nav_register: "Register",
     nav_verify: "Verify",
+    nav_results: "Results",
     nav_contact: "Contact",
     nav_admin: "⚙ Admin",
 
@@ -198,6 +199,7 @@ const translations = {
     nav_news: "নিউজ",
     nav_register: "রেজিস্টার",
     nav_verify: "ভেরিফাই",
+    nav_results: "ফলাফল",
     nav_contact: "যোগাযোগ",
     nav_admin: "⚙ অ্যাডমিন",
 
@@ -432,6 +434,70 @@ function applyLanguage() {
   - Brand names (TalentVerse, TVBD), emails and social handles stay as is.
 =====================================================*/
 const I18N_PAIRS = [
+{
+"e": "Results & Leaderboard",
+"b": "ফলাফল ও লিডারবোর্ড"
+},
+{
+"e": "Results",
+"b": "ফলাফল"
+},
+{
+"e": "Top performers of every published exam.",
+"b": "প্রকাশিত প্রতিটি পরীক্ষার সেরা পারফরমারদের তালিকা।"
+},
+{
+"e": "Select an exam",
+"b": "একটি পরীক্ষা বেছে নিন"
+},
+{
+"e": "No results have been published yet.",
+"b": "এখনও কোনো ফলাফল প্রকাশ করা হয়নি।"
+},
+{
+"e": "Could not load results.",
+"b": "ফলাফল লোড করা যায়নি।"
+},
+{
+"e": "Rank",
+"b": "র‍্যাংক"
+},
+{
+"e": "Name",
+"b": "নাম"
+},
+{
+"e": "Score",
+"b": "স্কোর"
+},
+{
+"e": "Participants",
+"b": "অংশগ্রহণকারী"
+},
+{
+"e": "Published",
+"b": "প্রকাশিত"
+},
+{
+"e": "Leaderboard",
+"b": "লিডারবোর্ড"
+},
+{
+"e": "Result Pending",
+"b": "ফলাফল অপেক্ষমান"
+},
+{
+"e": "Champion",
+"b": "চ্যাম্পিয়ন"
+},
+{
+"e": "1st Runner Up",
+"b": "১ম রানার-আপ"
+},
+{
+"e": "2nd Runner Up",
+"b": "২য় রানার-আপ"
+},
 {
 "e": "Apply Now",
 "b": "এখনই আবেদন করুন"

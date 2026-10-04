@@ -969,6 +969,71 @@ async function autoGradeUI() {
   if(typeof renderQuizSubmissionsTable === 'function') renderQuizSubmissionsTable();
 }
 
+/*===== PUBLISH RESULTS / RANKING =====*/
+async function openPublishResults() {
+  await Promise.all([loadQuizSubmissions(), loadQuizzes()]);
+  const quizzes = getQuizzes();
+  const subs = getQuizSubmissions();
+  const opts = quizzes.filter(q => subs.some(s => s.quizId === q.id))
+    .map(q => `<option value="${bcEsc(q.id)}">${bcEsc(q.title)}</option>`).join('');
+  if(!opts) return toast('এখনও কোনো কুইজ সাবমিশন নেই।', true);
+  openUserOverlay('pub-res-ov', `
+    <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:20px;width:100%;max-width:520px;max-height:92vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h3 style="font-family:Montserrat;font-size:1.05rem;">🏆 Publish Results</h3>
+        <button onclick="closeUserOverlay('pub-res-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:12px;">Publish করলে প্রতিটা অংশগ্রহণকারী নিজের ড্যাশবোর্ডে স্কোর, পজিশন ও র‍্যাংক দেখবে, আর Results পেজে সেরা N জনের তালিকা সবার জন্য খুলে যাবে। শুধু গ্রেড করা সাবমিশন র‍্যাংকে ধরা হয় (স্কোর সমান হলে যে কম সময়ে শেষ করেছে সে এগিয়ে)।</p>
+      <div class="fg"><label>কুইজ</label><select class="fi" id="pr-quiz" onchange="prRefresh()">${opts}</select></div>
+      <div class="f-row">
+        <div class="fg"><label>সেরা কতজনের তালিকা (Top N)</label><input class="fi" type="number" min="1" max="100" id="pr-top" value="10"></div>
+        <div class="fg" style="display:flex;align-items:flex-end;"><div class="chk-wrap"><input type="checkbox" id="pr-seg"><label for="pr-seg"> প্রতিটি Segment আলাদা র‍্যাংক</label></div></div>
+      </div>
+      <div id="pr-status" style="font-size:.82rem;line-height:1.8;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:12px;margin:8px 0;"></div>
+      <button class="save-btn" id="pr-go" style="width:100%;margin-top:6px;" onclick="prPublish()">🏆 Publish Results</button>
+      <button class="d-btn" id="pr-undo" style="width:100%;margin-top:10px;padding:10px;display:none;" onclick="prUnpublish()">↩️ Unpublish (ফলাফল লুকান)</button>
+    </div>`);
+  prRefresh();
+}
+
+function prRefresh() {
+  const id = document.getElementById('pr-quiz').value;
+  const subs = getQuizSubmissions().filter(s => s.quizId === id);
+  const graded = subs.filter(s => s.totalScore != null).length;
+  const published = subs.filter(s => s.resultPublished).length;
+  const segs = getOlympiads().some(o => o.quizId === id && (o.segments || []).length > 0);
+  document.getElementById('pr-seg').checked = segs;
+  document.getElementById('pr-status').innerHTML =
+    `মোট সাবমিশন: <strong>${subs.length}</strong><br>গ্রেড হয়েছে: <strong>${graded}</strong>` +
+    (subs.length - graded ? ` <span style="color:#fbbf24;">(${subs.length - graded}টা এখনও গ্রেড হয়নি — এগুলো র‍্যাংকে ধরা হবে না)</span>` : '') +
+    `<br>${published ? `<span style="color:#4ade80;">✅ ${published} জনের ফলাফল প্রকাশিত আছে (আবার Publish করলে নতুন করে হিসাব হবে)</span>` : 'এখনও প্রকাশ হয়নি'}`;
+  document.getElementById('pr-undo').style.display = published ? 'block' : 'none';
+}
+
+async function prPublish() {
+  const id = document.getElementById('pr-quiz').value;
+  const subs = getQuizSubmissions().filter(s => s.quizId === id);
+  const ungraded = subs.filter(s => s.totalScore == null).length;
+  if(ungraded && !confirm(`${ungraded}টা সাবমিশন এখনও গ্রেড হয়নি, এগুলো র‍্যাংকে ধরা হবে না। তবুও Publish করবেন?`)) return;
+  const btn = document.getElementById('pr-go'); btn.disabled = true; btn.textContent = 'Publishing…';
+  const r = await publishQuizResults(id, { topN: document.getElementById('pr-top').value, bySegment: document.getElementById('pr-seg').checked });
+  btn.disabled = false; btn.textContent = '🏆 Publish Results';
+  if(!r.success) return toast(r.error || 'Publish ব্যর্থ!', true);
+  toast(`${r.ranked} জনের ফলাফল প্রকাশ হয়েছে ✅`);
+  prRefresh();
+  if(typeof renderQuizSubmissionsTable === 'function') renderQuizSubmissionsTable();
+}
+
+async function prUnpublish() {
+  const id = document.getElementById('pr-quiz').value;
+  if(!confirm('ফলাফল লুকিয়ে ফেলবেন? র‍্যাংক ও লিডারবোর্ড সরে যাবে।')) return;
+  const r = await unpublishQuizResults(id);
+  if(!r.success) return toast(r.error || 'ব্যর্থ!', true);
+  toast('ফলাফল লুকানো হয়েছে।');
+  prRefresh();
+  if(typeof renderQuizSubmissionsTable === 'function') renderQuizSubmissionsTable();
+}
+
 /*===== CERTIFICATE TEMPLATE EDITOR =====
    Upload your own designed certificate once, tap where the Name, Verify ID and
    QR code should be printed. All certificates then use that design. */
@@ -2164,19 +2229,26 @@ async function sendNotificationCampaign() {
   const progressText = document.getElementById('ntf-progress-text');
   progressWrap.style.display = 'block';
 
-  let sent = 0, failed = 0;
+  let sent = 0, failed = 0, done = 0, abortReason = '';
   for(let i = 0; i < recipients.length; i++) {
     const to = recipients[i];
+    done = i + 1;
     try {
       // Sent as text/plain (no custom headers) so the browser skips a CORS
       // preflight — Apps Script still parses it fine via e.postData.contents.
+      // The mailer no longer trusts a shared key: it checks the admin's Firebase login token instead.
+      // (Firebase keeps the token fresh; getIdToken() is instant while it is still valid.)
+      const idToken = await window.firebaseAuth.currentUser.getIdToken();
       const res = await fetch(window.NOTIFY_MAILER.scriptUrl, {
         method: 'POST',
-        body: JSON.stringify({ key: window.NOTIFY_MAILER.key, to_email: to, subject, message })
+        body: JSON.stringify({ idToken, to_email: to, subject, message })
       });
       const data = await res.json();
       if(data.success) sent++;
-      else { failed++; console.error("Notify send failed for", to, data.error); }
+      else {
+        failed++; console.error("Notify send failed for", to, data.error);
+        if(data.error === 'unauthorized' || data.error === 'quota') { abortReason = data.error; break; }   // no point trying the rest
+      }
     } catch(err) {
       console.error("Notify send failed for", to, err);
       failed++;
@@ -2188,9 +2260,19 @@ async function sendNotificationCampaign() {
     await new Promise(r => setTimeout(r, 400));
   }
 
+  if(abortReason) failed += recipients.length - done;      // the ones we never tried
   await addNotificationRecord({ subject, audience, recipientCount: recipients.length, sent, failed });
   await loadNotificationHistory();
   renderNotifyHistory();
+
+  if(abortReason) {
+    progressText.textContent = abortReason === 'quota'
+      ? `Stopped: Gmail's daily sending limit is reached (${sent} sent).`
+      : `Stopped: the mailer refused this request (${sent} sent). Did you redeploy the new Code.gs?`;
+    toast(abortReason === 'quota' ? 'Gmail-এর দৈনিক পাঠানোর সীমা শেষ।' : 'মেইলার অনুমতি দিচ্ছে না — নতুন Code.gs Deploy করেছেন কি?', true);
+    btn.disabled = false;
+    return;
+  }
 
   progressText.textContent = `Done! ${sent} sent, ${failed} failed.`;
   toast(failed === 0 ? `Sent to all ${sent} recipients! 🎉` : `Sent to ${sent}, ${failed} failed.`, failed > 0);

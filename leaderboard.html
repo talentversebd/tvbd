@@ -4,17 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Exclusive Members — TalentVerse Bangladesh</title>
-<meta name="description" content="Meet the team behind TalentVerse Bangladesh.">
-<link rel="canonical" href="https://talentversebd.github.io/tvbd/team.html">
+<meta name="description" content="Published results and top performers of every TalentVerse Bangladesh exam.">
+<link rel="canonical" href="https://talentversebd.github.io/tvbd/leaderboard.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TalentVerse Bangladesh">
 <meta property="og:title" content="Exclusive Members — TalentVerse Bangladesh">
-<meta property="og:description" content="Meet the team behind TalentVerse Bangladesh.">
-<meta property="og:url" content="https://talentversebd.github.io/tvbd/team.html">
+<meta property="og:description" content="Published results and top performers of every TalentVerse Bangladesh exam.">
+<meta property="og:url" content="https://talentversebd.github.io/tvbd/leaderboard.html">
 <meta property="og:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Exclusive Members — TalentVerse Bangladesh">
-<meta name="twitter:description" content="Meet the team behind TalentVerse Bangladesh.">
+<meta name="twitter:description" content="Published results and top performers of every TalentVerse Bangladesh exam.">
 <meta name="twitter:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -238,44 +238,23 @@
 
 <!-- PAGE HEADER -->
 <div class="page-header">
-  <span class="eyebrow" data-i18n="tp_eyebrow">Our Team</span>
-  <h1><span data-i18n="tp_title_1">Executive</span> <span data-i18n="tp_title_2">Panel</span></h1>
-  <p data-i18n="tp_desc">Meet the leaders and members of TalentVerse Bangladesh.</p>
+  <span class="eyebrow">Results</span>
+  <h1><span>Results</span> <span>&amp; Leaderboard</span></h1>
+  <p>Top performers of every published exam.</p>
 </div>
 
-<!-- FOUNDER'S MESSAGE -->
-<section class="section" id="founder-spotlight-sec" style="display:none;">
-  <div class="sec-hd">
-    <span class="eyebrow">From Our Founder</span>
-    <h2 class="sec-title">Founder's <span class="hl">Message</span></h2>
-    <div class="divider"></div>
-  </div>
-  <div class="founder-grid">
-    <div class="founder-photo-wrap">
-      <img class="founder-photo" id="fsp-photo" src="logo.jpg" alt="Founder">
-      <div class="founder-name" id="fsp-name"></div>
-      <div class="founder-title" id="fsp-title"></div>
-      <div class="founder-socials" id="fsp-socials"></div>
-    </div>
-    <div>
-      <div class="founder-quote-mark">"</div>
-      <p class="founder-msg-text" id="fsp-bio"></p>
-    </div>
-  </div>
-</section>
-
-<!-- TEAM SECTION -->
+<!-- RESULTS -->
 <section class="section" style="padding-top:20px;">
-  <div id="team-page-grid"></div>
-</section>
-
-<!-- MEMBER PROFILE MODAL -->
-<div class="tm-modal-ov" id="tm-modal-ov" onclick="if(event.target===this)closeMemberModal()">
-  <div class="tm-modal">
-    <button class="tm-modal-close" onclick="closeMemberModal()">✕</button>
-    <div id="tm-modal-content"></div>
+  <div style="max-width:760px;margin:0 auto;">
+    <div id="rb-select-wrap" style="display:none;margin-bottom:18px;">
+      <label for="rb-select" style="display:block;font-size:.8rem;color:var(--muted);margin-bottom:6px;">Select an exam</label>
+      <select id="rb-select" onchange="rbShow(this.value)" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--bdr2);background:var(--card);color:var(--txt);font-size:.95rem;"></select>
+    </div>
+    <div id="rb-meta" style="font-size:.8rem;color:var(--muted);margin-bottom:12px;"></div>
+    <div id="rb-board" style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;display:none;"></div>
+    <div id="rb-status" style="text-align:center;color:var(--muted);padding:40px 10px;font-size:.95rem;">Loading results...</div>
   </div>
-</div>
+</section>
 
 <!-- FOOTER -->
 <footer>
@@ -327,159 +306,47 @@
 <script src="main.js"></script>
 
 <script>
-// Load and render team
+let RB_RESULTS = [];
+
 document.addEventListener('DOMContentLoaded', () => {
-  let teamLoaded = false;
+  let started = false;
   const check = setInterval(async () => {
-    if(typeof loadTeam === 'function' && window.firebaseDB) {
-      clearInterval(check);
-      teamLoaded = true;
-      try {
-        await loadTeam();
-        renderTeamPage();
-      } catch(err) {
-        console.error("Team load error:", err);
-        showTeamLoadError();
-      }
+    if(typeof loadPublishedResults === 'function' && window.firebaseDB) {
+      clearInterval(check); started = true;
+      const list = await loadPublishedResults();
+      if(list === null) return rbFail();
+      RB_RESULTS = list;
+      rbInit();
     }
   }, 200);
-
-  // Founder spotlight
-  const fcheck = setInterval(async () => {
-    if(typeof getFounderSettings === 'function' && window.firebaseDB) {
-      clearInterval(fcheck);
-      try { await initFounderSpotlight(); }
-      catch(err) { console.error("Founder spotlight load error:", err); }
-    }
-  }, 200);
-
-  // If Firebase never becomes ready (slow/blocked network), stop waiting and
-  // show a real retry option instead of leaving the page stuck on "Loading...".
-  setTimeout(() => {
-    if(!teamLoaded) {
-      clearInterval(check);
-      showTeamLoadError();
-    }
-  }, 10000);
+  setTimeout(() => { if(!started) { clearInterval(check); rbFail(); } }, 10000);
 });
 
-function showTeamLoadError() {
-  const grid = document.getElementById('team-page-grid');
-  if(!grid || grid.innerHTML !== '') return;
-  grid.innerHTML = `
-    <div class="team-empty">
-      <div class="icon">⚠️</div>
-      <h3>Couldn't Load</h3>
-      <p>Please check your internet connection and try again.</p>
-      <button class="btn-out" style="margin-top:14px;cursor:pointer;" onclick="window.location.reload()">🔄 Retry</button>
-    </div>`;
+function rbFail() {
+  document.getElementById('rb-status').innerHTML = 'Could not load results.<br><button class="btn-out" style="margin-top:14px;cursor:pointer;" onclick="window.location.reload()">Retry</button>';
 }
 
-
-async function initFounderSpotlight() {
-  const f = await getFounderSettings();
-  if(!f || !f.enabled) return;
-
-  document.getElementById('fsp-name').textContent = f.name || '';
-  document.getElementById('fsp-title').textContent = f.title || '';
-  document.getElementById('fsp-bio').textContent = f.bio || '';
-  if(f.photo) document.getElementById('fsp-photo').src = f.photo;
-
-  let socialsHtml = '';
-  if(f.facebook) socialsHtml += `<a class="founder-social-btn" href="${f.facebook}" target="_blank" rel="noopener" title="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.5 9.87v-6.98H7.9V12h2.6V9.8c0-2.6 1.55-4.03 3.9-4.03 1.13 0 2.32.2 2.32.2v2.55h-1.3c-1.28 0-1.68.8-1.68 1.62V12h2.86l-.46 2.89h-2.4v6.98A10 10 0 0 0 22 12z"/></svg></a>`;
-  if(f.linkedin) socialsHtml += `<a class="founder-social-btn" href="${f.linkedin}" target="_blank" rel="noopener" title="LinkedIn"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.98 3.5C4.98 4.88 3.94 6 2.5 6S0 4.88 0 3.5 1.04 1 2.48 1 4.98 2.12 4.98 3.5zM.5 8h4V23h-4V8zm7.5 0h3.8v2.05h.05c.53-1 1.82-2.05 3.75-2.05C19.5 8 21 10.24 21 14.02V23h-4v-8.06c0-1.92-.03-4.4-2.68-4.4-2.68 0-3.1 2.1-3.1 4.26V23h-4V8z"/></svg></a>`;
-  document.getElementById('fsp-socials').innerHTML = socialsHtml;
-
-  document.getElementById('founder-spotlight-sec').style.display = 'block';
+function rbInit() {
+  const status = document.getElementById('rb-status');
+  if(!RB_RESULTS.length) { status.textContent = 'No results have been published yet.'; return; }
+  const sel = document.getElementById('rb-select');
+  sel.innerHTML = RB_RESULTS.map(r => `<option value="${r.id}">${String(r.title || 'Exam').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</option>`).join('');
+  const want = new URLSearchParams(location.search).get('q');
+  if(want && RB_RESULTS.some(r => r.id === want)) sel.value = want;
+  document.getElementById('rb-select-wrap').style.display = RB_RESULTS.length > 1 ? 'block' : 'none';
+  status.style.display = 'none';
+  rbShow(sel.value);
 }
 
-const DEPT_ICONS = {
-  'leadership': '⭐', 'administration': '🗂️', 'it': '💻', 'content': '✍️',
-  'graphics': '🎨', 'marketing': '📣', 'cultural': '🎭', 'other': '👤'
-};
-function deptIcon(dept) {
-  return DEPT_ICONS[(dept || 'other').trim().toLowerCase()] || '👤';
-}
-
-function renderTeamPage() {
-  const grid = document.getElementById('team-page-grid');
-  if(!grid) return;
-  
-  const team = getTeam();
-  const dict = translations[getLang()];
-  
-  if(team.length === 0) {
-    grid.innerHTML = `<div class="team-empty"><div class="icon">👥</div><h3>${dict.tp_empty_t}</h3><p>${dict.tp_empty_d}</p></div>`;
-    return;
-  }
-  
-  // Group members by department (preserving overall order within each group)
-  const groups = {};
-  const groupOrder = {};
-  team.forEach(m => {
-    const dept = (m.department || 'Other').trim() || 'Other';
-    if(!groups[dept]) { groups[dept] = []; groupOrder[dept] = m.order || 999; }
-    groups[dept].push(m);
-    groupOrder[dept] = Math.min(groupOrder[dept], m.order || 999);
-  });
-  
-  const deptNames = Object.keys(groups).sort((a, b) => groupOrder[a] - groupOrder[b]);
-  
-  grid.innerHTML = deptNames.map(dept => {
-    const members = groups[dept];
-    const cards = members.map(m => `
-      <div class="team-card${m.special ? ' team-card-special' : ''}" onclick="openMemberModal('${m.id}')" style="cursor:pointer;">
-        <div class="team-card-top">
-          ${m.special ? '<span class="special-badge">🔷 Leadership</span>' : ''}
-          ${m.photo 
-            ? `<img src="${m.photo}" class="team-avatar" alt="${m.name}">` 
-            : `<div class="team-avatar-ph">${(m.name || 'NA').substring(0,2).toUpperCase()}</div>`}
-          <h4>${m.name}</h4>
-          <p class="role">${m.role}</p>
-        </div>
-        <div class="team-card-body">
-          <span class="dept-tag">${dept}</span>
-          ${m.description ? `<p class="team-bio">${m.description}</p>` : ''}
-        </div>
-      </div>`).join('');
-    const memberWord = members.length > 1 ? dict.tp_members : dict.tp_member;
-    return `
-      <div class="dept-group">
-        <div class="dept-header">
-          <div class="dept-icon">${deptIcon(dept)}</div>
-          <div class="dept-name">${dept}</div>
-          <div class="dept-count">${members.length} ${memberWord}</div>
-        </div>
-        <div class="team-grid">${cards}</div>
-      </div>`;
-  }).join('');
-}
-
-function openMemberModal(id) {
-  const m = getTeam().find(x => x.id === id);
-  if(!m) return;
-
-  const dept = (m.department || 'Other').trim() || 'Other';
-  const photoHtml = m.photo
-    ? `<img src="${m.photo}" class="tm-modal-photo" alt="${m.name}">`
-    : `<div class="tm-modal-photo-ph">${(m.name || 'NA').substring(0,2).toUpperCase()}</div>`;
-
-  document.getElementById('tm-modal-content').innerHTML = `
-    ${photoHtml}
-    ${m.special ? '<span class="tm-modal-badge">🔷 Leadership</span>' : ''}
-    <div class="tm-modal-name">${m.name}</div>
-    <div class="tm-modal-role">${m.role}</div>
-    <span class="tm-modal-dept">${dept}</span>
-    ${m.description ? `<p class="tm-modal-bio">${m.description}</p>` : ''}
-  `;
-
-  const modal = document.querySelector('#tm-modal-ov .tm-modal');
-  modal.classList.toggle('special-modal', !!m.special);
-  document.getElementById('tm-modal-ov').classList.add('open');
-}
-
-function closeMemberModal() {
-  document.getElementById('tm-modal-ov').classList.remove('open');
+function rbShow(id) {
+  const res = RB_RESULTS.find(r => r.id === id);
+  if(!res) return;
+  const d = res.publishedAt ? new Date(res.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  document.getElementById('rb-meta').innerHTML =
+    `<span>Participants</span> <strong>${res.participants || 0}</strong>` + (d ? ` · <span>Published</span> <strong>${d}</strong>` : '');
+  const box = document.getElementById('rb-board');
+  box.innerHTML = resultsBoardHtml(res);
+  box.style.display = 'block';
 }
 </script>
 </body>

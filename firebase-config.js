@@ -45,10 +45,11 @@ window.EMAILJS_CONFIG = {
 
 // Google Apps Script web app — sends bulk "Email Notifications" (new event /
 // results / exam reminder announcements) straight from the admin's own Gmail,
-// instead of EmailJS. Must match the SECRET_KEY set inside Code.gs.
+// instead of EmailJS. Access is checked inside Code.gs through the admin's Firebase login (no shared key).
 window.NOTIFY_MAILER = {
-  scriptUrl: "https://script.google.com/macros/s/AKfycbyzhCAQBmj4287xiykwDBjyTO1a1gd04zlY5t6mSL8p9rvUNzMJdroQXdiYzmyVTM-j1Q/exec",
-  key: "tvbd-9f2e7c4a1b"
+  // Only the web-app address. There is NO secret key here any more: the Apps Script (Code.gs)
+  // checks the admin's Firebase login token and only sends mail for the allowed admin account.
+  scriptUrl: "https://script.google.com/macros/s/AKfycbyzhCAQBmj4287xiykwDBjyTO1a1gd04zlY5t6mSL8p9rvUNzMJdroQXdiYzmyVTM-j1Q/exec"
 };
 
 console.log("🔥 Firebase Initialized (Firestore + Auth)!");

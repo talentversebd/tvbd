@@ -51,6 +51,9 @@ service cloud.firestore {
     // dashboard bell announcements: any signed-in user reads, only admin writes
     match /announcements/{id} { allow read: if signedIn(); allow write: if isMain(); }
 
+    // email-notification campaign history: only the main admin uses this panel
+    match /notification_campaigns/{id} { allow read, write: if isMain(); }
+
     match /settings/{id} {
       allow read: if true;
       allow write: if isMain()
@@ -58,6 +61,33 @@ service cloud.firestore {
                    || (id == 'popup'    && hasPerm('popup'))
                    || ((id == 'certTemplate' || id.matches('certTpl_.*')) && hasPerm('certificates'))
                    || (id == 'election' && isEC());
+    }
+
+    // ---- Published results / leaderboard (public top list; written when an admin publishes) ----
+    match /quiz_results/{id} {
+      allow read: if true;
+      allow write: if isMain() || hasPerm('qsubs');
+    }
+
+    // ---- Private quiz answer keys: only admins / permitted members ----
+    match /quiz_keys/{id} {
+      allow read: if isMain() || hasPerm('quizzes') || hasPerm('qsubs');
+      allow write: if isMain() || hasPerm('quizzes');
+    }
+
+    // ---- Participants' group link: only admins and people registered for that event ----
+    match /event_links/{id} {
+      allow read: if isMain() || hasPerm('olympiads')
+                  || (signedIn() && exists(/databases/$(database)/documents/registration_index/$(id + '_' + request.auth.uid)));
+      allow write: if isMain() || hasPerm('olympiads');
+    }
+    match /registration_index/{docId} {
+      allow create: if signedIn()
+                    && request.resource.data.uid == request.auth.uid
+                    && docId == request.resource.data.eventId + '_' + request.auth.uid
+                    && request.resource.data.keys().hasOnly(['eventId','uid','at']);
+      allow read: if isMain() || hasPerm('registrations') || (signedIn() && resource.data.uid == request.auth.uid);
+      allow delete: if isMain() || hasPerm('registrations');
     }
 
     // ---- Forms ----

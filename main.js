@@ -287,6 +287,15 @@ async function submitRegistration(e) {
       return;
     }
 
+    // remember that this person registered for this event (unlocks the participants' group link)
+    let groupUrl = '';
+    try {
+      const evs = typeof getOlympiads === 'function' ? getOlympiads() : [];
+      const oo = evs.find(x => String(x.title || '').trim().toLowerCase() === String(olympiad || '').trim().toLowerCase());
+      const u0 = window.firebaseAuth && window.firebaseAuth.currentUser;
+      if(oo && u0) { await ensureRegistered(oo.id, u0.uid); groupUrl = await getEventLink(oo.id); }
+    } catch(e2) { /* optional */ }
+
     // Send confirmation email — best-effort only. A missing/misconfigured
     // EmailJS setup or a failed send must never make a successful registration
     // look like a failure.
@@ -335,6 +344,7 @@ Message: ${msg || 'N/A'}
       const success = document.getElementById('reg-success');
       const formWrap = document.getElementById('reg-form-wrap') || document.getElementById('reg-form');
       if(success) {
+        if(groupUrl && !document.getElementById('reg-group-link')) success.insertAdjacentHTML('beforeend', '<div id="reg-group-link">' + groupLinkHtml(groupUrl) + '</div>');
         success.style.display = 'block';
         if(formWrap) formWrap.style.display = 'none';
       }
@@ -412,6 +422,8 @@ async function submitInlineRegistration(olympiadId) {
       }
     }
 
+    await ensureRegistered(o.id, user.uid);
+
     toast("Registration successful! We'll contact you soon. ✅");
     const reg = document.getElementById('m-reg');
     if(reg) {
@@ -420,7 +432,9 @@ async function submitInlineRegistration(olympiadId) {
           <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
           <h4 style="font-family:Montserrat;font-weight:800;margin-bottom:6px;">Registered!</h4>
           <p style="color:var(--muted);font-size:.85rem;">তোমার registration পেয়েছি। Dashboard-এ গিয়ে পরে এটা দেখতে পারবে।</p>
+          <div id="m-group-link"></div>
         </div>`;
+      getEventLink(o.id).then(u => { const gl = document.getElementById('m-group-link'); if(gl && u) gl.innerHTML = groupLinkHtml(u); });
     }
   } catch(err) {
     console.error("Registration error:", err);
@@ -484,6 +498,8 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
       message: `[Custom form responses — see Form Builder → "${customForm.title}" → Responses]`
     });
 
+    await ensureRegistered(o.id, user.uid);
+
     toast("Registration successful! We'll contact you soon. ✅");
     const reg = document.getElementById('m-reg');
     if(reg) {
@@ -492,7 +508,9 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
           <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
           <h4 style="font-family:Montserrat;font-weight:800;margin-bottom:6px;">Registered!</h4>
           <p style="color:var(--muted);font-size:.85rem;">তোমার registration পেয়েছি। Dashboard-এ গিয়ে পরে এটা দেখতে পারবে।</p>
+          <div id="m-group-link"></div>
         </div>`;
+      getEventLink(o.id).then(u => { const gl = document.getElementById('m-group-link'); if(gl && u) gl.innerHTML = groupLinkHtml(u); });
     }
   } catch(err) {
     console.error("Custom registration error:", err);

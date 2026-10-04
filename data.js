@@ -145,6 +145,7 @@ async function deleteOlympiadData(id) {
   const db = window.firebaseDB;
   try {
     await deleteDoc(doc(db, "olympiads", id));
+    await deleteDoc(doc(db, "event_links", id)).catch(() => {});
     cache.olympiads = cache.olympiads.filter(x => x.id !== id);
     return true;
   } catch(err) {
@@ -567,6 +568,216 @@ async function addCertificate(cert) {
     console.error("Add certificate error:", err);
     return { success: false, error: err.message };
   }
+}
+
+/*===== PARTICIPANTS' GROUP LINK (private to registered participants) =====
+   The link is NOT stored in the public olympiads document. It lives in event_links/{eventId}
+   and is readable only by admins and by people who have a registration_index/{eventId}_{uid}
+   record (created automatically when they register / when they open their dashboard). */
+async function ensureRegistered(eventId, uid) {
+  if(!eventId || !uid) return false;
+  await waitForFirebase();
+  const { doc, getDoc, setDoc } = window.firebaseFunctions;
+  const ref = doc(window.firebaseDB, "registration_index", eventId + '_' + uid);
+  try {
+    const snap = await getDoc(ref);
+    if(snap.exists()) return true;
+    await setDoc(ref, { eventId, uid, at: Date.now() });
+    return true;
+  } catch(err) { return false; }
+}
+
+async function getEventLink(eventId) {
+  if(!eventId) return '';
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try {
+    const snap = await getDoc(doc(window.firebaseDB, "event_links", eventId));
+    return snap.exists() ? (snap.data().url || '') : '';
+  } catch(err) { return ''; }
+}
+
+async function saveEventLink(eventId, url) {
+  await waitForFirebase();
+  const { doc, setDoc, deleteDoc } = window.firebaseFunctions;
+  const ref = doc(window.firebaseDB, "event_links", eventId);
+  try {
+    if(url) await setDoc(ref, { url, updatedAt: Date.now() });
+    else await deleteDoc(ref).catch(() => {});
+    return true;
+  } catch(err) { console.error("Save event link error:", err); return false; }
+}
+
+// A green, clickable "Join Group" block (dark = for use on the dark My Events cards)
+function groupLinkHtml(url, dark) {
+  const u = String(url || '').trim();
+  if(!/^https?:\/\//i.test(u)) return '';
+  const safe = u.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return `<div style="margin-top:14px;text-align:center;">
+    <div style="font-size:.82rem;color:${dark ? 'rgba(255,255,255,.85)' : 'var(--muted)'};margin-bottom:8px;">👥 অংশগ্রহণকারীদের গ্রুপে যোগ দিন</div>
+    <a href="${safe}" target="_blank" rel="noopener noreferrer" style="display:block;background:#16a34a;color:#fff;font-weight:800;font-size:.95rem;padding:13px 26px;border-radius:999px;text-decoration:none;">Join Group</a>
+    <div style="margin-top:8px;word-break:break-all;"><a href="${safe}" target="_blank" rel="noopener noreferrer" style="color:${dark ? '#86efac' : '#16a34a'};font-size:.8rem;text-decoration:underline;">${safe}</a></div>
+  </div>`;
+}
+
+/*===== RESULTS, RANKING & LEADERBOARD =====
+   publishQuizResults() ranks every GRADED submission of a quiz (highest score first, faster time
+   breaks a tie; equal score + equal time share a rank) and
+   - writes rank / position / resultPublished onto each person's own submission
+     (so a participant sees their score + rank on their dashboard), and
+   - writes a public quiz_results/{quizId} document with only the top N names (the leaderboard). */
+function rkPosition(rank) {
+  return rank === 1 ? 'Champion' : rank === 2 ? '1st Runner Up' : rank === 3 ? '2nd Runner Up' : '';
+}
+
+async function publishQuizResults(quizId, opts) {
+  opts = opts || {};
+  const topN = Math.max(1, Math.min(100, parseInt(opts.topN, 10) || 10));
+  await waitForFirebase();
+  const { collection, getDocs, query, where, writeBatch, doc, setDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const quiz = (await loadQuizzes()).find(q => q.id === quizId);
+    if(!quiz) return { success: false, error: 'Quiz not found' };
+
+    const snap = await getDocs(query(collection(db, "quiz_submissions"), where("quizId", "==", quizId)));
+    const all = snap.docs.map(d => ({ ref: d.ref, ...d.data() }));
+    const graded = all.filter(s => s.totalScore != null);
+    const ungraded = all.length - graded.length;
+    if(!graded.length) return { success: false, error: 'গ্রেড করা কোনো সাবমিশন নেই — আগে ⚡ MCQ অটো-গ্রেড ও লিখিত উত্তরের নম্বর দিন।' };
+
+    // segment of each person (from their registration for the event(s) linked to this quiz)
+    const segOf = {};
+    if(opts.bySegment) {
+      try {
+        if(typeof loadAllData === 'function') await loadAllData();
+        const titles = (typeof getOlympiads === 'function' ? getOlympiads() : [])
+          .filter(o => o.quizId === quizId).map(o => String(o.title || '').trim().toLowerCase());
+        (await loadRegistrations()).forEach(r => {
+          if(titles.includes(String(r.olympiad || '').trim().toLowerCase())) segOf[String(r.email || '').trim().toLowerCase()] = r.segment || '';
+        });
+      } catch(e) { console.warn('Segments unavailable, ranking everyone together', e); }
+    }
+
+    const groups = {};
+    graded.forEach(s => {
+      const seg = opts.bySegment ? (segOf[String(s.email || '').trim().toLowerCase()] || '') : '';
+      s._seg = seg; (groups[seg] = groups[seg] || []).push(s);
+    });
+    const publicGroups = [];
+    Object.keys(groups).sort().forEach(seg => {
+      const g = groups[seg];
+      g.sort((a, b) => (b.totalScore - a.totalScore) || ((a.timeTakenSeconds ?? 1e12) - (b.timeTakenSeconds ?? 1e12)));
+      let rank = 0, prev = null;
+      g.forEach((s, i) => {
+        const key = s.totalScore + '|' + (s.timeTakenSeconds ?? '');
+        if(key !== prev) { rank = i + 1; prev = key; }
+        s._rank = rank; s._of = g.length;
+      });
+      publicGroups.push({
+        segment: seg, participants: g.length,
+        entries: g.filter(s => s._rank <= topN).map(s => ({
+          rank: s._rank, name: s.name || '', score: s.totalScore, possible: s.totalPossible || 0,
+          percent: s.totalPossible ? Math.round(s.totalScore / s.totalPossible * 100) : 0
+        }))
+      });
+    });
+
+    const now = Date.now();
+    for(let i = 0; i < graded.length; i += 400) {
+      const batch = writeBatch(db);
+      graded.slice(i, i + 400).forEach(s => {
+        batch.update(s.ref, {
+          resultPublished: true, rank: s._rank, rankOf: s._of, segment: s._seg || '',
+          position: rkPosition(s._rank), publishedAt: now,
+          percent: s.totalPossible ? Math.round(s.totalScore / s.totalPossible * 100) : 0
+        });
+      });
+      await batch.commit();
+    }
+
+    await setDoc(doc(db, "quiz_results", quizId), {
+      quizId, title: quiz.title || '', publishedAt: now, topN,
+      participants: graded.length, ungraded, groups: publicGroups
+    });
+    if(typeof loadQuizSubmissions === 'function') await loadQuizSubmissions();
+    return { success: true, ranked: graded.length, ungraded };
+  } catch(err) {
+    console.error("Publish results error:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+async function unpublishQuizResults(quizId) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where, writeBatch, doc, deleteDoc, deleteField } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "quiz_submissions"), where("quizId", "==", quizId)));
+    const docs = snap.docs.filter(d => d.data().resultPublished);
+    for(let i = 0; i < docs.length; i += 400) {
+      const batch = writeBatch(db);
+      docs.slice(i, i + 400).forEach(d => batch.update(d.ref, {
+        resultPublished: false, rank: deleteField(), rankOf: deleteField(), segment: deleteField(),
+        position: deleteField(), publishedAt: deleteField(), percent: deleteField()
+      }));
+      await batch.commit();
+    }
+    await deleteDoc(doc(db, "quiz_results", quizId)).catch(() => {});
+    if(typeof loadQuizSubmissions === 'function') await loadQuizSubmissions();
+    return { success: true, cleared: docs.length };
+  } catch(err) {
+    console.error("Unpublish results error:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+async function getQuizResultsDoc(quizId) {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try {
+    const snap = await getDoc(doc(window.firebaseDB, "quiz_results", quizId));
+    return snap.exists() ? snap.data() : null;
+  } catch(err) { return null; }
+}
+
+async function loadPublishedResults() {
+  await waitForFirebase();
+  const { collection, getDocs } = window.firebaseFunctions;
+  try {
+    const snap = await getDocs(collection(window.firebaseDB, "quiz_results"));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0));
+  } catch(err) {
+    console.error("Load published results error:", err);
+    return null;
+  }
+}
+
+// The leaderboard table (used by the Results page and by the dashboard). hl = { rank, name } to highlight "me".
+function resultsBoardHtml(res, hl) {
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  if(!res || !(res.groups || []).length) return '<p style="color:var(--muted);font-size:.88rem;">—</p>';
+  const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '';
+  const th = 'padding:8px 6px;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--bdr);';
+  return res.groups.map(g => `
+    <div style="margin-bottom:18px;">
+      ${g.segment ? `<div style="font-weight:800;font-size:.95rem;margin:6px 0;color:var(--txt);">${esc(g.segment)}</div>` : ''}
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr>
+          <th style="${th}text-align:left;width:70px;">Rank</th>
+          <th style="${th}text-align:left;">Name</th>
+          <th style="${th}text-align:right;">Score</th>
+        </tr></thead>
+        <tbody>${(g.entries || []).map(e => {
+          const me = hl && hl.rank === e.rank && String(hl.name || '').trim() === String(e.name || '').trim();
+          return `<tr style="${me ? 'background:rgba(37,99,235,.18);' : ''}">
+            <td style="padding:10px 6px;border-bottom:1px solid var(--bdr);font-weight:800;">${medal(e.rank)} ${e.rank}</td>
+            <td style="padding:10px 6px;border-bottom:1px solid var(--bdr);color:var(--txt);">${esc(e.name)}</td>
+            <td style="padding:10px 6px;border-bottom:1px solid var(--bdr);text-align:right;font-weight:700;color:var(--blue-br);">${esc(e.score)}/${esc(e.possible)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`).join('');
 }
 
 /*===== CERTIFICATE OWNERS (private emails) =====*/

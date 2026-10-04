@@ -67,6 +67,7 @@
     <a href="news.html" data-i18n="nav_news">News</a>
     <a href="register.html" data-i18n="nav_register">Register</a>
     <a href="verify.html" data-i18n="nav_verify">Verify</a>
+    <a href="leaderboard.html" data-i18n="nav_results">Results</a>
     <a href="contact.html" data-i18n="nav_contact">Contact</a>
     <a href="account.html" id="nav-account-link">🔐 Account</a>
     <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
@@ -648,10 +649,18 @@ async function dbLoadDashboard(user) {
             <button onclick="dbDownloadCert('${cert.id}','img',this)" style="flex:1;background:#f59e0b;color:#fff;border:none;border-radius:999px;padding:13px 10px;font-size:.92rem;font-weight:700;cursor:pointer;">🏅 Certificate</button>
             <button onclick="dbDownloadCert('${cert.id}','pdf',this)" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:999px;padding:13px 20px;font-size:.88rem;font-weight:700;cursor:pointer;">PDF</button>
           </div>` : ''}
+          ${(o && !r._certOnly) ? `<div class="db-group" data-eid="${esc(o.id)}"></div>` : ''}
           <a href="events.html${o ? '?event=' + encodeURIComponent(o.id) : ''}" style="display:block;text-align:center;background:#fff;color:#111827;border-radius:999px;padding:14px;font-size:.95rem;font-weight:800;text-decoration:none;">View Details</a>
         </div>
       </div>`;
     }).join('');
+    // Participants' group link (private: only registered people can read it)
+    document.querySelectorAll('.db-group[data-eid]').forEach(async el => {
+      const eid = el.dataset.eid;
+      await ensureRegistered(eid, user.uid);
+      const url = await getEventLink(eid);
+      if(url) el.innerHTML = groupLinkHtml(url, true);
+    });
   }
 
   const list = document.getElementById('db-results-list');
@@ -667,18 +676,42 @@ async function dbLoadDashboard(user) {
     list.innerHTML = results.map(r => {
       const quiz = quizMap[r.quizId];
       const title = quiz ? quiz.title : 'Quiz';
+      const published = !!r.resultPublished;
+      const hide = r.secure && !published;          // secure quiz: the score is shown only once results are published
       const pending = r.status === 'pending_review' || r.status === 'pending_grading';
-      const scoreText = pending
-        ? `<span style="color:#fbbf24;">⏳ Pending review</span>`
+      const scoreText = (pending || hide)
+        ? `<span style="color:#fbbf24;">⏳ ${hide && !pending ? 'Result Pending' : 'Pending review'}</span>`
         : `<strong style="color:var(--blue-br);">${r.totalScore ?? r.mcqScore ?? 0} / ${r.totalPossible ?? 0}</strong>`;
       const dateStr = r.submittedAt ? new Date(r.submittedAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+
+      // rank / position / leaderboard (only after an admin has published the results)
+      let rankHtml = '';
+      if(published && r.rank) {
+        window._dbBoardMeta = window._dbBoardMeta || {};
+        window._dbBoardMeta[r.quizId] = { rank: r.rank, name: r.name };
+        const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '🏅';
+        rankHtml = `
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr);">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+              ${r.position ? `<span style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:800;border-radius:999px;padding:6px 14px;font-size:.82rem;">${medal} ${esc(r.position)}</span>` : ''}
+              <span style="font-size:.88rem;"><span style="color:var(--muted);">Rank</span> <strong>#${r.rank}</strong></span>
+              <span style="font-size:.88rem;"><span style="color:var(--muted);">Participants</span> <strong>${r.rankOf}</strong></span>
+              ${r.segment ? `<span style="font-size:.78rem;color:var(--muted);">${esc(r.segment)}</span>` : ''}
+              <button onclick="dbToggleBoard('${r.quizId}')" style="margin-left:auto;background:none;border:1px solid var(--bdr2);color:var(--txt);border-radius:8px;padding:7px 14px;font-size:.8rem;cursor:pointer;">🏆 Leaderboard</button>
+            </div>
+            <div id="board-${r.quizId}" style="display:none;margin-top:12px;"></div>
+          </div>`;
+      }
       return `
-        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-          <div>
-            <div style="font-weight:700;color:var(--txt);margin-bottom:4px;">${title}</div>
-            <div style="font-size:.78rem;color:var(--muted);">Submitted: ${dateStr}</div>
+        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div>
+              <div style="font-weight:700;color:var(--txt);margin-bottom:4px;">${title}</div>
+              <div style="font-size:.78rem;color:var(--muted);">Submitted: ${dateStr}</div>
+            </div>
+            <div style="text-align:right;font-size:1rem;">${scoreText}</div>
           </div>
-          <div style="text-align:right;font-size:1rem;">${scoreText}</div>
+          ${rankHtml}
         </div>`;
     }).join('');
   }
@@ -694,6 +727,17 @@ async function dbLoadDashboard(user) {
     const target = document.querySelector(location.hash);
     if(target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }
+}
+
+async function dbToggleBoard(quizId) {
+  const box = document.getElementById('board-' + quizId);
+  if(!box) return;
+  if(box.style.display === 'block') { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = '<p style="color:var(--muted);font-size:.85rem;">Loading...</p>';
+  const res = await getQuizResultsDoc(quizId);
+  const meta = (window._dbBoardMeta || {})[quizId] || {};
+  box.innerHTML = res ? resultsBoardHtml(res, meta) : '<p style="color:var(--muted);font-size:.85rem;">—</p>';
 }
 
 function dbFieldRow(label, value) {

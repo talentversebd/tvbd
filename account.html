@@ -508,6 +508,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 let acJustSignedUp = false;
 
+// links like account.html#signup (from the home page) open the right tab
+function acApplyHash() {
+  if(location.hash === '#signup') acSwitchTab('signup');
+  else if(location.hash === '#login') acSwitchTab('login');
+}
+document.addEventListener('DOMContentLoaded', acApplyHash);
+window.addEventListener('hashchange', acApplyHash);
+
 function acSwitchTab(tab) {
   const loginBtn = document.getElementById('tab-login-btn');
   const signupBtn = document.getElementById('tab-signup-btn');

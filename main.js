@@ -51,6 +51,9 @@ async function navLogout() {
 }
 
 function navRenderLoggedIn(user) {
+  // home page: a logged-in visitor does not need the Sign Up button or the "create an account" box
+  const su = document.getElementById('nav-signup-link'); if(su) su.remove();
+  const ha = document.getElementById('hero-auth'); if(ha) ha.style.display = 'none';
   const link = document.getElementById('nav-account-link');
   if(!link) return; // already replaced on this page, or this page has no account link
 

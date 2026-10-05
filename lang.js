@@ -435,6 +435,10 @@ function applyLanguage() {
 =====================================================*/
 const I18N_PAIRS = [
 {
+"e": "New here? Create a free account to register for events, take exams and see your results.",
+"b": "নতুন? বিনামূল্যে অ্যাকাউন্ট খুলে ইভেন্টে রেজিস্ট্রেশন করুন, পরীক্ষা দিন এবং নিজের ফলাফল দেখুন।"
+},
+{
 "e": "Results & Leaderboard",
 "b": "ফলাফল ও লিডারবোর্ড"
 },

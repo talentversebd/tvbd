@@ -346,17 +346,65 @@ async function deleteMessageAction(id) {
   if(await deleteMessage(id)) { renderMessagesTable(); renderDashboard(); toast("Deleted."); }
 }
 
+function regStatus(r) { return r.approval === 'approved' ? 'approved' : r.approval === 'rejected' ? 'rejected' : 'pending'; }
+
+function regFiltered() {
+  const ev = (document.getElementById('reg-event-filter') || {}).value || '';
+  const st = (document.getElementById('reg-status-filter') || {}).value || '';
+  return getRegistrations().filter(r => (!ev || r.olympiad === ev) && (!st || regStatus(r) === st));
+}
+
 function renderRegistrationsTable() {
   const tbody = document.getElementById('rtbl');
   if(!tbody) return;
-  const data = getRegistrations();
-  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="8">No registrations yet.</td></tr>`; return; }
-  tbody.innerHTML = '';
-  data.forEach(r => {
+  const all = getRegistrations();
+
+  // event filter options (keep the current choice)
+  const evSel = document.getElementById('reg-event-filter');
+  if(evSel) {
+    const keep = evSel.value;
+    const evs = [...new Set(all.map(r => r.olympiad).filter(Boolean))].sort();
+    evSel.innerHTML = '<option value="">সব ইভেন্ট</option>' + evs.map(e => `<option value="${bcEsc(e)}" ${e === keep ? 'selected' : ''}>${bcEsc(e)}</option>`).join('');
+  }
+
+  const data = regFiltered();
+  const count = st => data.filter(r => regStatus(r) === st).length;
+  const sum = document.getElementById('reg-summary');
+  if(sum) sum.innerHTML = data.length
+    ? `দেখানো হচ্ছে <strong>${data.length}</strong> জন · ⏳ Pending <strong>${count('pending')}</strong> · ✅ Approved <strong>${count('approved')}</strong> · ❌ Rejected <strong>${count('rejected')}</strong>`
+    : '';
+
+  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="9">${all.length ? 'এই ফিল্টারে কোনো রেজিস্ট্রেশন নেই।' : 'No registrations yet.'}</td></tr>`; return; }
+  const badge = st => st === 'approved' ? '<span class="bs bs-active">✅ Approved</span>'
+                    : st === 'rejected' ? '<span class="bs bs-past">❌ Rejected</span>'
+                    : '<span class="bs bs-upcoming">⏳ Pending</span>';
+  tbody.innerHTML = data.map(r => {
     const date = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'N/A';
-    tbody.innerHTML += `<tr><td>${r.name}</td><td>${r.email}</td><td>${r.phone}</td><td>${r.olympiad}</td><td>${r.segment||'—'}</td><td>${r.transactionId||'—'}</td><td>${date}</td>
-      <td class="tbl-acts"><button class="e-btn" onclick="viewRegistration('${r.id}')">View</button><button class="d-btn" onclick="deleteRegistrationAction('${r.id}')">Delete</button></td></tr>`;
-  });
+    const st = regStatus(r);
+    return `<tr><td>${bcEsc(r.name)}</td><td>${bcEsc(r.email)}</td><td>${bcEsc(r.phone)}</td><td>${bcEsc(r.olympiad)}</td><td>${bcEsc(r.segment || '—')}</td><td>${bcEsc(r.transactionId || '—')}</td><td>${badge(st)}</td><td>${date}</td>
+      <td class="tbl-acts">
+        ${st !== 'approved' ? `<button class="e-btn" onclick="setRegApproval('${r.id}','approved')">✅ Approve</button>` : ''}
+        ${st !== 'rejected' ? `<button class="d-btn" onclick="setRegApproval('${r.id}','rejected')">❌ Reject</button>` : ''}
+        <button class="e-btn" onclick="viewRegistration('${r.id}')">View</button><button class="d-btn" onclick="deleteRegistrationAction('${r.id}')">Delete</button>
+      </td></tr>`;
+  }).join('');
+}
+
+async function setRegApproval(id, status) {
+  const ok = await setRegistrationApproval(id, status);
+  if(!ok) return toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);
+  toast(status === 'approved' ? 'Approved ✅' : 'Rejected ❌');
+  renderRegistrationsTable();
+}
+
+async function approveAllShown() {
+  const ids = regFiltered().filter(r => regStatus(r) === 'pending').map(r => r.id);
+  if(!ids.length) return toast('Pending কেউ নেই।', true);
+  if(!confirm(`${ids.length} জন Pending ব্যক্তিকে Approve করবেন?`)) return;
+  const ok = await setRegistrationsApproval(ids, 'approved');
+  if(!ok) return toast('ব্যর্থ!', true);
+  toast(`${ids.length} জন Approved ✅`);
+  renderRegistrationsTable();
 }
 function viewRegistration(id) {
   const r = getRegistrations().find(x => x.id === id);
@@ -370,9 +418,9 @@ async function deleteRegistrationAction(id) {
 function downloadRegistrationsCSV() {
   const regs = getRegistrations();
   if(!regs.length) return toast("No data!", true);
-  let csv = "Name,Email,Phone,Olympiad,Segment,Transaction ID,Class,School,Date\n";
+  let csv = "Name,Email,Phone,Olympiad,Segment,Transaction ID,Status,Class,School,Date\n";
   regs.forEach(r => {
-    csv += [r.name,r.email,r.phone,r.olympiad,r.segment,r.transactionId,r.class,r.school,r.createdAt?new Date(r.createdAt).toLocaleString():''].map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')+"\n";
+    csv += [r.name,r.email,r.phone,r.olympiad,r.segment,r.transactionId,regStatus(r),r.class,r.school,r.createdAt?new Date(r.createdAt).toLocaleString():''].map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')+"\n";
   });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
@@ -451,6 +499,7 @@ function openOlympiadForm() {
   document.getElementById('of-st').value = 'upcoming';
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = false;
   const qr = document.getElementById('of-qreg'); if(qr) qr.checked = true;
+  const ap = document.getElementById('of-approve'); if(ap) ap.checked = true;
   document.getElementById('of-iprev').innerHTML = '';
   const gl = document.getElementById('of-group'); if(gl) gl.value = '';
   window._ofGroupLoaded = true;
@@ -484,6 +533,7 @@ function editOlympiad(id) {
   document.getElementById('of-iu').value = o.img||'';
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = o.regEnabled||false;
   const qr = document.getElementById('of-qreg'); if(qr) qr.checked = o.quizRegisteredOnly !== false;
+  const ap = document.getElementById('of-approve'); if(ap) ap.checked = o.approvalRequired === true;   // old events stay as they were until you tick it
   document.getElementById('of-iprev').innerHTML = o.img ? `<img src="${o.img}">` : '';
   populateQuizDropdown(o.quizId || '');
   populateRegFormDropdown(o.registrationFormId || '');
@@ -494,7 +544,7 @@ async function saveOlympiad() {
   const desc = document.getElementById('of-ds').value.trim();
   if(!title || !desc) return toast("Title & description required!", true);
   const segments = document.getElementById('of-segments').value.split(',').map(s => s.trim()).filter(Boolean);
-  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '', registrationFormId:document.getElementById('of-regform')?.value || '', quizRegisteredOnly:(document.getElementById('of-qreg')?.checked ?? true) };
+  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '', registrationFormId:document.getElementById('of-regform')?.value || '', quizRegisteredOnly:(document.getElementById('of-qreg')?.checked ?? true), approvalRequired:(document.getElementById('of-approve')?.checked ?? false) };
   const eid = document.getElementById('of-eid').value;
   const groupUrl = (document.getElementById('of-group')?.value || '').trim();
   if(groupUrl && !/^https?:\/\//i.test(groupUrl)) return toast("Group link must start with http:// or https://", true);

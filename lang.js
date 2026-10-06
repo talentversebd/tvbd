@@ -435,6 +435,38 @@ function applyLanguage() {
 =====================================================*/
 const I18N_PAIRS = [
 {
+"e": "Awaiting approval",
+"b": "অনুমোদনের অপেক্ষায়"
+},
+{
+"e": "Your registration is waiting for the admin's approval. Once it is approved you can take the exam from here.",
+"b": "আপনার রেজিস্ট্রেশন অ্যাডমিনের অনুমোদনের অপেক্ষায় আছে। অনুমোদন হলে এখান থেকে পরীক্ষা দিতে পারবেন।"
+},
+{
+"e": "Registration not approved",
+"b": "রেজিস্ট্রেশন অনুমোদিত হয়নি"
+},
+{
+"e": "Sorry, your registration for this event was not approved, so you cannot take this exam. Please contact us if you have any questions.",
+"b": "দুঃখিত, এই ইভেন্টের জন্য আপনার রেজিস্ট্রেশন অনুমোদিত হয়নি, তাই এই পরীক্ষায় অংশ নেওয়া যাবে না। কোনো প্রশ্ন থাকলে আমাদের সাথে যোগাযোগ করুন।"
+},
+{
+"e": "Your registration is waiting for admin approval. You will be able to take the exam once it is approved.",
+"b": "আপনার রেজিস্ট্রেশন অ্যাডমিনের অনুমোদনের অপেক্ষায় আছে। অনুমোদন হলে আপনি পরীক্ষা দিতে পারবেন।"
+},
+{
+"e": "Pending approval",
+"b": "অনুমোদনের অপেক্ষায়"
+},
+{
+"e": "Approved",
+"b": "অনুমোদিত"
+},
+{
+"e": "Not approved",
+"b": "অনুমোদিত হয়নি"
+},
+{
 "e": "New here? Create a free account to register for events, take exams and see your results.",
 "b": "নতুন? বিনামূল্যে অ্যাকাউন্ট খুলে ইভেন্টে রেজিস্ট্রেশন করুন, পরীক্ষা দিন এবং নিজের ফলাফল দেখুন।"
 },

@@ -630,6 +630,15 @@ async function dbLoadDashboard(user) {
       const cert = (window._dbCerts || []).find(c => (o && c.eventId && c.eventId === o.id) || nrm(c.event) === nrm(r.olympiad));
       const d = o && o.date ? new Date(o.date) : null;
       const dateTxt = d && !isNaN(d) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+      // approval status (only for events where the admin switched "approval required" on)
+      const needAp = !!o && o.approvalRequired === true;
+      const ap = r.approval === 'approved' ? 'approved' : r.approval === 'rejected' ? 'rejected' : 'pending';
+      const chipAmber = 'background:rgba(245,158,11,.25);border:1px solid rgba(251,191,36,.55);color:#fde68a;border-radius:999px;padding:7px 14px;font-size:.8rem;font-weight:600;';
+      const chipRed = 'background:rgba(239,68,68,.25);border:1px solid rgba(248,113,113,.55);color:#fecaca;border-radius:999px;padding:7px 14px;font-size:.8rem;font-weight:600;';
+      const apChip = !needAp ? `<span style="${chipGreen}">✓ Registered</span>`
+        : ap === 'approved' ? `<span style="${chipGreen}">✅ Approved</span>`
+        : ap === 'rejected' ? `<span style="${chipRed}">❌ Not approved</span>`
+        : `<span style="${chipAmber}">⏳ Pending approval</span>`;
       const bg = o && o.img
         ? `background-image:url('${esc(o.img)}');background-size:cover;background-position:center;`
         : 'background:linear-gradient(135deg,#0f2557,#1e40af);';
@@ -641,7 +650,7 @@ async function dbLoadDashboard(user) {
           <h4 style="color:#fff;font-family:Montserrat;font-weight:800;font-size:1.4rem;line-height:1.25;margin-bottom:12px;">${esc(r.olympiad || 'Event')}</h4>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
             ${dateTxt ? `<span style="${chip}">📅 ${dateTxt}</span>` : ''}
-            ${r._certOnly ? '' : `<span style="${chipGreen}">✓ Registered</span>`}
+            ${r._certOnly ? '' : apChip}
             ${r.segment ? `<span style="${chip}">${esc(r.segment)}</span>` : ''}
           </div>
           ${cert ? `
@@ -649,7 +658,7 @@ async function dbLoadDashboard(user) {
             <button onclick="dbDownloadCert('${cert.id}','img',this)" style="flex:1;background:#f59e0b;color:#fff;border:none;border-radius:999px;padding:13px 10px;font-size:.92rem;font-weight:700;cursor:pointer;">🏅 Certificate</button>
             <button onclick="dbDownloadCert('${cert.id}','pdf',this)" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:999px;padding:13px 20px;font-size:.88rem;font-weight:700;cursor:pointer;">PDF</button>
           </div>` : ''}
-          ${(o && !r._certOnly) ? `<div class="db-group" data-eid="${esc(o.id)}"></div>` : ''}
+          ${(o && !r._certOnly && (!needAp || ap === 'approved')) ? `<div class="db-group" data-eid="${esc(o.id)}"></div>` : ''}
           <a href="events.html${o ? '?event=' + encodeURIComponent(o.id) : ''}" style="display:block;text-align:center;background:#fff;color:#111827;border-radius:999px;padding:14px;font-size:.95rem;font-weight:800;text-decoration:none;">View Details</a>
         </div>
       </div>`;

@@ -74,6 +74,8 @@
     saveEventLink:        { section: 'Events', action: 'edit', label: a => 'Group link — ' + eventTitle(a[0]) },
     publishQuizResults:   { section: 'Quiz Results', action: 'publish', label: a => { try { const q = (window.getQuizzes() || []).find(x => x.id === a[0]); return q ? q.title : String(a[0]); } catch (e) { return String(a[0]); } }, details: a => a[1] ? ('Top ' + (a[1].topN || 10) + (a[1].bySegment ? ', per segment' : '')) : '' },
     unpublishQuizResults: { section: 'Quiz Results', action: 'unpublish', label: a => { try { const q = (window.getQuizzes() || []).find(x => x.id === a[0]); return q ? q.title : String(a[0]); } catch (e) { return String(a[0]); } } },
+    setRegistrationApproval:  { section: 'Registrations', action: 'approval', id: 0, list: 'getRegistrations', label: (a, f) => f ? `${f.name || ''} — ${f.olympiad || ''}` : '', details: a => a[1] },
+    setRegistrationsApproval: { section: 'Registrations', action: 'bulk approval', label: a => `${(a[0] || []).length} registrations`, details: a => a[1] },
     saveMemberAccess:     { section: 'Member Access', action: 'grant', label: a => `${(a[1] && a[1].name) || ''} (${(a[1] && a[1].memberCode) || ''})`, details: a => ((a[1] && a[1].permissions) || []).join(', ') },
     removeMemberAccess:   { section: 'Member Access', action: 'revoke', label: a => {
         const m = (typeof window.getMemberAccessMap === 'function' ? window.getMemberAccessMap() : {})[a[0]];

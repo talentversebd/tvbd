@@ -295,6 +295,7 @@ async function addRegistration(r) {
   const db = window.firebaseDB;
   try {
     r.createdAt = Date.now();
+    r.approval = 'pending';           // every registration starts as pending; only an admin can approve / reject
     await addDoc(collection(db, "registrations"), r);
     return true;
   } catch(err) {
@@ -315,6 +316,35 @@ async function loadRegistrations() {
     console.error("Load registrations error:", err);
     return [];
   }
+}
+
+/*===== REGISTRATION APPROVAL (admin) =====
+   approval = 'pending' (default) | 'approved' | 'rejected'.
+   For an event that has "admin approval required" switched on, only approved people can take its exam. */
+async function setRegistrationApproval(id, status) {
+  await waitForFirebase();
+  const { doc, updateDoc } = window.firebaseFunctions;
+  try {
+    await updateDoc(doc(window.firebaseDB, "registrations", id), { approval: status, approvalAt: Date.now() });
+    const r = (cache.registrations || []).find(x => x.id === id);
+    if(r) { r.approval = status; r.approvalAt = Date.now(); }
+    return true;
+  } catch(err) { console.error("Set approval error:", err); return false; }
+}
+
+async function setRegistrationsApproval(ids, status) {
+  await waitForFirebase();
+  const { doc, writeBatch } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    for(let i = 0; i < ids.length; i += 400) {
+      const batch = writeBatch(db);
+      ids.slice(i, i + 400).forEach(id => batch.update(doc(db, "registrations", id), { approval: status, approvalAt: Date.now() }));
+      await batch.commit();
+    }
+    (cache.registrations || []).forEach(r => { if(ids.includes(r.id)) { r.approval = status; r.approvalAt = Date.now(); } });
+    return true;
+  } catch(err) { console.error("Bulk approval error:", err); return false; }
 }
 
 async function deleteRegistration(id) {

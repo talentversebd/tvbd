@@ -114,7 +114,8 @@ service cloud.firestore {
       allow read, update, delete: if isMain() || hasPerm('messages');
     }
     match /registrations/{id} {
-      allow create: if true;
+      // a new registration is always 'pending': nobody can approve themselves
+      allow create: if !('approval' in request.resource.data) || request.resource.data.approval == 'pending';
       // a participant can read their own registrations (needed for registered-only quizzes)
       allow read: if isMain() || hasPerm('registrations')
                   || (signedIn() && resource.data.email == request.auth.token.email);

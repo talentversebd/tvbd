@@ -435,9 +435,10 @@ async function submitInlineRegistration(olympiadId) {
           <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
           <h4 style="font-family:Montserrat;font-weight:800;margin-bottom:6px;">Registered!</h4>
           <p style="color:var(--muted);font-size:.85rem;">তোমার registration পেয়েছি। Dashboard-এ গিয়ে পরে এটা দেখতে পারবে।</p>
+          ${o.approvalRequired ? '<p style="color:#fbbf24;font-size:.85rem;margin-top:10px;">⏳ Your registration is waiting for admin approval. You will be able to take the exam once it is approved.</p>' : ''}
           <div id="m-group-link"></div>
         </div>`;
-      getEventLink(o.id).then(u => { const gl = document.getElementById('m-group-link'); if(gl && u) gl.innerHTML = groupLinkHtml(u); });
+      if(!o.approvalRequired) getEventLink(o.id).then(u => { const gl = document.getElementById('m-group-link'); if(gl && u) gl.innerHTML = groupLinkHtml(u); });
     }
   } catch(err) {
     console.error("Registration error:", err);
@@ -511,9 +512,10 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
           <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
           <h4 style="font-family:Montserrat;font-weight:800;margin-bottom:6px;">Registered!</h4>
           <p style="color:var(--muted);font-size:.85rem;">তোমার registration পেয়েছি। Dashboard-এ গিয়ে পরে এটা দেখতে পারবে।</p>
+          ${o.approvalRequired ? '<p style="color:#fbbf24;font-size:.85rem;margin-top:10px;">⏳ Your registration is waiting for admin approval. You will be able to take the exam once it is approved.</p>' : ''}
           <div id="m-group-link"></div>
         </div>`;
-      getEventLink(o.id).then(u => { const gl = document.getElementById('m-group-link'); if(gl && u) gl.innerHTML = groupLinkHtml(u); });
+      if(!o.approvalRequired) getEventLink(o.id).then(u => { const gl = document.getElementById('m-group-link'); if(gl && u) gl.innerHTML = groupLinkHtml(u); });
     }
   } catch(err) {
     console.error("Custom registration error:", err);

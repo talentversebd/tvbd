@@ -411,9 +411,18 @@ select.fi{cursor:pointer}
 
       <!-- REGISTRATIONS -->
       <div class="adm-sec" id="reg-adm">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+          <select class="fi" id="reg-event-filter" style="width:auto;min-width:170px;flex:1;" onchange="renderRegistrationsTable()"><option value="">সব ইভেন্ট</option></select>
+          <select class="fi" id="reg-status-filter" style="width:auto;min-width:140px;" onchange="renderRegistrationsTable()">
+            <option value="">সব স্ট্যাটাস</option><option value="pending">⏳ Pending</option><option value="approved">✅ Approved</option><option value="rejected">❌ Rejected</option>
+          </select>
+          <button class="add-btn" onclick="approveAllShown()">✅ দেখানো Pending সবাইকে Approve</button>
+        </div>
+        <p id="reg-summary" style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.7;"></p>
+        <p style="font-size:.74rem;color:var(--muted);margin-bottom:12px;line-height:1.7;">যে ইভেন্টে "অ্যাডমিনের অনুমোদন লাগবে" টিক দেওয়া আছে, সেখানে শুধু <strong>Approved</strong> ব্যক্তিরাই পরীক্ষা দিতে পারবে। Rejected বা Pending থাকলে পরীক্ষা খুলবে না।</p>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Olympiad</th><th>Segment</th><th>Transaction ID</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Olympiad</th><th>Segment</th><th>Transaction ID</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody id="rtbl"></tbody>
           </table>
         </div>
@@ -864,6 +873,14 @@ select.fi{cursor:pointer}
         <label for="of-qreg"> 🔒 Only registered participants can take the linked quiz</label>
       </div>
       <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">টিক দিলে এই ইভেন্টে রেজিস্ট্রেশন করা (এবং লগইন করা) ইউজাররাই কুইজ দিতে পারবে। টিক তুললে যে কেউ দিতে পারবে। (Registration চালু থাকলেই এটা কাজ করে।)</p>
+    </div>
+
+    <div class="fg">
+      <div class="chk-wrap">
+        <input type="checkbox" id="of-approve" checked>
+        <label for="of-approve"> ✅ পরীক্ষার আগে অ্যাডমিনের অনুমোদন (Approve) লাগবে</label>
+      </div>
+      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.7;">টিক থাকলে রেজিস্টার করার পর প্রত্যেকে "Pending" থাকবে। আপনি Registrations থেকে Approve করলে তবেই সে এই ইভেন্টের কুইজ দিতে পারবে; Reject করলে পারবে না। টিক না থাকলে রেজিস্টার করা সবাই কুইজ দিতে পারবে।</p>
     </div>
 
     <div class="fg">

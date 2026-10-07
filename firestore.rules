@@ -49,10 +49,10 @@ service cloud.firestore {
     }
 
     // dashboard bell announcements: any signed-in user reads, only admin writes
-    match /announcements/{id} { allow read: if signedIn(); allow write: if isMain(); }
+    match /announcements/{id} { allow read: if signedIn(); allow write: if isMain() || hasPerm('announce'); }
 
     // email-notification campaign history: only the main admin uses this panel
-    match /notification_campaigns/{id} { allow read, write: if isMain(); }
+    match /notification_campaigns/{id} { allow read, write: if isMain() || hasPerm('emailnotify'); }
 
     match /settings/{id} {
       allow read: if true;

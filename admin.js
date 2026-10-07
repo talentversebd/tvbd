@@ -22,6 +22,8 @@ const PERM_CATALOG = [
   { key:'certificates',  label:'Certificates',              sec:'cert-adm' },
   { key:'founder',       label:"Founder's Message",         sec:'founder-adm' },
   { key:'popup',         label:'Popup Notice',              sec:'popup-adm' },
+  { key:'announce',      label:'Dashboard Notifications (bell)', sec:'bell-adm' },
+  { key:'emailnotify',   label:'Email Notifications',       sec:'notify-adm' },
   { key:'forms',         label:'Form Builder (form-admin.html)',      page:true },
   { key:'election',      label:'Election Panel (election-admin.html)', page:true }
 ];
@@ -2214,14 +2216,30 @@ async function initNotifyPanel() {
   const quizzes = typeof getQuizzes === 'function' ? getQuizzes() : [];
   quizSelect.innerHTML = quizzes.map(q => `<option value="${q.id}">${q.title}</option>`).join('') || '<option value="">(no quizzes yet)</option>';
 
-  // Make sure audience data is loaded so the count preview works instantly
+  // Each audience needs the matching permission. The main admin has all of them; a member only gets
+  // what they were given (so granting "Email Notifications" never exposes more personal data than before).
+  const canUsers = !!(adminAccess && adminAccess.all);
+  const canRegs = canAdmin('registrations');
+  const canSubs = canAdmin('qsubs');
   await Promise.all([
-    typeof loadRegisteredUsers === 'function' ? loadRegisteredUsers() : null,
-    typeof loadRegistrations === 'function' ? loadRegistrations() : null,
-    typeof loadQuizSubmissions === 'function' ? loadQuizSubmissions() : null
+    canUsers && typeof loadRegisteredUsers === 'function' ? loadRegisteredUsers() : null,
+    canRegs && typeof loadRegistrations === 'function' ? loadRegistrations() : null,
+    canSubs && typeof loadQuizSubmissions === 'function' ? loadQuizSubmissions() : null
   ]);
+  const audSel = document.getElementById('ntf-audience');
+  const lock = (val, ok, label) => {
+    const op = Array.from(audSel.options).find(o => o.value === val);
+    if(!op) return;
+    if(op.dataset.label === undefined) op.dataset.label = op.textContent;
+    op.disabled = !ok;
+    op.textContent = ok ? op.dataset.label : op.dataset.label + ' (' + label + ')';
+  };
+  lock('users', canUsers, 'শুধু মূল অ্যাডমিন');
+  lock('registrations', canRegs, 'Registrations অনুমতি লাগবে');
+  lock('quiz', canSubs, 'Quiz Submissions অনুমতি লাগবে');
+  const firstOk = ['users', 'registrations', 'quiz', 'custom'].find(v => { const op = Array.from(audSel.options).find(o => o.value === v); return op && !op.disabled; });
 
-  document.getElementById('ntf-audience').value = 'users';
+  document.getElementById('ntf-audience').value = firstOk || 'custom';
   updateNotifyAudiencePreview();
   renderNotifyHistory();
 }

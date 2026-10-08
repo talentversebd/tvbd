@@ -88,6 +88,13 @@ textarea.fi{min-height:80px;resize:vertical}
 .res-bar-wrap{flex:2;background:var(--card);border-radius:6px;height:8px;overflow:hidden;min-width:80px}
 .res-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-br));border-radius:6px}
 .res-count{font-family:Montserrat;font-weight:800;color:var(--blue-br);min-width:70px;text-align:right;font-size:.85rem}
+.st-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:capitalize;white-space:nowrap}
+.st-pending{background:rgba(234,179,8,.14);color:#eab308}
+.st-approved{background:rgba(74,222,128,.14);color:#4ade80}
+.st-rejected{background:rgba(239,68,68,.14);color:#f87171}
+.vw-row{display:flex;gap:10px;margin-bottom:12px;font-size:.87rem}
+.vw-row b{color:var(--muted);min-width:90px;flex-shrink:0;font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+.vw-stmt{background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:12px 14px;font-size:.86rem;line-height:1.6;white-space:pre-wrap}
 @media(max-width:700px){
   .adm-sb{position:fixed;left:0;top:0;bottom:0;z-index:4002;transform:translateX(-100%);width:220px}
   .adm-sb.open{transform:translateX(0)}
@@ -129,6 +136,7 @@ textarea.fi{min-height:80px;resize:vertical}
       <nav class="adm-nav">
         <button class="adm-nb active" data-sec="dash" onclick="goSec(this)"><span class="ico">📊</span>Dashboard</button>
         <button class="adm-nb" data-sec="cand-adm" onclick="goSec(this)"><span class="ico">🧑‍🤝‍🧑</span>Candidates</button>
+        <button class="adm-nb" data-sec="nom-adm" onclick="goSec(this)"><span class="ico">🧾</span>Nominations<span id="nom-pending-dot" style="display:none;margin-left:auto;background:#eab308;color:#1a1a1a;border-radius:20px;font-size:.68rem;font-weight:800;padding:1px 7px;"></span></button>
         <button class="adm-nb" data-sec="voters-adm" onclick="goSec(this)"><span class="ico">📋</span>Voters</button>
         <button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
         <button class="adm-nb" data-sec="res-adm" onclick="goSec(this)"><span class="ico">📈</span>Results</button>
@@ -160,6 +168,19 @@ textarea.fi{min-height:80px;resize:vertical}
           <table class="tbl">
             <thead><tr><th>Photo</th><th>Name</th><th>Position</th><th>Ballot No.</th><th>Order</th><th>Actions</th></tr></thead>
             <tbody id="ctbl"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- NOMINATIONS -->
+      <div class="adm-sec" id="nom-adm">
+        <div style="background:var(--card2);border:1px dashed var(--bdr2);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:.82rem;color:var(--lblue);">
+          🧾 People self-nominate from the public <a href="nomination.html" target="_blank" style="color:var(--blue-br);">nomination.html</a> page. Approving one doesn't add them to the ballot by itself — it opens the Add Candidate form pre-filled, so you can set their ballot number/order before saving.
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Photo</th><th>Name</th><th>Position</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="ntbl"></tbody>
           </table>
         </div>
       </div>
@@ -199,6 +220,24 @@ textarea.fi{min-height:80px;resize:vertical}
             <p style="font-size:.72rem;color:var(--muted);margin:-8px 0 14px;">Leave blank to keep voting open any time it's active. If set, voting auto-opens/closes at these times.</p>
 
             <button class="fs-btn" style="width:100%;" onclick="saveElectionSettings()">💾 Save Settings</button>
+          </div>
+
+          <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-top:20px;">
+            <h3 style="font-family:Montserrat;font-size:1.1rem;font-weight:800;margin-bottom:6px;">🧾 Nomination Settings</h3>
+            <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">Control when the public self-nomination link (nomination.html) is open. Submitted nominations show up under the Nominations tab for your review.</p>
+
+            <div class="chk-wrap" style="margin-bottom:16px;">
+              <input type="checkbox" id="es-nom-active">
+              <label for="es-nom-active">✅ Nominations Are Currently Open</label>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="fg"><label>Nominations Start (optional)</label><input class="fi" type="datetime-local" id="es-nom-start"></div>
+              <div class="fg"><label>Nominations End (optional)</label><input class="fi" type="datetime-local" id="es-nom-end"></div>
+            </div>
+            <p style="font-size:.72rem;color:var(--muted);margin:-8px 0 14px;">Leave blank to keep nominations open any time it's active. If set, it auto-opens/closes at these times — independent of the voting schedule above.</p>
+
+            <button class="fs-btn" style="width:100%;" onclick="saveNominationSettings()">💾 Save Nomination Settings</button>
           </div>
 
           <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-top:20px;">
@@ -258,6 +297,18 @@ textarea.fi{min-height:80px;resize:vertical}
   </div>
 </div>
 
+<!-- NOMINATION VIEW (read-only) -->
+<div class="fm-ov" id="nvm" onclick="if(event.target===this)closeFM('nvm')">
+  <div class="fm">
+    <div class="fm-head">
+      <h3>Nomination Details</h3>
+      <button onclick="closeFM('nvm')">✕</button>
+    </div>
+    <div id="nv-body"></div>
+    <div class="fm-foot" id="nv-foot"></div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast">
   <span id="t-ico">✅</span>
@@ -267,7 +318,7 @@ textarea.fi{min-height:80px;resize:vertical}
 <script type="module" src="firebase-config.js"></script>
 <script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
-<script src="data.js?v=3"></script>
+<script src="data.js?v=4"></script>
 
 <script>
 /*===== EC LOGIN (real Firebase Auth — no password stored here) ===== */
@@ -335,7 +386,7 @@ function goSec(btn){
   document.getElementById(secId).classList.add('active');
   document.querySelectorAll('.adm-nb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const titles={dash:'Dashboard',['cand-adm']:'Candidates','voters-adm':'Voters (Attendance)','set-adm':'Election Settings','res-adm':'Results (EC Only)'};
+  const titles={dash:'Dashboard',['cand-adm']:'Candidates','nom-adm':'Nominations','voters-adm':'Voters (Attendance)','set-adm':'Election Settings','res-adm':'Results (EC Only)'};
   document.getElementById('adm-ptitle').textContent = titles[secId]||secId;
 
   const actions=document.getElementById('adm-topbar-actions');
@@ -345,6 +396,7 @@ function goSec(btn){
   if(secId==='res-adm') loadAndRenderResults();
   if(secId==='set-adm') loadElectionSettingsForm();
   if(secId==='voters-adm') loadAndRenderVoters();
+  if(secId==='nom-adm') loadAndRenderNominations();
   if(window.innerWidth<=700) closeSidebar();
 }
 
@@ -358,18 +410,29 @@ async function initPanel(){
   ecElectionId = s.electionId || null;
   await loadElectionCandidates();
   await loadElectionVoters();
+  await loadElectionNominations();
   renderCandidatesTable();
   renderDashboard();
+  updateNomDot();
 }
 
 function renderDashboard(){
   const candidates=getElectionCandidates();
   const voters=getElectionVoters().filter(v => (v.electionId||null) === ecElectionId);
   const positions=new Set(candidates.map(c=>c.position||'—'));
+  const pending=getElectionNominations().filter(n=>(n.electionId||null)===ecElectionId && (n.status||'pending')==='pending');
   document.getElementById('db-stats').innerHTML = `
     <div class="stat-card"><div class="sl">Total Candidates</div><div class="sv">${candidates.length}</div></div>
     <div class="stat-card"><div class="sl">Positions</div><div class="sv">${positions.size}</div></div>
-    <div class="stat-card"><div class="sl">Voters This Round (Turnout)</div><div class="sv" style="color:#4ade80;">${voters.length}</div></div>`;
+    <div class="stat-card"><div class="sl">Voters This Round (Turnout)</div><div class="sv" style="color:#4ade80;">${voters.length}</div></div>
+    <div class="stat-card"><div class="sl">Pending Nominations</div><div class="sv" style="color:#eab308;">${pending.length}</div></div>`;
+  updateNomDot();
+}
+
+function updateNomDot(){
+  const dot=document.getElementById('nom-pending-dot');
+  const n=getElectionNominations().filter(x=>(x.electionId||null)===ecElectionId && (x.status||'pending')==='pending').length;
+  dot.textContent=n; dot.style.display=n>0?'inline-block':'none';
 }
 
 /*===== CANDIDATES =====*/
@@ -465,6 +528,85 @@ function renderVotersTable(){
   }).join('');
 }
 
+/*===== NOMINATIONS =====*/
+async function loadAndRenderNominations(){
+  document.getElementById('ntbl').innerHTML = `<tr class="empty-row"><td colspan="5">⏳ Loading...</td></tr>`;
+  await loadElectionNominations();
+  renderNominationsTable();
+  updateNomDot();
+}
+function renderNominationsTable(){
+  const tbody=document.getElementById('ntbl');
+  const order={pending:0,approved:1,rejected:2};
+  const data=getElectionNominations()
+    .filter(n=>(n.electionId||null)===ecElectionId)
+    .slice()
+    .sort((a,b)=>(order[a.status||'pending']-order[b.status||'pending'])||((b.createdAt||0)-(a.createdAt||0)));
+  if(!data.length){ tbody.innerHTML=`<tr class="empty-row"><td colspan="5">No nominations submitted yet.</td></tr>`; return; }
+  tbody.innerHTML='';
+  data.forEach(n=>{
+    const status=n.status||'pending';
+    tbody.innerHTML += `<tr>
+      <td>${n.photo?`<img src="${n.photo}" class="thumb">`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;background:var(--card2);font-size:.7rem;color:var(--blue-br);font-weight:700;">${(n.name||'NA').substring(0,2).toUpperCase()}</div>`}</td>
+      <td>${n.name||'—'}</td><td>${n.position||'—'}</td>
+      <td><span class="st-badge st-${status}">${status}</span></td>
+      <td class="tbl-acts">
+        <button class="e-btn" onclick="viewNomination('${n.id}')">View</button>
+        ${status!=='approved'?`<button class="e-btn" onclick="approveNomination('${n.id}')">Approve</button>`:''}
+        ${status!=='rejected'?`<button class="d-btn" onclick="rejectNomination('${n.id}')">Reject</button>`:''}
+        <button class="d-btn" onclick="deleteNominationAction('${n.id}')">Delete</button>
+      </td></tr>`;
+  });
+}
+function viewNomination(id){
+  const n=getElectionNominations().find(x=>x.id===id); if(!n) return;
+  const status=n.status||'pending';
+  const when=n.createdAt?new Date(n.createdAt).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+  document.getElementById('nv-body').innerHTML = `
+    ${n.photo?`<div style="text-align:center;margin-bottom:16px;"><img src="${n.photo}" style="width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--bdr2);"></div>`:''}
+    <div class="vw-row"><b>Name</b><span>${n.name||'—'}</span></div>
+    <div class="vw-row"><b>Position</b><span>${n.position||'—'}</span></div>
+    <div class="vw-row"><b>Email</b><span>${n.email||'—'}</span></div>
+    <div class="vw-row"><b>Phone</b><span>${n.phone||'—'}</span></div>
+    <div class="vw-row"><b>Status</b><span class="st-badge st-${status}">${status}</span></div>
+    <div class="vw-row"><b>Submitted</b><span>${when}</span></div>
+    <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Statement</b><div class="vw-stmt">${n.statement||'(no statement provided)'}</div></div>`;
+  document.getElementById('nv-foot').innerHTML = `
+    ${status!=='approved'?`<button class="fs-btn" onclick="closeFM('nvm');approveNomination('${n.id}')">✅ Approve & Add as Candidate</button>`:''}
+    ${status!=='rejected'?`<button class="fc-btn" style="color:#f87171;border-color:rgba(239,68,68,.35);" onclick="closeFM('nvm');rejectNomination('${n.id}')">Reject</button>`:''}
+    <button class="fc-btn" onclick="closeFM('nvm')">Close</button>`;
+  openFM('nvm');
+}
+async function approveNomination(id){
+  const n=getElectionNominations().find(x=>x.id===id); if(!n) return;
+  const ok = await updateElectionNominationStatus(id, 'approved');
+  if(ok){ renderNominationsTable(); renderDashboard(); toast("Nomination approved — finish setting them up as a candidate below."); }
+  else { toast("Failed to update nomination.", true); return; }
+
+  // Pre-fill the existing Add Candidate form so the EC can set ballot no./order before saving.
+  document.getElementById('cfm-title').textContent="Add Candidate (from Nomination)";
+  document.getElementById('cf-eid').value='';
+  document.getElementById('cf-name').value=n.name||'';
+  document.getElementById('cf-position').value=n.position||'';
+  document.getElementById('cf-ballotno').value='';
+  document.getElementById('cf-order').value='';
+  document.getElementById('cf-manifesto').value=n.statement||'';
+  document.getElementById('cf-photo').value=n.photo||'';
+  document.getElementById('cf-prev').innerHTML=n.photo?`<img src="${n.photo}">`:'';
+  populatePositionList();
+  openFM('cfm');
+}
+async function rejectNomination(id){
+  if(!confirm("Reject this nomination? This doesn't notify the applicant automatically.")) return;
+  const ok = await updateElectionNominationStatus(id, 'rejected');
+  if(ok){ renderNominationsTable(); renderDashboard(); toast("Nomination rejected."); }
+  else toast("Failed to update nomination.", true);
+}
+async function deleteNominationAction(id){
+  if(!confirm("Permanently delete this nomination?")) return;
+  if(await deleteElectionNomination(id)){ renderNominationsTable(); renderDashboard(); toast("Deleted."); }
+}
+
 /*===== SETTINGS =====*/
 function tsToLocal(ts){
   if(!ts) return '';
@@ -482,6 +624,24 @@ async function loadElectionSettingsForm(){
   document.getElementById('es-start').value = tsToLocal(s.startAt);
   document.getElementById('es-end').value = tsToLocal(s.endAt);
   document.getElementById('es-round-id').textContent = s.electionId || '(no round started yet)';
+  document.getElementById('es-nom-active').checked = s.nominationsActive||false;
+  document.getElementById('es-nom-start').value = tsToLocal(s.nominationsStart);
+  document.getElementById('es-nom-end').value = tsToLocal(s.nominationsEnd);
+}
+async function saveNominationSettings(){
+  try {
+    const s = await getElectionSettings();
+    s.nominationsActive = document.getElementById('es-nom-active').checked;
+    s.nominationsStart = localToTs(document.getElementById('es-nom-start').value);
+    s.nominationsEnd = localToTs(document.getElementById('es-nom-end').value);
+    if(s.nominationsStart && s.nominationsEnd && s.nominationsEnd<=s.nominationsStart) return toast("Nomination end time must be after start time!", true);
+    const ok = await updateElectionSettings(s);
+    if(ok) toast("Nomination settings saved! ✅");
+    else toast("Failed to save — check Firestore rules for 'settings' collection.", true);
+  } catch(err) {
+    console.error(err);
+    toast("Error: " + err.message, true);
+  }
 }
 async function saveElectionSettings(){
   try {

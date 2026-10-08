@@ -58,6 +58,8 @@
     addElectionCandidate: { section: 'Election', action: 'add', obj: 0, keys: T },
     updateElectionCandidate:{ section: 'Election', action: 'edit', id: 0, obj: 1, list: 'getElectionCandidates', keys: T },
     deleteElectionCandidate:{ section: 'Election', action: 'delete', id: 0, list: 'getElectionCandidates', keys: T },
+    updateElectionNominationStatus:{ section: 'Election', action: 'nomination review', id: 0, list: 'getElectionNominations', label: (a, f) => f ? `${f.name || ''} — ${f.position || ''}` : '', details: a => a[1] },
+    deleteElectionNomination:{ section: 'Election', action: 'delete nomination', id: 0, list: 'getElectionNominations', label: (a, f) => f ? `${f.name || ''} — ${f.position || ''}` : '' },
 
     addCustomForm:        { section: 'Forms', action: 'add', obj: 0, keys: T },
     updateCustomForm:     { section: 'Forms', action: 'edit', id: 0, obj: 1, list: 'getCustomForms', keys: T },

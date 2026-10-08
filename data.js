@@ -1640,10 +1640,10 @@ async function getElectionSettings() {
   try {
     const snap = await getDoc(doc(db, "settings", "election"));
     if(snap.exists()) return snap.data();
-    return { active:false, title:"Committee Election", description:"", startAt:null, endAt:null, electionId:null };
+    return { active:false, title:"Committee Election", description:"", startAt:null, endAt:null, electionId:null, nominationsActive:false, nominationsStart:null, nominationsEnd:null };
   } catch(err) {
     console.error("Get election settings error:", err);
-    return { active:false, title:"Committee Election", description:"", startAt:null, endAt:null, electionId:null };
+    return { active:false, title:"Committee Election", description:"", startAt:null, endAt:null, electionId:null, nominationsActive:false, nominationsStart:null, nominationsEnd:null };
   }
 }
 
@@ -1780,6 +1780,105 @@ async function loadElectionVoters() {
   }
 }
 function getElectionVoters() { return cache.electionVoters || []; }
+
+/*----- Nominations (public self-nomination, reviewed by EC before becoming a candidate) -----*/
+// One nomination per person per round: the doc ID is deterministic from
+// electionId+email, same trick as election_voters. A repeat submission lands
+// on the same ID, which Firestore treats as an "update" — and only the EC can
+// update, so the rules themselves block a second nomination.
+function enMakeNominationId(electionId, email) {
+  const clean = (email || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '') || 'noemail';
+  return `${electionId || 'default'}__${clean}`;
+}
+function hasLocalNominationAttempt(electionId) {
+  try { return !!localStorage.getItem('tvbd_election_nominated_' + (electionId || 'default')); } catch(e) { return false; }
+}
+function markLocalNominationAttempt(electionId) {
+  try { localStorage.setItem('tvbd_election_nominated_' + (electionId || 'default'), String(Date.now())); } catch(e) {}
+}
+
+// Public: submit a self-nomination for the current election round.
+async function submitElectionNomination(electionId, n) {
+  await waitForFirebase();
+  const { doc, setDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const id = enMakeNominationId(electionId, n.email);
+    await setDoc(doc(db, "election_nominations", id), {
+      electionId: electionId || 'default',
+      name: n.name, email: n.email, phone: n.phone,
+      position: n.position, statement: n.statement || '', photo: n.photo || '',
+      status: 'pending', createdAt: Date.now()
+    });
+    markLocalNominationAttempt(electionId);
+    return { success:true };
+  } catch(err) {
+    if(err && err.code === 'permission-denied') {
+      markLocalNominationAttempt(electionId);
+      return { success:false, alreadyNominated:true, error:"You have already submitted a nomination for this round." };
+    }
+    console.error("Submit nomination error:", err);
+    return { success:false, error: err.message };
+  }
+}
+
+// Is the nomination window currently open? Mirrors getElectionAvailability,
+// using its own flag/schedule fields on the same settings/election document.
+function getNominationAvailability(settings) {
+  const now = Date.now();
+  if(!settings || !settings.nominationsActive) return { open:false, reason:'inactive' };
+  if(settings.nominationsStart && now < settings.nominationsStart) return { open:false, reason:'not_started', at:settings.nominationsStart };
+  if(settings.nominationsEnd && now > settings.nominationsEnd) return { open:false, reason:'ended', at:settings.nominationsEnd };
+  return { open:true, reason:'ok' };
+}
+
+/*----- EC-only: review nominations -----*/
+async function loadElectionNominations() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "election_nominations"), orderBy("createdAt", "desc")));
+    cache.electionNominations = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return cache.electionNominations;
+  } catch(err) {
+    console.error("Load nominations error:", err);
+    cache.electionNominations = cache.electionNominations || [];
+    return cache.electionNominations;
+  }
+}
+function getElectionNominations() { return cache.electionNominations || []; }
+
+async function updateElectionNominationStatus(id, status) {
+  await waitForFirebase();
+  const { doc, updateDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await updateDoc(doc(db, "election_nominations", id), { status });
+    if(cache.electionNominations) {
+      const idx = cache.electionNominations.findIndex(x => x.id === id);
+      if(idx > -1) cache.electionNominations[idx].status = status;
+    }
+    return true;
+  } catch(err) {
+    console.error("Update nomination status error:", err);
+    return false;
+  }
+}
+
+async function deleteElectionNomination(id) {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await deleteDoc(doc(db, "election_nominations", id));
+    if(cache.electionNominations) cache.electionNominations = cache.electionNominations.filter(x => x.id !== id);
+    return true;
+  } catch(err) {
+    console.error("Delete nomination error:", err);
+    return false;
+  }
+}
 
 /*===== CUSTOM FORMS (Google-Forms-style builder) =====*/
 // Separate from the quiz system — no scoring, no correct answers, just

@@ -107,6 +107,13 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if isEC();
     }
+    // One nomination per person per round: the app writes to a deterministic
+    // doc ID (electionId+email), so a repeat attempt is a Firestore "update",
+    // which only the EC can do — that's what blocks a duplicate submission.
+    match /election_nominations/{id} {
+      allow create: if true;
+      allow read, update, delete: if isEC();
+    }
 
     // ---- Contact messages & registrations ----
     match /messages/{id} {

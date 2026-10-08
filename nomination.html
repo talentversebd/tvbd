@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nomination — TalentVerse Bangladesh</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Submit your self-nomination for the TalentVerse Bangladesh committee election.">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.nm-container{max-width:720px;margin:0 auto;padding:0 16px;}
+.nm-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:32px;box-shadow:var(--glow);}
+@media(max-width:500px){.nm-card{padding:22px 18px;}}
+.nm-card h2{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:8px;}
+.nm-card h2 span{color:var(--blue-br);}
+.nm-fg{margin-bottom:15px;}
+.nm-fg label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:6px;}
+.nm-fi{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:11px 14px;border-radius:8px;font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit;}
+.nm-fi:focus{border-color:var(--blue-br);}
+textarea.nm-fi{min-height:110px;resize:vertical;}
+.nm-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;text-decoration:none;padding:14px 20px;border-radius:9px;font-weight:700;font-size:.92rem;border:none;cursor:pointer;transition:opacity .2s;}
+.nm-btn:hover{opacity:.88;}
+.nm-btn:disabled{opacity:.5;cursor:not-allowed;}
+.nm-empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.nm-empty .ei{font-size:3.5rem;margin-bottom:14px;}
+.nm-hidden{display:none;}
+.nm-up-area{border:2px dashed var(--bdr2);border-radius:9px;padding:18px;text-align:center;cursor:pointer;background:rgba(59,130,246,.03);}
+.nm-up-prev{margin-top:12px;}
+.nm-up-prev img{max-height:100px;border-radius:7px;border:1px solid var(--bdr);}
+.nm-result{text-align:center;padding:20px;}
+.nm-result .ri{font-size:4rem;margin-bottom:16px;}
+.nm-result h2{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- Standalone self-nomination page (not in main nav), but carries the shared site footer for branding/navigation back to the main site. -->
+<div class="page-header">
+  <span class="eyebrow">🧾 Self-Nomination</span>
+  <h1 id="nm-page-title">Committee <span>Nomination</span></h1>
+  <p id="nm-page-desc">Submit yourself as a candidate below. The Election Committee reviews every nomination before it appears on the ballot.</p>
+</div>
+
+<section class="section">
+  <div class="nm-container">
+
+    <!-- VIEW: Loading -->
+    <div id="nm-view-loading" style="text-align:center;padding:60px 20px;color:var(--muted);">⏳ Loading...</div>
+
+    <!-- VIEW: Closed / not available -->
+    <div id="nm-view-closed" class="nm-hidden">
+      <div class="nm-card nm-empty">
+        <div class="ei" id="nm-closed-icon">🔒</div>
+        <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:8px;color:var(--txt);" id="nm-closed-title">Nominations Not Open</h3>
+        <p id="nm-closed-msg">Nominations are not currently open. Please check back later.</p>
+        <p style="font-size:.82rem;margin-top:16px;"><a href="vote.html" style="color:var(--blue-br);font-weight:600;">Already know the candidates? Cast your vote →</a></p>
+      </div>
+    </div>
+
+    <!-- VIEW: Form -->
+    <div id="nm-view-form" class="nm-hidden">
+      <div class="nm-card">
+        <h2>Submit Your <span>Nomination</span></h2>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px;" id="nm-f-desc">Fill in your details below to run for a committee position.</p>
+
+        <div class="nm-fg"><label>Full Name *</label><input class="nm-fi" id="nm-in-name" placeholder="e.g. Abdur Rahman"></div>
+        <div class="nm-fg"><label>Email *</label><input class="nm-fi" type="email" id="nm-in-email" placeholder="you@email.com"></div>
+        <div class="nm-fg"><label>Phone *</label><input class="nm-fi" id="nm-in-phone" placeholder="01XXXXXXXXX"></div>
+        <div class="nm-fg">
+          <label>Position You're Running For *</label>
+          <input class="nm-fi" id="nm-in-position" list="nm-pos-list" placeholder="e.g. President, Vice President...">
+          <datalist id="nm-pos-list"></datalist>
+        </div>
+        <div class="nm-fg">
+          <label>Your Statement (why you want this role)</label>
+          <textarea class="nm-fi" id="nm-in-statement" placeholder="A few lines about your plans if elected..."></textarea>
+        </div>
+        <div class="nm-fg">
+          <label>Photo (optional)</label>
+          <div class="nm-up-area" onclick="document.getElementById('nm-file').click()">
+            <div style="font-size:1.6rem;">📷</div>
+            <p style="font-size:.8rem;color:var(--muted);">Tap to upload a photo</p>
+            <input type="file" id="nm-file" accept="image/*" style="display:none" onchange="prevNomPhoto(this)">
+          </div>
+          <div class="nm-up-prev" id="nm-prev"></div>
+        </div>
+        <p style="font-size:.75rem;color:var(--muted);margin-bottom:16px;">💡 You can only submit one nomination per round. The EC may contact you using the email/phone above.</p>
+
+        <button class="nm-btn" id="nm-submit-btn" onclick="submitNomination()">Submit Nomination →</button>
+      </div>
+    </div>
+
+    <!-- VIEW: Result -->
+    <div id="nm-view-result" class="nm-hidden">
+      <div class="nm-card nm-result" id="nm-result-content"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<script type="module" src="firebase-config.js"></script>
+<script src="data.js?v=4"></script>
+
+<script>
+function toast(msg, isErr=false){
+  const t=document.getElementById('toast'),ico=document.getElementById('t-ico'),m=document.getElementById('t-msg');
+  ico.textContent = isErr?'❌':'✅'; m.textContent = msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+let nmSettings=null, nmPhotoUrl='';
+
+function nmWaitForFirebase(){
+  return new Promise(resolve=>{
+    const check=setInterval(()=>{
+      if(window.firebaseDB && window.firebaseFunctions){ clearInterval(check); resolve(); }
+    },100);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await nmWaitForFirebase();
+  nmSettings = await getElectionSettings();
+
+  // Existing candidate positions (public data) make handy nomination suggestions.
+  try {
+    const candidates = await loadElectionCandidates();
+    const positions = [...new Set(candidates.map(c=>c.position).filter(Boolean))];
+    document.getElementById('nm-pos-list').innerHTML = positions.map(p=>`<option value="${p}">`).join('');
+  } catch(e) {}
+
+  document.getElementById('nm-view-loading').classList.add('nm-hidden');
+
+  if(nmSettings.title){
+    document.getElementById('nm-page-title').innerHTML = `${nmSettings.title.split(' ')[0]||''} <span>${nmSettings.title.split(' ').slice(1).join(' ')} — Nomination</span>`;
+  }
+
+  const avail = getNominationAvailability(nmSettings);
+  if(!avail.open){
+    showClosed(avail);
+    return;
+  }
+
+  if(hasLocalNominationAttempt(nmSettings.electionId)){
+    showClosed({ reason:'already' });
+    return;
+  }
+
+  document.getElementById('nm-view-form').classList.remove('nm-hidden');
+});
+
+function showClosed(avail){
+  document.getElementById('nm-view-closed').classList.remove('nm-hidden');
+  const fmt = ts => new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const icon = document.getElementById('nm-closed-icon');
+  const title = document.getElementById('nm-closed-title');
+  const msg = document.getElementById('nm-closed-msg');
+  if(avail.reason==='not_started'){
+    icon.textContent='⏳'; title.textContent='Nominations Have Not Started Yet';
+    msg.textContent = `Nominations open on ${fmt(avail.at)}. Please come back then.`;
+  } else if(avail.reason==='ended'){
+    icon.textContent='⌛'; title.textContent='Nominations Have Closed';
+    msg.textContent = `Nominations closed on ${fmt(avail.at)} and are no longer being accepted.`;
+  } else if(avail.reason==='already'){
+    icon.textContent='✅'; title.textContent='Already Submitted';
+    msg.textContent = 'You have already submitted a nomination for this round. The Election Committee will be in touch.';
+  } else {
+    icon.textContent='🔒'; title.textContent='Nominations Not Open';
+    msg.textContent = `Nominations are not currently open. Please check back later.`;
+  }
+}
+
+async function prevNomPhoto(input){
+  if(!input.files?.[0]) return;
+  const prev=document.getElementById('nm-prev');
+  prev.innerHTML=`<div style="padding:10px;color:var(--muted)">⏳ Uploading...</div>`;
+  const result=await uploadToImgBB(input.files[0]);
+  if(result.success){
+    nmPhotoUrl=result.url;
+    prev.innerHTML=`<img src="${result.url}">`;
+    toast("Uploaded! ✅");
+  } else { prev.innerHTML=`<div style="color:#f87171">❌ Failed</div>`; toast("Failed!", true); }
+}
+
+async function submitNomination(){
+  const name=document.getElementById('nm-in-name').value.trim();
+  const email=document.getElementById('nm-in-email').value.trim();
+  const phone=document.getElementById('nm-in-phone').value.trim();
+  const position=document.getElementById('nm-in-position').value.trim();
+  const statement=document.getElementById('nm-in-statement').value.trim();
+  if(!name || !email || !phone || !position) return toast("Name, email, phone and position are required!", true);
+
+  const btn=document.getElementById('nm-submit-btn');
+  btn.disabled=true; btn.textContent='Submitting...';
+
+  const result = await submitElectionNomination(nmSettings.electionId, { name, email, phone, position, statement, photo: nmPhotoUrl });
+
+  document.getElementById('nm-view-form').classList.add('nm-hidden');
+  document.getElementById('nm-view-result').classList.remove('nm-hidden');
+  const box=document.getElementById('nm-result-content');
+
+  if(!result.success){
+    if(result.alreadyNominated){
+      box.innerHTML = `<div class="ri">✅</div><h2>Already Submitted</h2><p style="color:var(--muted);">You have already submitted a nomination for this round.</p>`;
+    } else {
+      box.innerHTML = `<div class="ri">⚠️</div><h2>Submission Failed</h2><p style="color:var(--muted);">Something went wrong while submitting your nomination. Please try again.</p>`;
+      btn.disabled=false; btn.textContent='Submit Nomination →';
+      document.getElementById('nm-view-result').classList.add('nm-hidden');
+      document.getElementById('nm-view-form').classList.remove('nm-hidden');
+    }
+    return;
+  }
+
+  box.innerHTML = `<div class="ri">🎉</div><h2>Nomination Submitted!</h2><p style="color:var(--muted);">Thanks, ${name.split(' ')[0]}! The Election Committee will review your nomination. You'll be contacted using the email/phone you provided.</p>`;
+}
+</script>
+<footer>
+  <div class="f-grid">
+    <div class="f-brand">
+      <a class="h-logo" href="index.html" style="text-decoration:none;">
+        <img class="h-logo-img" src="logo.jpg" alt="Logo">
+        <div class="h-logo-text">
+          <div class="name">Talent<span>Verse</span></div>
+          <div class="sub">Bangladesh</div>
+        </div>
+      </a>
+      <p id="f-desc" data-i18n="f_desc">TalentVerse Bangladesh is the country's most dedicated platform for event information, resources, and community.</p>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_quicklinks">Quick Links</h4>
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
+      <a href="team.html" data-i18n="nav_team">Team</a>
+      <a href="news.html" data-i18n="nav_news">News</a>
+      <a href="register.html" data-i18n="nav_register">Register</a>
+      <a href="verify.html" data-i18n="nav_verify">Verify Certificate</a>
+      <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_contact">Contact</h4>
+      <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
+      <a id="f-phone" href="#">+880 1634-428536</a>
+      <a id="f-addr" href="#">Dhaka, Bangladesh</a>
+    </div>
+  </div>
+  <div class="f-bottom">
+    <p data-i18n="f_bottom">© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Samin & Fahad.</p>
+  </div>
+</footer>
+<script src="lang.js"></script>
+</body>
+</html>

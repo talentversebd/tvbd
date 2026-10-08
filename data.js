@@ -1808,6 +1808,7 @@ async function submitElectionNomination(electionId, n) {
       electionId: electionId || 'default',
       name: n.name, email: n.email, phone: n.phone,
       position: n.position, statement: n.statement || '', photo: n.photo || '',
+      extra: n.extra || {},
       status: 'pending', createdAt: Date.now()
     });
     markLocalNominationAttempt(electionId);

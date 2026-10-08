@@ -95,6 +95,13 @@ textarea.fi{min-height:80px;resize:vertical}
 .vw-row{display:flex;gap:10px;margin-bottom:12px;font-size:.87rem}
 .vw-row b{color:var(--muted);min-width:90px;flex-shrink:0;font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
 .vw-stmt{background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:12px 14px;font-size:.86rem;line-height:1.6;white-space:pre-wrap}
+.qf-qrow{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:12px}
+.qf-qrow-head{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.qf-qrow-head select{flex-shrink:0;width:auto}
+.qf-qrow-head input[type="text"]{flex:1;min-width:140px}
+.qf-qrow-head .qf-qdel{margin-left:auto;background:none;border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:6px;padding:5px 10px;font-size:.72rem;cursor:pointer;flex-shrink:0}
+.qf-qrow-head .qf-qdel:hover{background:rgba(239,68,68,.1)}
+.qf-addopt{background:none;border:1px dashed var(--bdr2);color:var(--blue-br);border-radius:6px;padding:7px 14px;font-size:.78rem;cursor:pointer;margin-top:2px}
 @media(max-width:700px){
   .adm-sb{position:fixed;left:0;top:0;bottom:0;z-index:4002;transform:translateX(-100%);width:220px}
   .adm-sb.open{transform:translateX(0)}
@@ -237,7 +244,12 @@ textarea.fi{min-height:80px;resize:vertical}
             </div>
             <p style="font-size:.72rem;color:var(--muted);margin:-8px 0 14px;">Leave blank to keep nominations open any time it's active. If set, it auto-opens/closes at these times — independent of the voting schedule above.</p>
 
-            <button class="fs-btn" style="width:100%;" onclick="saveNominationSettings()">💾 Save Nomination Settings</button>
+            <label class="lbl" style="margin:4px 0 8px;display:block;">Extra Fields (optional)</label>
+            <p style="font-size:.72rem;color:var(--muted);margin:-4px 0 10px;">Every nomination already asks for Name, Email, Phone, Position, Statement and a Photo. Add any extra questions you want on top of those.</p>
+            <div id="nf-fields"></div>
+            <button type="button" class="qf-addopt" onclick="addNomFieldRow()">+ Add Field</button>
+
+            <button class="fs-btn" style="width:100%;margin-top:18px;" onclick="saveNominationSettings()">💾 Save Nomination Settings</button>
           </div>
 
           <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-top:20px;">
@@ -318,7 +330,7 @@ textarea.fi{min-height:80px;resize:vertical}
 <script type="module" src="firebase-config.js"></script>
 <script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
-<script src="data.js?v=4"></script>
+<script src="data.js?v=5"></script>
 
 <script>
 /*===== EC LOGIN (real Firebase Auth — no password stored here) ===== */
@@ -404,9 +416,11 @@ function openFM(id){ document.getElementById(id).classList.add('open'); }
 function closeFM(id){ document.getElementById(id).classList.remove('open'); }
 
 let ecElectionId = null;
+let ecSettingsCache = null;
 
 async function initPanel(){
   const s = await getElectionSettings();
+  ecSettingsCache = s;
   ecElectionId = s.electionId || null;
   await loadElectionCandidates();
   await loadElectionVoters();
@@ -570,7 +584,9 @@ function viewNomination(id){
     <div class="vw-row"><b>Phone</b><span>${n.phone||'—'}</span></div>
     <div class="vw-row"><b>Status</b><span class="st-badge st-${status}">${status}</span></div>
     <div class="vw-row"><b>Submitted</b><span>${when}</span></div>
-    <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Statement</b><div class="vw-stmt">${n.statement||'(no statement provided)'}</div></div>`;
+    <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Statement</b><div class="vw-stmt">${n.statement||'(no statement provided)'}</div></div>
+    ${((ecSettingsCache && ecSettingsCache.nominationFields) || []).map(f => `
+      <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">${f.label}</b><div class="vw-stmt">${(n.extra && n.extra[f.id]) || '—'}</div></div>`).join('')}`;
   document.getElementById('nv-foot').innerHTML = `
     ${status!=='approved'?`<button class="fs-btn" onclick="closeFM('nvm');approveNomination('${n.id}')">✅ Approve & Add as Candidate</button>`:''}
     ${status!=='rejected'?`<button class="fc-btn" style="color:#f87171;border-color:rgba(239,68,68,.35);" onclick="closeFM('nvm');rejectNomination('${n.id}')">Reject</button>`:''}
@@ -617,6 +633,7 @@ function localToTs(v){ if(!v) return null; const t=new Date(v).getTime(); return
 
 async function loadElectionSettingsForm(){
   const s=await getElectionSettings();
+  ecSettingsCache = s;
   ecElectionId = s.electionId || null;
   document.getElementById('es-active').checked = s.active||false;
   document.getElementById('es-title').value = s.title||'';
@@ -627,6 +644,8 @@ async function loadElectionSettingsForm(){
   document.getElementById('es-nom-active').checked = s.nominationsActive||false;
   document.getElementById('es-nom-start').value = tsToLocal(s.nominationsStart);
   document.getElementById('es-nom-end').value = tsToLocal(s.nominationsEnd);
+  nomFieldsDraft = (s.nominationFields || []).map(f => Object.assign({}, f));
+  renderNomFieldsUI();
 }
 async function saveNominationSettings(){
   try {
@@ -635,6 +654,7 @@ async function saveNominationSettings(){
     s.nominationsStart = localToTs(document.getElementById('es-nom-start').value);
     s.nominationsEnd = localToTs(document.getElementById('es-nom-end').value);
     if(s.nominationsStart && s.nominationsEnd && s.nominationsEnd<=s.nominationsStart) return toast("Nomination end time must be after start time!", true);
+    s.nominationFields = nomFieldsDraft.filter(f => (f.label||'').trim()).map(f => ({ id:f.id, label:f.label.trim(), type:f.type||'text', required:!!f.required }));
     const ok = await updateElectionSettings(s);
     if(ok) toast("Nomination settings saved! ✅");
     else toast("Failed to save — check Firestore rules for 'settings' collection.", true);
@@ -643,6 +663,36 @@ async function saveNominationSettings(){
     toast("Error: " + err.message, true);
   }
 }
+
+/*===== NOMINATION FORM FIELD BUILDER =====*/
+let nomFieldsDraft = [];
+const NOM_FIELD_TYPES = { text:'Short answer', textarea:'Paragraph', number:'Number', date:'Date', url:'Link / URL' };
+
+function renderNomFieldsUI(){
+  const wrap = document.getElementById('nf-fields');
+  if(!wrap) return;
+  if(!nomFieldsDraft.length){ wrap.innerHTML = `<p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;">No extra fields yet.</p>`; return; }
+  wrap.innerHTML = nomFieldsDraft.map((f,i) => `
+    <div class="qf-qrow">
+      <div class="qf-qrow-head">
+        <input type="text" class="fi" placeholder="Question label, e.g. Institution Name" value="${(f.label||'').replace(/"/g,'&quot;')}" oninput="updateNomField(${i},'label',this.value)">
+        <select class="fi" onchange="updateNomField(${i},'type',this.value)">
+          ${Object.entries(NOM_FIELD_TYPES).map(([v,l])=>`<option value="${v}" ${f.type===v?'selected':''}>${l}</option>`).join('')}
+        </select>
+        <button type="button" class="qf-qdel" onclick="removeNomFieldRow(${i})">Delete</button>
+      </div>
+      <div class="chk-wrap" style="padding:8px 10px;">
+        <input type="checkbox" id="nf-req-${i}" ${f.required?'checked':''} onchange="updateNomField(${i},'required',this.checked)">
+        <label for="nf-req-${i}">Required</label>
+      </div>
+    </div>`).join('');
+}
+function addNomFieldRow(){
+  nomFieldsDraft.push({ id: 'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), label:'', type:'text', required:false });
+  renderNomFieldsUI();
+}
+function updateNomField(i, key, val){ if(nomFieldsDraft[i]) nomFieldsDraft[i][key]=val; }
+function removeNomFieldRow(i){ nomFieldsDraft.splice(i,1); renderNomFieldsUI(); }
 async function saveElectionSettings(){
   try {
     const title=document.getElementById('es-title').value.trim();

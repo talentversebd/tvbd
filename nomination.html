@@ -85,6 +85,9 @@ textarea.nm-fi{min-height:110px;resize:vertical;}
           </div>
           <div class="nm-up-prev" id="nm-prev"></div>
         </div>
+
+        <div id="nm-extra-fields"></div>
+
         <p style="font-size:.75rem;color:var(--muted);margin-bottom:16px;">💡 You can only submit one nomination per round. The EC may contact you using the email/phone above.</p>
 
         <button class="nm-btn" id="nm-submit-btn" onclick="submitNomination()">Submit Nomination →</button>
@@ -106,7 +109,7 @@ textarea.nm-fi{min-height:110px;resize:vertical;}
 </div>
 
 <script type="module" src="firebase-config.js"></script>
-<script src="data.js?v=4"></script>
+<script src="data.js?v=5"></script>
 
 <script>
 function toast(msg, isErr=false){
@@ -142,6 +145,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('nm-page-title').innerHTML = `${nmSettings.title.split(' ')[0]||''} <span>${nmSettings.title.split(' ').slice(1).join(' ')} — Nomination</span>`;
   }
 
+  renderExtraFields(nmSettings.nominationFields || []);
+
   const avail = getNominationAvailability(nmSettings);
   if(!avail.open){
     showClosed(avail);
@@ -155,6 +160,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('nm-view-form').classList.remove('nm-hidden');
 });
+
+const NM_EXTRA_INPUT = {
+  text: id => `<input class="nm-fi" id="nm-extra-${id}" type="text">`,
+  textarea: id => `<textarea class="nm-fi" id="nm-extra-${id}"></textarea>`,
+  number: id => `<input class="nm-fi" id="nm-extra-${id}" type="number">`,
+  date: id => `<input class="nm-fi" id="nm-extra-${id}" type="date">`,
+  url: id => `<input class="nm-fi" id="nm-extra-${id}" type="url" placeholder="https://...">`
+};
+function renderExtraFields(fields){
+  const wrap = document.getElementById('nm-extra-fields');
+  wrap.innerHTML = fields.map(f => `
+    <div class="nm-fg">
+      <label>${f.label}${f.required?' *':''}</label>
+      ${(NM_EXTRA_INPUT[f.type] || NM_EXTRA_INPUT.text)(f.id)}
+    </div>`).join('');
+}
 
 function showClosed(avail){
   document.getElementById('nm-view-closed').classList.remove('nm-hidden');
@@ -197,10 +218,18 @@ async function submitNomination(){
   const statement=document.getElementById('nm-in-statement').value.trim();
   if(!name || !email || !phone || !position) return toast("Name, email, phone and position are required!", true);
 
+  const extra={};
+  for(const f of (nmSettings.nominationFields||[])){
+    const el=document.getElementById('nm-extra-'+f.id);
+    const val=el?el.value.trim():'';
+    if(f.required && !val) return toast(`"${f.label}" is required!`, true);
+    if(val) extra[f.id]=val;
+  }
+
   const btn=document.getElementById('nm-submit-btn');
   btn.disabled=true; btn.textContent='Submitting...';
 
-  const result = await submitElectionNomination(nmSettings.electionId, { name, email, phone, position, statement, photo: nmPhotoUrl });
+  const result = await submitElectionNomination(nmSettings.electionId, { name, email, phone, position, statement, photo: nmPhotoUrl, extra });
 
   document.getElementById('nm-view-form').classList.add('nm-hidden');
   document.getElementById('nm-view-result').classList.remove('nm-hidden');

@@ -279,7 +279,7 @@ select.fi{cursor:pointer}
         <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
           <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">📚 Resource Hub</h3>
           <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
-            শিক্ষার্থীদের জন্য নোট, প্রশ্নব্যাংক ও স্টাডি গাইড আপলোড করুন। PDF ফাইল Firebase Storage-এ সেভ হবে এবং resources.html-এ দেখা যাবে।
+            শিক্ষার্থীদের জন্য নোট, প্রশ্নব্যাংক ও স্টাডি গাইড আপলোড করুন। ফাইলের (Google Drive) লিংক দিলে resources.html-এ দেখা যাবে।
           </p>
         </div>
         <div class="tbl-wrap">
@@ -868,9 +868,14 @@ select.fi{cursor:pointer}
     </div>
 
     <div class="fg">
-      <label>📎 File (PDF / DOC) *</label>
+      <label>🔗 File Link * (Google Drive / যেকোনো https লিংক)</label>
+      <input class="fi" id="rf-link" placeholder="https://drive.google.com/file/d/.../view">
+      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">💡 PDF Google Drive-এ আপলোড করে "Anyone with the link → Viewer" দিয়ে লিংক এখানে বসান। এটাই সবচেয়ে সহজ ও বিনামূল্যে।</p>
+    </div>
+    <div class="fg">
+      <label>📎 অথবা ফাইল আপলোড (শুধু Firebase Storage চালু থাকলে)</label>
       <input type="file" id="rf-file" accept=".pdf,.doc,.docx" style="width:100%;padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);">
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">💡 Max 10 MB. Firebase Storage-এ আপলোড হবে।</p>
+      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">Max 10 MB. Storage চালু না থাকলে ওপরের লিংক ব্যবহার করুন।</p>
     </div>
 
     <div id="rf-upload-status" style="display:none;margin-top:12px;padding:12px 16px;border-radius:10px;font-weight:600;font-size:.88rem;"></div>
@@ -1118,7 +1123,7 @@ select.fi{cursor:pointer}
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <!-- Site Scripts -->
-<script src="data.js"></script>
+<script src="data.js?v=6"></script>
 <script src="render.js"></script>
 <script src="certificate-render.js"></script>
 <script src="admin-log.js"></script>

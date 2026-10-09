@@ -181,7 +181,7 @@
 
 <!-- Firebase SDK -->
 <script type="module" src="firebase-config.js"></script>
-<script src="data.js"></script>
+<script src="data.js?v=6"></script>
 <script src="lang.js"></script>
 <script src="main.js"></script>
 
@@ -251,7 +251,7 @@ function renderResources() {
     card.innerHTML = `
       <div class="rh-card-top">
         <div class="rh-icon">${getCategoryIcon(r.category)}</div>
-        <span class="rh-badge">${r.classLevel || r.category || 'General'}</span>
+        <span class="rh-badge">${escapeHtml(r.classLevel || r.category || 'General')}</span>
       </div>
       <h3>${escapeHtml(r.title || 'Untitled')}</h3>
       <p class="rh-card-desc">${escapeHtml(r.description || '')}</p>
@@ -260,9 +260,9 @@ function renderResources() {
         <span>⬇️ ${r.downloads || 0}</span>
         ${r.fileSize ? `<span>📦 ${escapeHtml(r.fileSize)}</span>` : ''}
       </div>
-      <a class="rh-download-btn" href="${r.fileUrl || '#'}"
+      <a class="rh-download-btn" href="${/^https:\/\//i.test(r.fileUrl||'') ? escapeHtml(r.fileUrl) : '#'}"
          target="_blank" rel="noopener"
-         onclick="trackDownload('${r.id}')">
+         onclick="trackDownload('${escapeHtml(r.id)}')">
         ⬇️ ডাউনলোড
       </a>
     `;

@@ -195,6 +195,16 @@ service cloud.firestore {
                         && get(/databases/$(database)/documents/forum_posts/$(resource.data.postId)).data.authorUid == request.auth.uid);
     }
 
+    // ---- Resource Hub: everyone reads; admin / 'resources' members manage; anyone may only bump the download counter by 1 ----
+    match /resources/{id} {
+      allow read: if true;
+      allow create, delete: if isMain() || hasPerm('resources');
+      allow update: if isMain() || hasPerm('resources')
+                    || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['downloads'])
+                        && request.resource.data.downloads is int
+                        && request.resource.data.downloads - resource.data.get('downloads', 0) == 1);
+    }
+
     // ---- Contact messages & registrations ----
     match /messages/{id} {
       allow create: if true;

@@ -664,8 +664,8 @@ function renderResourcesTable() {
       <td>${r.downloads || 0}</td>
       <td>${escRes(r.uploadDate)}</td>
       <td><div class="tbl-acts">
-        <button class="e-btn" onclick="editResource('${r.id}')">Edit</button>
-        <button class="d-btn" onclick="deleteResourceUI('${r.id}')">Delete</button>
+        <button class="e-btn" onclick="editResource('${escRes(r.id)}')">Edit</button>
+        <button class="d-btn" onclick="deleteResourceUI('${escRes(r.id)}')">Delete</button>
       </div></td>
     </tr>`).join('');
 }
@@ -683,9 +683,10 @@ function openResourceForm(id) {
       document.getElementById('rf-cat').value = r.category || '';
       document.getElementById('rf-class').value = r.classLevel || '';
       document.getElementById('rf-subject').value = r.subject || '';
+      document.getElementById('rf-link').value = r.fileUrl || '';
     }
   } else {
-    ['rf-title','rf-desc','rf-cat','rf-class','rf-subject'].forEach(i => {
+    ['rf-title','rf-desc','rf-cat','rf-class','rf-subject','rf-link'].forEach(i => {
       const el = document.getElementById(i); if(el) el.value = '';
     });
     const f = document.getElementById('rf-file'); if(f) f.value = '';
@@ -707,14 +708,16 @@ async function saveResource() {
   if(!title) return showResStatus('⚠️ শিরোনাম লিখুন', 'error');
   if(!category) return showResStatus('⚠️ ক্যাটাগরি সিলেক্ট করুন', 'error');
   if(!classLevel) return showResStatus('⚠️ ক্লাস সিলেক্ট করুন', 'error');
-  if(!id && !file) return showResStatus('⚠️ ফাইল সিলেক্ট করুন', 'error');
+  const link = document.getElementById('rf-link').value.trim();
+  if(link && !/^https:\/\//i.test(link)) return showResStatus('⚠️ লিংক অবশ্যই https:// দিয়ে শুরু হতে হবে', 'error');
+  if(!id && !file && !link) return showResStatus('⚠️ ফাইলের লিংক দিন (বা ফাইল সিলেক্ট করুন)', 'error');
 
   try {
     btn.disabled = true;
     showResStatus('⏳ আপলোড হচ্ছে...', 'loading');
 
-    let fileUrl = null, fileSize = null, fileType = null;
-    if(file) {
+    let fileUrl = link || null, fileSize = null, fileType = null;
+    if(file && !link) {
       if(file.size > 10 * 1024 * 1024) {
         btn.disabled = false;
         return showResStatus('⚠️ ফাইল ১০ MB-এর বেশি হতে পারবে না', 'error');
@@ -722,7 +725,7 @@ async function saveResource() {
       const fns = window.firebaseStorageFunctions || {};
       if(!fns.ref) {
         btn.disabled = false;
-        return showResStatus('❌ Firebase Storage সেটআপ হয়নি', 'error');
+        return showResStatus('❌ Firebase Storage চালু নেই — ফাইল আপলোডের বদলে Google Drive লিংক দিন', 'error');
       }
       const storageRef = fns.ref(window.firebaseStorage, `resources/${Date.now()}_${file.name}`);
       await fns.uploadBytes(storageRef, file);
@@ -742,7 +745,7 @@ async function saveResource() {
       await fns.addDoc(fns.collection(db, 'resources'), {
         title, description: desc, category, classLevel, subject,
         fileUrl, fileSize, fileType,
-        uploadedBy: 'admin',
+        uploadedBy: (window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.email) || 'admin',
         uploadDate: new Date().toISOString().split('T')[0],
         createdAt: Date.now(),
         views: 0, downloads: 0

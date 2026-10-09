@@ -92,10 +92,15 @@ function fpTimeAgo(ts){
 const fpPostId = new URLSearchParams(location.search).get('id');
 let fpUser=null, fpProfile=null, fpPost=null;
 
-function fpWaitForFirebase(){
+// Resolves true once Auth is ready, or false after timeoutMs — so a slow or
+// failed Auth init can never hang the page. Must never gate loading the post
+// itself (that only needs Firestore).
+function fpWaitForFirebase(timeoutMs=6000){
   return new Promise(resolve=>{
+    const start=Date.now();
     const check=setInterval(()=>{
-      if(window.firebaseAuth && window.firebaseAuthFunctions && window.firebaseDB){ clearInterval(check); resolve(); }
+      if(window.firebaseAuth && window.firebaseAuthFunctions && window.firebaseDB){ clearInterval(check); resolve(true); }
+      else if(Date.now()-start > timeoutMs){ clearInterval(check); resolve(false); }
     },100);
   });
 }
@@ -103,24 +108,32 @@ function fpWaitForFirebase(){
 document.addEventListener('DOMContentLoaded', async () => {
   if(!fpPostId){ document.getElementById('fp-loading').textContent = '❌ No post specified.'; return; }
 
-  await fpWaitForFirebase();
+  // Load the post + comments right away — only needs Firestore, never waits on Auth.
+  (async () => {
+    fpPost = await getForumPost(fpPostId);
+    if(!fpPost){
+      document.getElementById('fp-loading').textContent = '❌ This post was not found — it may have been removed.';
+      return;
+    }
+    document.getElementById('fp-loading').style.display='none';
+    document.getElementById('fp-content').style.display='block';
+    fpRenderPost();
+    fpRenderOwnBtns();
+    await loadForumComments(fpPostId);
+    fpRenderComments();
+  })().catch(() => {
+    document.getElementById('fp-loading').textContent = '⚠️ Something went wrong loading this post. Please refresh.';
+  });
+
+  // Who's signed in — runs independently; times out to "not signed in" rather than hanging.
+  const ready = await fpWaitForFirebase();
+  if(!ready) return;
   window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, async user => {
     fpUser = (user && user.emailVerified) ? user : null;
     if(fpUser) fpProfile = await getRegisteredUserById(fpUser.uid).catch(()=>({}));
     fpRenderGate();
     fpRenderOwnBtns();
   });
-
-  fpPost = await getForumPost(fpPostId);
-  if(!fpPost){
-    document.getElementById('fp-loading').textContent = '❌ This post was not found — it may have been removed.';
-    return;
-  }
-  document.getElementById('fp-loading').style.display='none';
-  document.getElementById('fp-content').style.display='block';
-  fpRenderPost();
-  await loadForumComments(fpPostId);
-  fpRenderComments();
 });
 
 function fpRenderPost(){

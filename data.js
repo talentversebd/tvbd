@@ -1881,6 +1881,203 @@ async function deleteElectionNomination(id) {
   }
 }
 
+/*===== VOLUNTEER / INTERNSHIP APPLICATIONS =====*/
+// Public: apply to volunteer or intern. Multiple applications are fine (no
+// dedup) — unlike election nominations this isn't a one-shot-per-round thing.
+async function submitVolunteerApplication(a) {
+  await waitForFirebase();
+  const { collection, addDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await addDoc(collection(db, "volunteer_applications"), {
+      name: a.name, email: a.email, phone: a.phone,
+      type: a.type, role: a.role, skills: a.skills || '',
+      message: a.message || '', availability: a.availability || '', resumeLink: a.resumeLink || '',
+      status: 'pending', createdAt: Date.now()
+    });
+    return { success:true };
+  } catch(err) {
+    console.error("Submit volunteer application error:", err);
+    return { success:false, error: err.message };
+  }
+}
+
+async function loadVolunteerApplications() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "volunteer_applications"), orderBy("createdAt", "desc")));
+    cache.volunteerApplications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return cache.volunteerApplications;
+  } catch(err) {
+    console.error("Load volunteer applications error:", err);
+    cache.volunteerApplications = cache.volunteerApplications || [];
+    return cache.volunteerApplications;
+  }
+}
+function getVolunteerApplications() { return cache.volunteerApplications || []; }
+
+async function updateVolunteerApplicationStatus(id, status) {
+  await waitForFirebase();
+  const { doc, updateDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await updateDoc(doc(db, "volunteer_applications", id), { status });
+    if(cache.volunteerApplications) {
+      const idx = cache.volunteerApplications.findIndex(x => x.id === id);
+      if(idx > -1) cache.volunteerApplications[idx].status = status;
+    }
+    return true;
+  } catch(err) {
+    console.error("Update volunteer application error:", err);
+    return false;
+  }
+}
+
+async function deleteVolunteerApplication(id) {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await deleteDoc(doc(db, "volunteer_applications", id));
+    if(cache.volunteerApplications) cache.volunteerApplications = cache.volunteerApplications.filter(x => x.id !== id);
+    return true;
+  } catch(err) {
+    console.error("Delete volunteer application error:", err);
+    return false;
+  }
+}
+
+/*===== DISCUSSION FORUM =====*/
+const FORUM_CATEGORIES = ['General', 'Events', 'Quiz Help', 'Announcements'];
+
+// Public read, sign-in required to post (enforced server-side too — see firestore.rules)
+async function loadForumPosts(category) {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "forum_posts"), orderBy("lastActivityAt", "desc")));
+    cache.forumPosts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return category ? cache.forumPosts.filter(p => p.category === category) : cache.forumPosts;
+  } catch(err) {
+    console.error("Load forum posts error:", err);
+    cache.forumPosts = cache.forumPosts || [];
+    return cache.forumPosts;
+  }
+}
+function getForumPosts() { return cache.forumPosts || []; }
+
+async function getForumPost(id) {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try {
+    const snap = await getDoc(doc(window.firebaseDB, "forum_posts", id));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  } catch(err) {
+    console.error("Get forum post error:", err);
+    return null;
+  }
+}
+
+async function addForumPost(p) {
+  await waitForFirebase();
+  const { collection, addDoc } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const now = Date.now();
+    const ref = await addDoc(collection(db, "forum_posts"), {
+      authorUid: p.authorUid, authorName: p.authorName, authorPhoto: p.authorPhoto || '',
+      category: p.category, title: p.title, body: p.body,
+      replyCount: 0, createdAt: now, lastActivityAt: now
+    });
+    return { success:true, id: ref.id };
+  } catch(err) {
+    console.error("Add forum post error:", err);
+    return { success:false, error: err.message };
+  }
+}
+
+async function updateForumPost(id, data) {
+  await waitForFirebase();
+  const { doc, updateDoc } = window.firebaseFunctions;
+  try {
+    await updateDoc(doc(window.firebaseDB, "forum_posts", id), data);
+    return true;
+  } catch(err) {
+    console.error("Update forum post error:", err);
+    return false;
+  }
+}
+
+async function deleteForumPost(id) {
+  await waitForFirebase();
+  const { doc, deleteDoc, collection, getDocs, query, where } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    // cascade: remove this post's comments first
+    const snap = await getDocs(query(collection(db, "forum_comments"), where("postId", "==", id)));
+    for(const c of snap.docs) { await deleteDoc(doc(db, "forum_comments", c.id)); }
+    await deleteDoc(doc(db, "forum_posts", id));
+    if(cache.forumPosts) cache.forumPosts = cache.forumPosts.filter(x => x.id !== id);
+    return true;
+  } catch(err) {
+    console.error("Delete forum post error:", err);
+    return false;
+  }
+}
+
+async function loadForumComments(postId) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "forum_comments"), where("postId", "==", postId), orderBy("createdAt", "asc")));
+    cache.forumComments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return cache.forumComments;
+  } catch(err) {
+    console.error("Load forum comments error:", err);
+    cache.forumComments = [];
+    return cache.forumComments;
+  }
+}
+function getForumComments() { return cache.forumComments || []; }
+
+async function addForumComment(c) {
+  await waitForFirebase();
+  const { collection, addDoc, doc, updateDoc, increment } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const now = Date.now();
+    await addDoc(collection(db, "forum_comments"), {
+      postId: c.postId, authorUid: c.authorUid, authorName: c.authorName, authorPhoto: c.authorPhoto || '',
+      body: c.body, createdAt: now
+    });
+    // best-effort: bump the post's reply count / activity time so the list sorts correctly
+    try { await updateDoc(doc(db, "forum_posts", c.postId), { lastActivityAt: now, replyCount: increment(1) }); } catch(e) {}
+    return { success:true };
+  } catch(err) {
+    console.error("Add forum comment error:", err);
+    return { success:false, error: err.message };
+  }
+}
+
+async function deleteForumComment(id, postId) {
+  await waitForFirebase();
+  const { doc, deleteDoc, updateDoc, increment } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await deleteDoc(doc(db, "forum_comments", id));
+    if(postId) { try { await updateDoc(doc(db, "forum_posts", postId), { replyCount: increment(-1) }); } catch(e) {} }
+    if(cache.forumComments) cache.forumComments = cache.forumComments.filter(x => x.id !== id);
+    return true;
+  } catch(err) {
+    console.error("Delete forum comment error:", err);
+    return false;
+  }
+}
+
 /*===== CUSTOM FORMS (Google-Forms-style builder) =====*/
 // Separate from the quiz system — no scoring, no correct answers, just
 // arbitrary fields that collect free-form responses. Used by the standalone

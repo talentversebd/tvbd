@@ -99,7 +99,8 @@ service cloud.firestore {
                     && request.resource.data.uid == request.auth.uid
                     && docId == request.resource.data.eventId + '_' + request.auth.uid
                     && request.resource.data.keys().hasOnly(['eventId','uid','at']);
-      allow read: if isMain() || hasPerm('registrations') || (signedIn() && resource.data.uid == request.auth.uid);
+      // id ends with _<uid>: lets a person check their own marker even before it exists
+      allow read: if isMain() || hasPerm('registrations') || (signedIn() && docId.matches('.*_' + request.auth.uid));
       allow delete: if isMain() || hasPerm('registrations');
     }
 

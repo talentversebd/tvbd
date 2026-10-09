@@ -269,6 +269,9 @@ async function submitRegistration(e) {
   if(needsSegment && !segment) return toast("একটা Segment সিলেক্ট করো!", true);
   if(isPaid && !txnId) return toast("Transaction ID দিতে হবে — এটা Paid Event!", true);
 
+  if(selectedOlympiad && isRegDeadlinePassed(selectedOlympiad)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
+  if(await alreadyRegistered(olympiad, email)) return toast("তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+
   const btn = document.querySelector('.rf-btn');
   const originalText = btn.textContent;
   btn.textContent = '⏳ Submitting...';
@@ -389,6 +392,9 @@ async function submitInlineRegistration(olympiadId) {
   if(needsSegment && !segment) return toast("একটা Segment সিলেক্ট করো!", true);
   if(isPaid && !txnId) return toast("Transaction ID দিতে হবে — এটা Paid Event!", true);
 
+  if(isRegDeadlinePassed(o)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
+  if(await alreadyRegistered(o.title, email)) return toast("তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+
   const btn = document.querySelector('.im-submit-btn');
   const originalText = btn ? btn.textContent : '';
   if(btn) { btn.textContent = '⏳ Submitting...'; btn.disabled = true; }
@@ -476,6 +482,9 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
     answers[f.id] = val;
   }
 
+  if(isRegDeadlinePassed(o)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
+  if(await alreadyRegistered(o.title, email)) return toast("তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+
   const btn = document.querySelector('.im-submit-btn');
   const originalText = btn ? btn.textContent : '';
   if(btn) { btn.textContent = '⏳ Submitting...'; btn.disabled = true; }
@@ -529,7 +538,7 @@ function populateOlympiadDropdown() {
   const select = document.getElementById('rf-olympiad');
   if(!select) return;
 
-  const olympiads = getOlympiads().filter(o => o.regEnabled && o.status !== 'past');
+  const olympiads = getOlympiads().filter(o => isRegOpen(o));
 
   select.innerHTML = '<option value="">-- Select an Olympiad --</option>';
 

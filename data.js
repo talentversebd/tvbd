@@ -289,6 +289,30 @@ async function deleteMessage(id) {
 }
 
 /*===== REGISTRATIONS (event sign-ups — requires a logged-in, verified account) =====*/
+
+/*===== REGISTRATION GUARDS =====*/
+// Registration deadline is a plain date (yyyy-mm-dd): the event stays open through the end of that day.
+function isRegDeadlinePassed(o) {
+  if(!o || !o.deadline) return false;
+  const m = String(o.deadline).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(!m) return false;
+  return Date.now() > new Date(+m[1], +m[2]-1, +m[3], 23, 59, 59, 999).getTime();
+}
+function isRegOpen(o) {
+  return !!(o && o.regEnabled && o.status !== 'past' && !isRegDeadlinePassed(o));
+}
+// Has this account already registered for this event? (matches by event title + account email)
+async function alreadyRegistered(olympiadTitle, email) {
+  if(!olympiadTitle || !email) return false;
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  try {
+    const snap = await getDocs(query(collection(window.firebaseDB, "registrations"), where("email", "==", email)));
+    const t = String(olympiadTitle).trim().toLowerCase();
+    return snap.docs.some(x => String(x.data().olympiad || '').trim().toLowerCase() === t);
+  } catch(err) { console.error("Duplicate check error:", err); return false; }
+}
+
 async function addRegistration(r) {
   await waitForFirebase();
   const { collection, addDoc } = window.firebaseFunctions;

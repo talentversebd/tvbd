@@ -174,29 +174,33 @@ select.fi{cursor:pointer}
         <button class="adm-nb" data-sec="team-adm" onclick="goSec(this)"><span class="ico">👔</span>Team Members</button>
         <button class="adm-nb" data-sec="network-adm" onclick="goSec(this)"><span class="ico">🌐</span>Our Network</button>
         <button class="adm-nb" data-sec="news-adm" onclick="goSec(this)"><span class="ico">📰</span>News</button>
+        <button class="adm-nb" data-sec="resources-adm" onclick="goSec(this)"><span class="ico">📚</span>Resources</button>
+        
         <div class="adm-ns">Exam</div>
         <button class="adm-nb" data-sec="quiz-adm" onclick="goSec(this)"><span class="ico">📋</span>Quizzes</button>
         <button class="adm-nb" data-sec="qsub-adm" onclick="goSec(this)"><span class="ico">🧾</span>Quiz Submissions</button>
+        
         <div class="adm-ns">Inbox</div>
-<button class="adm-nb" data-sec="msg-adm" onclick="goSec(this)"><span class="ico">✉️</span>Messages</button>
-<button class="adm-nb" data-sec="reg-adm" onclick="goSec(this)"><span class="ico">📝</span>Registrations</button>
+        <button class="adm-nb" data-sec="msg-adm" onclick="goSec(this)"><span class="ico">✉️</span>Messages</button>
+        <button class="adm-nb" data-sec="reg-adm" onclick="goSec(this)"><span class="ico">📝</span>Registrations</button>
 
-<div class="adm-ns">Community</div>
-<button class="adm-nb" data-sec="vol-adm" onclick="goSec(this)"><span class="ico">🙋</span>Volunteers</button>
-<button class="adm-nb" data-sec="forum-adm" onclick="goSec(this)"><span class="ico">💬</span>Forum</button>
+        <div class="adm-ns">Community</div>
+        <button class="adm-nb" data-sec="vol-adm" onclick="goSec(this)"><span class="ico">🙋</span>Volunteers</button>
+        <button class="adm-nb" data-sec="forum-adm" onclick="goSec(this)"><span class="ico">💬</span>Forum</button>
 
-<div class="adm-ns">Accounts</div>
-<button class="adm-nb" data-sec="users-adm" onclick="goSec(this)"><span class="ico">👥</span>Registered Users</button>
-<button class="adm-nb" data-sec="log-adm" onclick="goSec(this)"><span class="ico">📜</span>Activity Log</button>
+        <div class="adm-ns">Accounts</div>
+        <button class="adm-nb" data-sec="users-adm" onclick="goSec(this)"><span class="ico">👥</span>Registered Users</button>
+        <button class="adm-nb" data-sec="log-adm" onclick="goSec(this)"><span class="ico">📜</span>Activity Log</button>
 
-<div class="adm-ns">Verification</div>
-<button class="adm-nb" data-sec="cert-adm" onclick="goSec(this)"><span class="ico">📜</span>Certificates</button>
-<div class="adm-ns">Notice & Settings</div>
-<button class="adm-nb" data-sec="founder-adm" onclick="goSec(this)"><span class="ico">👤</span>Founder's Message</button>
-<button class="adm-nb" data-sec="popup-adm" onclick="goSec(this)"><span class="ico">📢</span>Popup Notice</button>
-<button class="adm-nb" data-sec="notify-adm" onclick="goSec(this)"><span class="ico">📧</span>Email Notifications</button>
-<button class="adm-nb" data-sec="bell-adm" onclick="goSec(this)"><span class="ico">🔔</span>Notifications</button>
-<button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
+        <div class="adm-ns">Verification</div>
+        <button class="adm-nb" data-sec="cert-adm" onclick="goSec(this)"><span class="ico">📜</span>Certificates</button>
+        
+        <div class="adm-ns">Notice & Settings</div>
+        <button class="adm-nb" data-sec="founder-adm" onclick="goSec(this)"><span class="ico">👤</span>Founder's Message</button>
+        <button class="adm-nb" data-sec="popup-adm" onclick="goSec(this)"><span class="ico">📢</span>Popup Notice</button>
+        <button class="adm-nb" data-sec="notify-adm" onclick="goSec(this)"><span class="ico">📧</span>Email Notifications</button>
+        <button class="adm-nb" data-sec="bell-adm" onclick="goSec(this)"><span class="ico">🔔</span>Notifications</button>
+        <button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
       </nav>
       <div class="adm-sb-footer">
         <button onclick="closeAdmin()">← Site</button>
@@ -270,7 +274,32 @@ select.fi{cursor:pointer}
         </div>
       </div>
 
-      <!-- QUIZZES -->
+      <!-- RESOURCES -->
+      <div class="adm-sec" id="resources-adm">
+        <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">📚 Resource Hub</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+            শিক্ষার্থীদের জন্য নোট, প্রশ্নব্যাংক ও স্টাডি গাইড আপলোড করুন। PDF ফাইল Firebase Storage-এ সেভ হবে এবং resources.html-এ দেখা যাবে।
+          </p>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Title</th>
+               <th>Category</th>
+                <th>Class</th>
+                <th>Size</th>
+                <th>Downloads</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="rtbl-resources"></tbody>
+          </table>
+        </div>
+      </div>
+            <!-- QUIZZES -->
       <div class="adm-sec" id="quiz-adm">
         <div style="margin-bottom:14px;">
           <button class="e-btn" onclick="secureAllQuizzesUI()" style="padding:9px 14px;">🔒 সব কুইজের উত্তর সুরক্ষিত করুন</button>
@@ -299,12 +328,12 @@ select.fi{cursor:pointer}
         </div>
       </div>
 
-      <!-- ACTIVITY LOG (main admin only) -->
+      <!-- ACTIVITY LOG -->
       <div class="adm-sec" id="log-adm">
         <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
           <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">📜 Activity Log</h3>
           <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
-            অ্যাডমিন ও সদস্যরা কে কখন কী যোগ, এডিট বা মুছেছে তার তালিকা (সর্বশেষ ৩০০টা)। শুধু সফল পরিবর্তন লেখা হয়। এই তালিকা শুধু আপনি দেখতে পারবেন।
+            অ্যাডমিন ও সদস্যরা কে কখন কী যোগ, এডিট বা মুছেছে তার তালিকা (সর্বশেষ ৩০০টা)। শুধু সফল পরিবর্তন লেখা হয়।
           </p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
@@ -322,12 +351,12 @@ select.fi{cursor:pointer}
         </div>
       </div>
 
-      <!-- REGISTERED USERS (account.html sign-ups) -->
+      <!-- REGISTERED USERS -->
       <div class="adm-sec" id="users-adm">
         <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
           <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">👥 Registered Users</h3>
           <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
-            Everyone who has signed up for an account on account.html, with all the information they gave. Click "View" for the full profile. This is a mirror kept in Firestore — the full record (including password resets, etc.) always lives in Firebase Authentication → Users.
+            Everyone who has signed up for an account on account.html, with all the information they gave.
           </p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
@@ -343,75 +372,42 @@ select.fi{cursor:pointer}
       </div>
       
       <!-- TEAM MEMBERS -->
-<div class="adm-sec" id="team-adm">
-  
-  <!-- Info Card -->
-  <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
-    <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">
-      👔 Team Members
-    </h3>
-    <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
-      Add your team members here. They will appear on the Team page in order (1, 2, 3...). 
-      Founders and important members should have lower order numbers to appear first.
-    </p>
-    <div style="margin-top:12px;padding:10px;background:rgba(37,99,235,.05);border-radius:8px;font-size:.78rem;color:var(--lblue);">
-      💡 <strong>Tip:</strong> Order = 1 will be shown first, then 2, 3, etc.
-    </div>
-  </div>
-  
-  <!-- Table -->
-  <div class="tbl-wrap">
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Order</th>
-          <th>Photo</th>
-          <th>Name</th>
-          <th>Role</th>
-          <th>Department</th>
-          <th>Description</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="ttbl"></tbody>
-    </table>
-  </div>
-</div>
+      <div class="adm-sec" id="team-adm">
+        <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">👔 Team Members</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+            Add your team members here. They will appear on the Team page in order (1, 2, 3...).
+          </p>
+          <div style="margin-top:12px;padding:10px;background:rgba(37,99,235,.05);border-radius:8px;font-size:.78rem;color:var(--lblue);">
+            💡 <strong>Tip:</strong> Order = 1 will be shown first, then 2, 3, etc.
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Order</th><th>Photo</th><th>Name</th><th>Role</th><th>Department</th><th>Description</th><th>Actions</th></tr></thead>
+            <tbody id="ttbl"></tbody>
+          </table>
+        </div>
+      </div>
 
       <!-- OUR NETWORK -->
-<div class="adm-sec" id="network-adm">
-  
-  <!-- Info Card -->
-  <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
-    <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">
-      🌐 Our Network / Affiliated Pages
-    </h3>
-    <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
-      Add your other organizer pages here (Facebook pages, sister websites, branch pages, etc.).
-      They'll show up as a card grid on the homepage, positioning TalentVerse Bangladesh as the central hub.
-    </p>
-    <div style="margin-top:12px;padding:10px;background:rgba(37,99,235,.05);border-radius:8px;font-size:.78rem;color:var(--lblue);">
-      💡 <strong>Tip:</strong> The section is hidden automatically on the homepage until you add at least one page.
-    </div>
-  </div>
-  
-  <!-- Table -->
-  <div class="tbl-wrap">
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Order</th>
-          <th>Logo</th>
-          <th>Name</th>
-          <th>URL</th>
-          <th>Description</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="nptbl"></tbody>
-    </table>
-  </div>
-</div>
+      <div class="adm-sec" id="network-adm">
+        <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">🌐 Our Network / Affiliated Pages</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+            Add your other organizer pages here (Facebook pages, sister websites, branch pages, etc.).
+          </p>
+          <div style="margin-top:12px;padding:10px;background:rgba(37,99,235,.05);border-radius:8px;font-size:.78rem;color:var(--lblue);">
+            💡 <strong>Tip:</strong> The section is hidden automatically on the homepage until you add at least one page.
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Order</th><th>Logo</th><th>Name</th><th>URL</th><th>Description</th><th>Actions</th></tr></thead>
+            <tbody id="nptbl"></tbody>
+          </table>
+        </div>
+      </div>
 
       <!-- MESSAGES -->
       <div class="adm-sec" id="msg-adm">
@@ -433,7 +429,7 @@ select.fi{cursor:pointer}
           <button class="add-btn" onclick="approveAllShown()">✅ দেখানো Pending সবাইকে Approve</button>
         </div>
         <p id="reg-summary" style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.7;"></p>
-        <p style="font-size:.74rem;color:var(--muted);margin-bottom:12px;line-height:1.7;">যে ইভেন্টে "অ্যাডমিনের অনুমোদন লাগবে" টিক দেওয়া আছে, সেখানে শুধু <strong>Approved</strong> ব্যক্তিরাই পরীক্ষা দিতে পারবে। Rejected বা Pending থাকলে পরীক্ষা খুলবে না।</p>
+        <p style="font-size:.74rem;color:var(--muted);margin-bottom:12px;line-height:1.7;">যে ইভেন্টে "অ্যাডমিনের অনুমোদন লাগবে" টিক দেওয়া আছে, সেখানে শুধু <strong>Approved</strong> ব্যক্তিরাই পরীক্ষা দিতে পারবে।</p>
         <div class="tbl-wrap">
           <table class="tbl">
             <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Olympiad</th><th>Segment</th><th>Transaction ID</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
@@ -441,6 +437,7 @@ select.fi{cursor:pointer}
           </table>
         </div>
       </div>
+
       <!-- VOLUNTEERS -->
       <div class="adm-sec" id="vol-adm">
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
@@ -451,7 +448,7 @@ select.fi{cursor:pointer}
             <option value="">All Status</option><option value="pending">⏳ Pending</option><option value="approved">✅ Approved</option><option value="rejected">❌ Rejected</option>
           </select>
         </div>
-        <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">🙋 People apply from the public <a href="volunteer.html" target="_blank" style="color:var(--blue-br);">volunteer.html</a> page. Share that link wherever you're recruiting.</p>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">🙋 People apply from the public <a href="volunteer.html" target="_blank" style="color:var(--blue-br);">volunteer.html</a> page.</p>
         <div class="tbl-wrap">
           <table class="tbl">
             <thead><tr><th>Name</th><th>Type</th><th>Role</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
@@ -462,7 +459,7 @@ select.fi{cursor:pointer}
 
       <!-- FORUM -->
       <div class="adm-sec" id="forum-adm">
-        <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">💬 Signed-in, email-verified members post and comment from <a href="forum.html" target="_blank" style="color:var(--blue-br);">forum.html</a>. An author can edit/delete their own post; you can moderate (delete) anything here.</p>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">💬 Signed-in, email-verified members post and comment from <a href="forum.html" target="_blank" style="color:var(--blue-br);">forum.html</a>.</p>
         <div class="tbl-wrap">
           <table class="tbl">
             <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Replies</th><th>Date</th><th>Actions</th></tr></thead>
@@ -472,210 +469,136 @@ select.fi{cursor:pointer}
       </div>
 
       <!-- CERTIFICATES -->
-<div class="adm-sec" id="cert-adm">
-  
-  <!-- Info Card -->
-  <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
-    <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">
-      📜 Certificate Verification System
-    </h3>
-    <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
-      Add certificates for participants. Each certificate gets a unique QR code. 
-      When scanned, users can verify certificate authenticity on your website.
-    </p>
-    <div style="margin-top:12px;padding:10px;background:rgba(37,99,235,.05);border-radius:8px;font-size:.78rem;color:var(--lblue);">
-      💡 <strong>How to use:</strong> Add certificate → Click 👁️ to see QR code → Download QR → Print on certificate
-    </div>
-  </div>
-  
-  <div style="margin-bottom:16px;">
-    <button class="e-btn" onclick="migrateCertEmailsUI()" style="margin-right:8px;padding:9px 14px;">🔒 ইমেইল সুরক্ষিত করুন</button>
-    <button class="add-btn" onclick="openCertTemplate()" style="margin-right:8px;">🖼 Certificate Template</button>
-    <button class="add-btn" onclick="openBulkCert()">⚡ Bulk Generate from Event</button>
-    <span style="font-size:.76rem;color:var(--muted);margin-left:10px;display:block;margin-top:8px;line-height:1.7;">১) আপনার ডিজাইন করা সার্টিফিকেটের ছবি আপলোড করে Name / Verify ID / QR-এর জায়গা ঠিক করুন · ২) তারপর Bulk Generate দিয়ে অংশগ্রহণকারীদের সার্টিফিকেট তৈরি করুন। (বিজয়ীদের আপনি নিজে মেইল করবেন)</span>
-  </div>
+      <div class="adm-sec" id="cert-adm">
+        <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">📜 Certificate Verification System</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+            Add certificates for participants. Each certificate gets a unique QR code.
+          </p>
+          <div style="margin-top:12px;padding:10px;background:rgba(37,99,235,.05);border-radius:8px;font-size:.78rem;color:var(--lblue);">
+            💡 <strong>How to use:</strong> Add certificate → Click 👁️ to see QR code → Download QR → Print on certificate
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <button class="e-btn" onclick="migrateCertEmailsUI()" style="margin-right:8px;padding:9px 14px;">🔒 ইমেইল সুরক্ষিত করুন</button>
+          <button class="add-btn" onclick="openCertTemplate()" style="margin-right:8px;">🖼 Certificate Template</button>
+          <button class="add-btn" onclick="openBulkCert()">⚡ Bulk Generate from Event</button>
+          <span style="font-size:.76rem;color:var(--muted);margin-left:10px;display:block;margin-top:8px;line-height:1.7;">১) সার্টিফিকেটের ছবি আপলোড করে Name / Verify ID / QR-এর জায়গা ঠিক করুন · ২) Bulk Generate দিয়ে অংশগ্রহণকারীদের সার্টিফিকেট তৈরি করুন।</span>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Certificate ID</th><th>Name</th><th>Event</th><th>Position</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="ctbl"></tbody>
+          </table>
+        </div>
+      </div>
 
-  <!-- Table -->
-  <div class="tbl-wrap">
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Certificate ID</th>
-          <th>Name</th>
-          <th>Event</th>
-          <th>Position</th>
-          <th>Date</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="ctbl"></tbody>
-    </table>
-  </div>
-</div>
+      <!-- FOUNDER'S MESSAGE -->
+      <div class="adm-sec" id="founder-adm">
+        <div class="set-wrap" style="max-width:700px;">
+          <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
+            <h3 style="font-family:Montserrat;font-size:1.15rem;font-weight:800;margin-bottom:6px;">👤 Founder's Message</h3>
+            <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
+              Shows a "Founder's Message" section on the homepage. Turn it off to keep the homepage exactly as it was before.
+            </p>
+            <div class="chk-wrap" style="margin-bottom:20px;background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);">
+              <input type="checkbox" id="fs-enabled">
+              <label for="fs-enabled">🔛 <strong>Show Founder's Message on Homepage</strong></label>
+            </div>
+            <div class="f-row">
+              <div class="fg"><label>Name *</label><input class="fi" id="fs-name" placeholder="e.g. John Doe"></div>
+              <div class="fg"><label>Title *</label><input class="fi" id="fs-title" placeholder="e.g. Founder & CEO"></div>
+            </div>
+            <div class="fg">
+              <label>Message / Bio *</label>
+              <textarea class="fi" id="fs-bio" style="min-height:120px;" placeholder="A short message from the founder..."></textarea>
+            </div>
+            <div class="fg">
+              <label>Photo</label>
+              <input class="fi" id="fs-photo" placeholder="Or paste image URL..." style="margin-bottom:10px;">
+              <div id="fs-photo-prev" style="margin-bottom:10px;"></div>
+              <label class="e-btn" style="display:inline-block;cursor:pointer;">
+                📷 Upload Photo
+                <input type="file" id="fs-file" accept="image/*" style="display:none" onchange="prevFounderPhoto(this)">
+              </label>
+            </div>
+            <div class="f-row">
+              <div class="fg"><label>Facebook Link (optional)</label><input class="fi" id="fs-facebook" placeholder="https://facebook.com/..."></div>
+              <div class="fg"><label>LinkedIn Link (optional)</label><input class="fi" id="fs-linkedin" placeholder="https://linkedin.com/in/..."></div>
+            </div>
+          </div>
+          <button id="fs-save-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="saveFounderSettingsUI()">
+            💾 Save Founder Settings
+          </button>
+        </div>
+      </div>
+
       <!-- POPUP NOTICE -->
-<div class="adm-sec" id="founder-adm">
-  <div class="set-wrap" style="max-width:700px;">
-
-    <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
-      <h3 style="font-family:Montserrat;font-size:1.15rem;font-weight:800;margin-bottom:6px;">
-        👤 Founder's Message
-      </h3>
-      <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
-        Shows a "Founder's Message" section on the homepage. Turn it off to keep the homepage exactly as it was before.
-      </p>
-
-      <div class="chk-wrap" style="margin-bottom:20px;background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);">
-        <input type="checkbox" id="fs-enabled">
-        <label for="fs-enabled">
-          🔛 <strong>Show Founder's Message on Homepage</strong>
-        </label>
-      </div>
-
-      <div class="f-row">
-        <div class="fg"><label>Name *</label><input class="fi" id="fs-name" placeholder="e.g. John Doe"></div>
-        <div class="fg"><label>Title *</label><input class="fi" id="fs-title" placeholder="e.g. Founder & CEO"></div>
-      </div>
-
-      <div class="fg">
-        <label>Message / Bio *</label>
-        <textarea class="fi" id="fs-bio" style="min-height:120px;" placeholder="A short message from the founder..."></textarea>
-      </div>
-
-      <div class="fg">
-        <label>Photo</label>
-        <input class="fi" id="fs-photo" placeholder="Or paste image URL..." style="margin-bottom:10px;">
-        <div id="fs-photo-prev" style="margin-bottom:10px;"></div>
-        <label class="e-btn" style="display:inline-block;cursor:pointer;">
-          📷 Upload Photo
-          <input type="file" id="fs-file" accept="image/*" style="display:none" onchange="prevFounderPhoto(this)">
-        </label>
-      </div>
-
-      <div class="f-row">
-        <div class="fg"><label>Facebook Link (optional)</label><input class="fi" id="fs-facebook" placeholder="https://facebook.com/..."></div>
-        <div class="fg"><label>LinkedIn Link (optional)</label><input class="fi" id="fs-linkedin" placeholder="https://linkedin.com/in/..."></div>
-      </div>
-    </div>
-
-    <button id="fs-save-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="saveFounderSettingsUI()">
-      💾 Save Founder Settings
-    </button>
-
-  </div>
-</div>
-
-<div class="adm-sec" id="popup-adm">
-  <div class="set-wrap" style="max-width:700px;">
-    
-    <!-- Main Popup Settings -->
-    <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
-      <h3 style="font-family:Montserrat;font-size:1.15rem;font-weight:800;margin-bottom:6px;">
-        📢 Popup Notice Settings
-      </h3>
-      <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
-        Show a popup notice to visitors when they open the website. Perfect for announcements, deadlines, or special events.
-      </p>
-      
-      <!-- Active Toggle -->
-      <div class="chk-wrap" style="margin-bottom:20px;background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);">
-        <input type="checkbox" id="ps-active">
-        <label for="ps-active">
-          🔔 <strong>Show Popup to Visitors</strong>
-        </label>
-      </div>
-      
-      <div class="fg">
-        <label>Popup Title *</label>
-        <input class="fi" id="ps-title" placeholder="e.g. Important Notice">
-      </div>
-      
-      <div class="fg">
-        <label>Popup Message *</label>
-        <textarea class="fi" id="ps-message" style="min-height:100px;" placeholder="e.g. Campus Ambassador Registration - Only 1 Day Left!"></textarea>
-        <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-          💡 Keep it short and impactful
-        </p>
-      </div>
-      
-      <div class="f-row">
-        <div class="fg">
-          <label>Button Text</label>
-          <input class="fi" id="ps-btn-text" placeholder="Apply Now" value="Apply Now">
-        </div>
-        <div class="fg">
-          <label>Button Link (URL)</label>
-          <input class="fi" id="ps-btn-link" placeholder="https://...">
+      <div class="adm-sec" id="popup-adm">
+        <div class="set-wrap" style="max-width:700px;">
+          <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
+            <h3 style="font-family:Montserrat;font-size:1.15rem;font-weight:800;margin-bottom:6px;">📢 Popup Notice Settings</h3>
+            <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
+              Show a popup notice to visitors when they open the website.
+            </p>
+            <div class="chk-wrap" style="margin-bottom:20px;background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);">
+              <input type="checkbox" id="ps-active">
+              <label for="ps-active">🔔 <strong>Show Popup to Visitors</strong></label>
+            </div>
+            <div class="fg"><label>Popup Title *</label><input class="fi" id="ps-title" placeholder="e.g. Important Notice"></div>
+            <div class="fg">
+              <label>Popup Message *</label>
+              <textarea class="fi" id="ps-message" style="min-height:100px;" placeholder="e.g. Campus Ambassador Registration - Only 1 Day Left!"></textarea>
+              <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">💡 Keep it short and impactful</p>
+            </div>
+            <div class="f-row">
+              <div class="fg"><label>Button Text</label><input class="fi" id="ps-btn-text" placeholder="Apply Now" value="Apply Now"></div>
+              <div class="fg"><label>Button Link (URL)</label><input class="fi" id="ps-btn-link" placeholder="https://..."></div>
+            </div>
+            <div class="fg">
+              <label>⏰ Deadline (For Countdown Timer)</label>
+              <input class="fi" type="datetime-local" id="ps-deadline">
+              <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">💡 Popup will show live countdown until this time.</p>
+            </div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
+            <h3 style="font-family:Montserrat;font-size:1.05rem;font-weight:800;margin-bottom:6px;">🔴 Top Notice Bar</h3>
+            <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
+              Shows a slim notice bar at the top of every page with countdown status.
+            </p>
+            <div class="chk-wrap" style="margin-bottom:16px;background:rgba(37,99,235,.08);">
+              <input type="checkbox" id="ps-nb-active">
+              <label for="ps-nb-active">📌 <strong>Show Notice Bar on All Pages</strong></label>
+            </div>
+            <div class="fg">
+              <label>Notice Bar Text</label>
+              <input class="fi" id="ps-nb-text" placeholder="e.g. Registration is Open Now!">
+            </div>
+          </div>
+          <div style="background:rgba(37,99,235,.05);border:1px dashed var(--bdr2);border-radius:10px;padding:16px;margin-bottom:20px;">
+            <p style="font-size:.83rem;color:var(--lblue);line-height:1.7;">
+              💡 <strong style="color:var(--txt);">How it works:</strong><br>
+              • Popup shows once per day (users can close it)<br>
+              • Countdown updates every second in real-time<br>
+              • After deadline, popup shows "Registration Closed" automatically
+            </p>
+          </div>
+          <button id="ps-save-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="savePopupSettings()">
+            💾 Save Popup Settings
+          </button>
         </div>
       </div>
-      
-      <div class="fg">
-        <label>⏰ Deadline (For Countdown Timer)</label>
-        <input class="fi" type="datetime-local" id="ps-deadline">
-        <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-          💡 Popup will show live countdown until this time. After deadline, it will auto-show "Registration Closed"
-        </p>
-      </div>
-      
-    </div>
-    
-    <!-- Notice Bar Settings -->
-    <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
-      <h3 style="font-family:Montserrat;font-size:1.05rem;font-weight:800;margin-bottom:6px;">
-        🔴 Top Notice Bar
-      </h3>
-      <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
-        Shows a slim notice bar at the top of every page with countdown status.
-      </p>
-      
-      <div class="chk-wrap" style="margin-bottom:16px;background:rgba(37,99,235,.08);">
-        <input type="checkbox" id="ps-nb-active">
-        <label for="ps-nb-active">
-          📌 <strong>Show Notice Bar on All Pages</strong>
-        </label>
-      </div>
-      
-      <div class="fg">
-        <label>Notice Bar Text</label>
-        <input class="fi" id="ps-nb-text" placeholder="e.g. Registration is Open Now!">
-        <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-          💡 Short message that appears in the top bar
-        </p>
-      </div>
-    </div>
-    
-    <!-- Preview Info -->
-    <div style="background:rgba(37,99,235,.05);border:1px dashed var(--bdr2);border-radius:10px;padding:16px;margin-bottom:20px;">
-      <p style="font-size:.83rem;color:var(--lblue);line-height:1.7;">
-        💡 <strong style="color:var(--txt);">How it works:</strong><br>
-        • Popup shows once per day (users can close it)<br>
-        • Countdown updates every second in real-time<br>
-        • After deadline, popup shows "Registration Closed" automatically<br>
-        • Notice Bar shows live status at the top
-      </p>
-    </div>
-    
-    <!-- Save Button -->
-    <button id="ps-save-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="savePopupSettings()">
-      💾 Save Popup Settings
-    </button>
-    
-  </div>
-</div>
 
       <!-- EMAIL NOTIFICATIONS -->
       <div class="adm-sec" id="notify-adm">
         <div class="set-wrap" style="max-width:760px;">
-
           <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:22px;">
             <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">📧 Email Notifications</h3>
             <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
-              Send an email to a group of people — e.g. announcing a new event, publishing results, or reminding
-              everyone about an upcoming exam. Pick an audience below, write your message, and send.
+              Send an email to a group of people — e.g. announcing a new event, publishing results, or reminding everyone about an upcoming exam.
             </p>
             <div id="ntf-config-warning" style="display:none;margin-top:12px;padding:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;font-size:.78rem;color:#f87171;"></div>
           </div>
-
-          <!-- Quick templates -->
           <div class="fg">
             <label>Quick Template (optional)</label>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -684,47 +607,36 @@ select.fi{cursor:pointer}
               <button type="button" class="fc-btn" onclick="applyNotifyTemplate('exam')">⏰ Exam Reminder</button>
             </div>
           </div>
-
-          <!-- Audience -->
           <div class="fg">
             <label>Send To</label>
             <select class="fi" id="ntf-audience" onchange="updateNotifyAudiencePreview()">
               <option value="users">All Registered Users (account.html sign-ups)</option>
-              <option value="registrations">All Olympiad/Event Registrations</option>
+              <option value="registrations">All Olympiad/Event 
+                Registrations</option>
               <option value="quiz">Quiz Participants (pick a quiz below)</option>
               <option value="custom">Custom list (paste emails)</option>
             </select>
           </div>
-
           <div class="fg qz-hidden" id="ntf-quiz-wrap">
             <label>Which quiz?</label>
             <select class="fi" id="ntf-quiz-select" onchange="updateNotifyAudiencePreview()"></select>
           </div>
-
           <div class="fg qz-hidden" id="ntf-custom-wrap">
             <label>Email addresses (comma or newline separated)</label>
             <textarea class="fi" id="ntf-custom-emails" style="min-height:90px;" placeholder="a@email.com, b@email.com&#10;c@email.com" oninput="updateNotifyAudiencePreview()"></textarea>
           </div>
-
           <div id="ntf-audience-count" style="font-size:.82rem;color:var(--lblue);margin-bottom:18px;">— select an audience —</div>
-
-          <!-- Message -->
           <div class="fg"><label>Subject *</label><input class="fi" id="ntf-subject" placeholder="e.g. New Event: National Science Olympiad 2026"></div>
           <div class="fg"><label>Message *</label><textarea class="fi" id="ntf-message" style="min-height:160px;" placeholder="Write your announcement here..."></textarea></div>
-
           <button id="ntf-send-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="sendNotificationCampaign()">
             📨 Send Notification
           </button>
-
-          <!-- Progress -->
           <div id="ntf-progress-wrap" style="display:none;margin-top:16px;">
             <div style="background:var(--card2);border-radius:100px;height:10px;overflow:hidden;">
               <div id="ntf-progress-bar" style="background:linear-gradient(135deg,var(--blue),var(--blue-dk));height:100%;width:0%;transition:width .2s;"></div>
             </div>
             <p id="ntf-progress-text" style="font-size:.8rem;color:var(--muted);margin-top:8px;text-align:center;"></p>
           </div>
-
-          <!-- History -->
           <div style="margin-top:32px;">
             <h3 style="font-family:Montserrat;font-size:1rem;font-weight:800;margin-bottom:14px;">Send History</h3>
             <div class="tbl-wrap">
@@ -734,21 +646,17 @@ select.fi{cursor:pointer}
               </table>
             </div>
           </div>
-
         </div>
       </div>
-
-      <!-- DASHBOARD NOTIFICATIONS (bell) -->
+        <!-- DASHBOARD NOTIFICATIONS -->
       <div class="adm-sec" id="bell-adm">
         <div class="set-wrap" style="max-width:760px;">
-
           <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:22px;">
             <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">🔔 Notifications</h3>
             <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
-              এখানে পোস্ট করা ঘোষণা সব লগইন করা ইউজারের ড্যাশবোর্ডের ঘণ্টায় (🔔) দেখাবে — যেমন নতুন ইভেন্ট, ফলাফল প্রকাশ বা পরীক্ষার রিমাইন্ডার।
+              এখানে পোস্ট করা ঘোষণা সব লগইন করা ইউজারের ড্যাশবোর্ডের ঘণ্টায় (🔔) দেখাবে।
             </p>
           </div>
-
           <div class="fg">
             <label>Quick Template (optional)</label>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -757,14 +665,11 @@ select.fi{cursor:pointer}
               <button type="button" class="fc-btn" onclick="applyBellTemplate('exam')">⏰ পরীক্ষার রিমাইন্ডার</button>
             </div>
           </div>
-
           <div class="fg"><label>শিরোনাম *</label><input class="fi" id="bn-subject" placeholder="যেমন: নতুন ইভেন্ট: জাতীয় বিজ্ঞান অলিম্পিয়াড ২০২৬"></div>
           <div class="fg"><label>বার্তা *</label><textarea class="fi" id="bn-message" style="min-height:160px;" placeholder="ঘোষণাটি এখানে লিখুন..."></textarea></div>
-
           <button id="bn-send-btn" class="fs-btn" style="width:100%;padding:14px;font-size:.95rem;" onclick="postBellNotification()">
             🔔 ড্যাশবোর্ডে পোস্ট করুন
           </button>
-
           <div style="margin-top:32px;">
             <h3 style="font-family:Montserrat;font-size:1rem;font-weight:800;margin-bottom:14px;">পোস্ট করা নোটিফিকেশন</h3>
             <div class="tbl-wrap">
@@ -774,55 +679,34 @@ select.fi{cursor:pointer}
               </table>
             </div>
           </div>
-
         </div>
       </div>
 
       <!-- SETTINGS -->
       <div class="adm-sec" id="set-adm">
         <div class="set-wrap">
-          
-          <!-- Registration Form Settings -->
           <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-bottom:24px;">
-            <h3 style="font-family:Montserrat;font-size:1.1rem;font-weight:800;margin-bottom:6px;">
-              📝 Registration Form Settings
-            </h3>
+            <h3 style="font-family:Montserrat;font-size:1.1rem;font-weight:800;margin-bottom:6px;">📝 Registration Form Settings</h3>
             <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">
-              This site now has its own built-in registration form (no external Google Form needed). Visitors must Log In / Sign Up to submit — their account email is attached automatically. Manage submissions under "Registrations" in the sidebar.
+              This site now has its own built-in registration form. Visitors must Log In / Sign Up to submit.
             </p>
-            
             <div class="chk-wrap" style="margin-bottom:16px;">
               <input type="checkbox" id="rs-active">
               <label for="rs-active">✅ Registration is Currently Open</label>
             </div>
-            
-            <div class="fg">
-              <label>Competition Title *</label>
-              <input class="fi" id="rs-title" placeholder="e.g. Bangladesh Math Olympiad 2026">
-            </div>
-            
+            <div class="fg"><label>Competition Title *</label><input class="fi" id="rs-title" placeholder="e.g. Bangladesh Math Olympiad 2026"></div>
             <div class="fg">
               <label>Description</label>
-              <textarea class="fi" id="rs-desc" style="min-height:130px;" placeholder="Write details about the competition — eligibility, prizes, dates, rules, requirements, etc."></textarea>
-              <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-                💡 This will show on the Register page
-              </p>
+              <textarea class="fi" id="rs-desc" style="min-height:130px;" placeholder="Write details about the competition..."></textarea>
             </div>
-            
             <div class="fg">
               <label>Registration Deadline (Optional)</label>
               <input class="fi" type="date" id="rs-deadline">
-              <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-                💡 After this date, registration will auto-close
-              </p>
             </div>
-            
             <button id="rs-save-btn" class="fs-btn" style="width:100%;margin-top:10px;" onclick="saveRegistrationSettings()">
               💾 Save Registration Settings
             </button>
           </div>
-          
-          <!-- Firebase Info -->
           <div style="background:rgba(37,99,235,.05);border:1px solid var(--bdr);border-radius:12px;padding:20px;">
             <h4 style="color:var(--blue-br);margin-bottom:10px;font-family:Montserrat;font-size:.95rem;">🔐 Firebase Authentication</h4>
             <p style="color:var(--muted);font-size:.83rem;line-height:1.7;">
@@ -830,13 +714,13 @@ select.fi{cursor:pointer}
               To change email/password: <strong style="color:var(--txt);">Firebase Console → Authentication → Users</strong>
             </p>
           </div>
-          
         </div>
       </div>
 
     </div>
   </div>
 </div>
+<!-- ═══════════ FORMS / MODALS ═══════════ -->
 
 <!-- OLYMPIAD FORM -->
 <div class="fm-ov" id="ofm" onclick="if(event.target===this)closeFM('ofm')">
@@ -877,62 +761,44 @@ select.fi{cursor:pointer}
       <div class="fg"><label>Eligibility</label><input class="fi" id="of-el"></div>
       <div class="fg"><label>Registration Fee (leave blank if free)</label><input class="fi" id="of-fe" placeholder="e.g. ৳200 — blank = free"></div>
     </div>
-
     <div class="fg">
       <div class="chk-wrap">
         <input type="checkbox" id="of-reg-enabled">
         <label for="of-reg-enabled">✅ Enable Registration for this Olympiad</label>
       </div>
     </div>
-
     <div class="fg">
       <label>Segments / Categories (comma separated, optional)</label>
       <input class="fi" id="of-segments" placeholder="e.g. Junior, Senior, Group A, Group B">
-      <p style="font-size:.72rem;color:var(--muted);margin-top:5px;">Shown as a dropdown on the registration form so participants pick which segment they're joining. Leave blank if this event has no segments.</p>
     </div>
-
     <div class="fg">
       <label>📋 Custom Registration Form (Optional)</label>
       <select class="fi" id="of-regform">
-        <option value="">-- Use Simple Built-in Form (Segment/Fee/Message) --</option>
+        <option value="">-- Use Simple Built-in Form --</option>
       </select>
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-        💡 নিজের মতো প্রশ্ন (Add/Remove/যেকোনো টাইপ) বানাতে চাইলে <a href="form-admin.html" target="_blank" style="color:var(--blue-br);">Form Builder</a>-এ একটা ফর্ম বানাও, Published করো, তারপর এখানে সিলেক্ট করো। সিলেক্ট করলে ওই ফর্মের প্রশ্নগুলোই Registration-এ দেখাবে।
-      </p>
     </div>
-
     <div class="fg">
       <label>🎯 Linked Quiz (Optional)</label>
       <select class="fi" id="of-quiz">
         <option value="">-- No Quiz Linked --</option>
       </select>
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-        💡 If this event has an online quiz/exam, link it here. A "📝 Take Quiz Now" button will automatically show up on this event once the linked quiz is Published (manage quizzes under the "Exam" menu).
-      </p>
     </div>
-
     <div class="fg">
       <div class="chk-wrap">
         <input type="checkbox" id="of-qreg" checked>
         <label for="of-qreg"> 🔒 Only registered participants can take the linked quiz</label>
       </div>
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">টিক দিলে এই ইভেন্টে রেজিস্ট্রেশন করা (এবং লগইন করা) ইউজাররাই কুইজ দিতে পারবে। টিক তুললে যে কেউ দিতে পারবে। (Registration চালু থাকলেই এটা কাজ করে।)</p>
     </div>
-
     <div class="fg">
       <div class="chk-wrap">
         <input type="checkbox" id="of-approve" checked>
         <label for="of-approve"> ✅ পরীক্ষার আগে অ্যাডমিনের অনুমোদন (Approve) লাগবে</label>
       </div>
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.7;">টিক থাকলে রেজিস্টার করার পর প্রত্যেকে "Pending" থাকবে। আপনি Registrations থেকে Approve করলে তবেই সে এই ইভেন্টের কুইজ দিতে পারবে; Reject করলে পারবে না। টিক না থাকলে রেজিস্টার করা সবাই কুইজ দিতে পারবে।</p>
     </div>
-
     <div class="fg">
-      <label>👥 Participants Group Link (WhatsApp / Facebook / Telegram)</label>
+      <label>👥 Participants Group Link</label>
       <input class="fi" id="of-group" placeholder="https://chat.whatsapp.com/…">
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.7;">শুধু এই ইভেন্টে রেজিস্টার করা অংশগ্রহণকারীরা রেজিস্ট্রেশনের পর এবং ড্যাশবোর্ডের My Events-এ লিংকটা (সবুজ বাটন) দেখবে। সাধারণ ভিজিটর দেখবে না। ফাঁকা রাখলে কিছু দেখাবে না।</p>
     </div>
-
     <div class="fg"><label>Short Description *</label><textarea class="fi" id="of-ds"></textarea></div>
     <div class="fg"><label>Full Description</label><textarea class="fi" style="min-height:130px" id="of-fd"></textarea></div>
     <div class="fg">
@@ -952,202 +818,69 @@ select.fi{cursor:pointer}
   </div>
 </div>
 
-  <!-- CERTIFICATE FORM -->
-<div class="fm-ov" id="cfm" onclick="if(event.target===this)closeFM('cfm')">
+<!-- RESOURCE FORM -->
+<div class="fm-ov" id="rfm" onclick="if(event.target===this)closeFM('rfm')">
   <div class="fm">
     <div class="fm-head">
-      <h3 id="cfm-title">Add Certificate</h3>
-      <button onclick="closeFM('cfm')">✕</button>
+      <h3 id="rfm-title">Add Resource</h3>
+      <button onclick="closeFM('rfm')">✕</button>
     </div>
-    <input type="hidden" id="cf-eid">
-    
+    <input type="hidden" id="rf-eid">
+
     <div class="fg">
-      <label>🆔 Certificate ID *</label>
-      <input class="fi" id="cf-certid" placeholder="e.g. TVBD-2026-001" style="font-family:monospace;text-transform:uppercase;">
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-        💡 Must be unique. Cannot be changed after creation.
-      </p>
-    </div>
-    
-    <div class="fg">
-      <label>👤 Participant Name *</label>
-      <input class="fi" id="cf-name" placeholder="e.g. Rahim Uddin Ahmed">
+      <label>📄 Title *</label>
+      <input class="fi" id="rf-title" placeholder="e.g. HSC উচ্চতর গণিত — চ্যাপ্টার ১">
     </div>
 
     <div class="fg">
-      <label>✉️ Participant Email</label>
-      <input class="fi" id="cf-email" type="email" placeholder="e.g. rahim@example.com">
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-        💡 দিলে participant তার নিজের Dashboard-এর "My Certificates"-এ এটা সরাসরি দেখতে ও ডাউনলোড করতে পারবে। খালি রাখলে শুধু Certificate ID দিয়ে verify.html-এ খুঁজে নিতে হবে।
-      </p>
+      <label>📝 Description</label>
+      <textarea class="fi" id="rf-desc" style="min-height:70px;" placeholder="সংক্ষিপ্ত বিবরণ..."></textarea>
     </div>
-    
-    <div class="fg">
-      <label>🏆 Event Name *</label>
-      <input class="fi" id="cf-event" placeholder="e.g. Bangladesh Math Olympiad 2026">
-    </div>
-    
+
     <div class="f-row">
       <div class="fg">
-        <label>🥇 Position / Award *</label>
-        <input class="fi" id="cf-position" placeholder="e.g. 1st Runner Up, Champion, Participant">
+        <label>📂 Category *</label>
+        <select class="fi" id="rf-cat">
+          <option value="">-- Select --</option>
+          <option value="Math">📐 গণিত</option>
+          <option value="Science">🔬 বিজ্ঞান</option>
+          <option value="English">📖 ইংরেজি</option>
+          <option value="ICT">💻 আইসিটি</option>
+          <option value="Bangla">📝 বাংলা</option>
+          <option value="General">🌍 সাধারণ জ্ঞান</option>
+        </select>
       </div>
       <div class="fg">
-        <label>📅 Issue Date *</label>
-        <input class="fi" type="date" id="cf-date">
+        <label>🎓 Class *</label>
+        <select class="fi" id="rf-class">
+          <option value="">-- Select --</option>
+          <option value="SSC">SSC</option>
+          <option value="HSC">HSC</option>
+          <option value="Admission">Admission</option>
+          <option value="Olympiad">অলিম্পিয়াড</option>
+        </select>
       </div>
     </div>
-    
-    <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;margin-bottom:16px;">
-      <p style="font-size:.8rem;color:#4ade80;">
-        ✅ <strong>Status will be:</strong> Verified (Auto)
-      </p>
+
+    <div class="fg">
+      <label>📖 Subject</label>
+      <input class="fi" id="rf-subject" placeholder="e.g. উচ্চতর গণিত">
     </div>
-    
+
+    <div class="fg">
+      <label>📎 File (PDF / DOC) *</label>
+      <input type="file" id="rf-file" accept=".pdf,.doc,.docx" style="width:100%;padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);">
+      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">💡 Max 10 MB. Firebase Storage-এ আপলোড হবে।</p>
+    </div>
+
+    <div id="rf-upload-status" style="display:none;margin-top:12px;padding:12px 16px;border-radius:10px;font-weight:600;font-size:.88rem;"></div>
+
     <div class="fm-foot">
-      <button class="fc-btn" onclick="closeFM('cfm')">Cancel</button>
-      <button class="fs-btn" onclick="saveCertificate()">Save Certificate</button>
+      <button class="fc-btn" onclick="closeFM('rfm')">Cancel</button>
+      <button class="fs-btn" id="rf-save-btn" onclick="saveResource()">📤 Upload</button>
     </div>
   </div>
 </div>
-
-<!-- CERTIFICATE VIEW MODAL (with QR) -->
-<div class="fm-ov" id="cvm" onclick="if(event.target===this)closeFM('cvm')">
-  <div class="fm" style="max-width:520px;">
-    <div class="fm-head">
-      <h3>📜 Certificate Details</h3>
-      <button onclick="closeFM('cvm')">✕</button>
-    </div>
-    <div id="cv-content"></div>
-    <div class="fm-foot">
-      <button class="fc-btn" onclick="closeFM('cvm')">Close</button>
-    </div>
-  </div>
-</div>
-
-          <!-- TEAM MEMBER FORM -->
-<div class="fm-ov" id="tfm" onclick="if(event.target===this)closeFM('tfm')">
-  <div class="fm">
-    <div class="fm-head">
-      <h3 id="tfm-title">Add Team Member</h3>
-      <button onclick="closeFM('tfm')">✕</button>
-    </div>
-    <input type="hidden" id="tf-eid">
-    
-    <div class="fg">
-      <label>👤 Name *</label>
-      <input class="fi" id="tf-name" placeholder="e.g. Abdur Rahman">
-    </div>
-    
-    <div class="fg">
-      <label>💼 Role / Position *</label>
-      <input class="fi" id="tf-role" placeholder="e.g. President, CEO, Vice President">
-    </div>
-
-    <div class="fg">
-      <label>🎴 Card Design</label>
-      <select class="fi" id="tf-special">
-        <option value="0">Normal</option>
-        <option value="1">Special (CEO / Department Head)</option>
-      </select>
-    </div>
-    
-    <div class="fg">
-      <label>🏷️ Department</label>
-      <input class="fi" id="tf-dept" list="tf-dept-list" placeholder="e.g. Leadership, Content, Graphics">
-      <datalist id="tf-dept-list">
-        <option value="Leadership">
-        <option value="Administration">
-        <option value="IT">
-        <option value="Content">
-        <option value="Graphics">
-        <option value="Marketing">
-        <option value="Cultural">
-        <option value="Other">
-      </datalist>
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-        💡 Members with the same department will be grouped together on the Team page.
-      </p>
-    </div>
-    
-    <div class="fg">
-      <label>📝 Short Description</label>
-      <textarea class="fi" id="tf-desc" style="min-height:80px;" placeholder="Brief bio or description about this member..."></textarea>
-    </div>
-    
-    <div class="fg">
-      <label>🔢 Display Order</label>
-      <input class="fi" type="number" id="tf-order" min="1" placeholder="e.g. 1, 2, 3... (Lower number shows first)">
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">
-        💡 Order 1 = shows first, Order 2 = second, etc.
-      </p>
-    </div>
-    
-    <div class="fg">
-      <label>📸 Photo (Auto-uploads to ImgBB)</label>
-      <input class="fi" id="tf-photo" placeholder="Or paste image URL..." style="margin-bottom:10px;">
-      <div class="up-area" onclick="document.getElementById('tf-file').click()">
-        <div class="up-ico">📷</div>
-        <p>Tap to upload photo</p>
-        <input type="file" id="tf-file" accept="image/*" style="display:none" onchange="prevTeamPhoto(this)">
-      </div>
-      <div class="up-prev" id="tf-prev"></div>
-    </div>
-    
-    <div class="fm-foot">
-      <button class="fc-btn" onclick="closeFM('tfm')">Cancel</button>
-      <button class="fs-btn" onclick="saveTeamMember()">Save Member</button>
-    </div>
-  </div>
-</div>
-
-<!-- NETWORK PAGE FORM -->
-<div class="fm-ov" id="npfm" onclick="if(event.target===this)closeFM('npfm')">
-  <div class="fm">
-    <div class="fm-head">
-      <h3 id="npfm-title">Add Network Page</h3>
-      <button onclick="closeFM('npfm')">✕</button>
-    </div>
-    <input type="hidden" id="np-eid">
-
-    <div class="fg">
-      <label>🏷️ Page / Organization Name *</label>
-      <input class="fi" id="np-name" placeholder="e.g. TalentVerse Rajshahi Chapter">
-    </div>
-
-    <div class="fg">
-      <label>🔗 Website / Facebook Page URL *</label>
-      <input class="fi" id="np-url" placeholder="https://facebook.com/... or https://...">
-    </div>
-
-    <div class="fg">
-      <label>📝 Short Description (optional)</label>
-      <input class="fi" id="np-desc" placeholder="e.g. Rajshahi branch — school olympiads & events">
-    </div>
-
-    <div class="fg">
-      <label>🔢 Display Order</label>
-      <input class="fi" type="number" id="np-order" min="1" placeholder="e.g. 1, 2, 3... (Lower number shows first)">
-    </div>
-
-    <div class="fg">
-      <label>🖼️ Logo (optional — auto-uploads to ImgBB)</label>
-      <input class="fi" id="np-logo" placeholder="Or paste image URL..." style="margin-bottom:10px;">
-      <div class="up-area" onclick="document.getElementById('np-file').click()">
-        <div class="up-ico">📷</div>
-        <p>Tap to upload logo</p>
-        <input type="file" id="np-file" accept="image/*" style="display:none" onchange="prevNetworkLogo(this)">
-      </div>
-      <div class="up-prev" id="np-prev"></div>
-    </div>
-
-    <div class="fm-foot">
-      <button class="fc-btn" onclick="closeFM('npfm')">Cancel</button>
-      <button class="fs-btn" onclick="saveNetworkPage()">Save Page</button>
-    </div>
-  </div>
-</div>
-  
 <!-- NEWS FORM -->
 <div class="fm-ov" id="nfm" onclick="if(event.target===this)closeFM('nfm')">
   <div class="fm">
@@ -1166,6 +899,136 @@ select.fi{cursor:pointer}
   </div>
 </div>
 
+<!-- TEAM MEMBER FORM -->
+<div class="fm-ov" id="tfm" onclick="if(event.target===this)closeFM('tfm')">
+  <div class="fm">
+    <div class="fm-head">
+      <h3 id="tfm-title">Add Team Member</h3>
+      <button onclick="closeFM('tfm')">✕</button>
+    </div>
+    <input type="hidden" id="tf-eid">
+    <div class="fg"><label>👤 Name *</label><input class="fi" id="tf-name" placeholder="e.g. Abdur Rahman"></div>
+    <div class="fg"><label>💼 Role / Position *</label><input class="fi" id="tf-role" placeholder="e.g. President, CEO, Vice President"></div>
+    <div class="fg">
+      <label>🎴 Card Design</label>
+      <select class="fi" id="tf-special">
+        <option value="0">Normal</option>
+        <option value="1">Special (CEO / Department Head)</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>🏷️ Department</label>
+      <input class="fi" id="tf-dept" list="tf-dept-list" placeholder="e.g. Leadership, Content, Graphics">
+      <datalist id="tf-dept-list">
+        <option value="Leadership">
+        <option value="Administration">
+        <option value="IT">
+        <option value="Content">
+        <option value="Graphics">
+        <option value="Marketing">
+        <option value="Cultural">
+        <option value="Other">
+      </datalist>
+    </div>
+    <div class="fg">
+      <label>📝 Short Description</label>
+      <textarea class="fi" id="tf-desc" style="min-height:80px;" placeholder="Brief bio..."></textarea>
+    </div>
+    <div class="fg">
+      <label>🔢 Display Order</label>
+      <input class="fi" type="number" id="tf-order" min="1" placeholder="e.g. 1, 2, 3...">
+    </div>
+    <div class="fg">
+      <label>📸 Photo (Auto-uploads to ImgBB)</label>
+      <input class="fi" id="tf-photo" placeholder="Or paste image URL..." style="margin-bottom:10px;">
+      <div class="up-area" onclick="document.getElementById('tf-file').click()">
+        <div class="up-ico">📷</div>
+        <p>Tap to upload photo</p>
+        <input type="file" id="tf-file" accept="image/*" style="display:none" onchange="prevTeamPhoto(this)">
+      </div>
+      <div class="up-prev" id="tf-prev"></div>
+    </div>
+    <div class="fm-foot">
+      <button class="fc-btn" onclick="closeFM('tfm')">Cancel</button>
+      <button class="fs-btn" onclick="saveTeamMember()">Save Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- NETWORK PAGE FORM -->
+<div class="fm-ov" id="npfm" onclick="if(event.target===this)closeFM('npfm')">
+  <div class="fm">
+    <div class="fm-head">
+      <h3 id="npfm-title">Add Network Page</h3>
+      <button onclick="closeFM('npfm')">✕</button>
+    </div>
+    <input type="hidden" id="np-eid">
+    <div class="fg"><label>🏷️ Page / Organization Name *</label><input class="fi" id="np-name" placeholder="e.g. TalentVerse Rajshahi Chapter"></div>
+    <div class="fg"><label>🔗 Website / Facebook Page URL *</label><input class="fi" id="np-url" placeholder="https://..."></div>
+    <div class="fg"><label>📝 Short Description (optional)</label><input class="fi" id="np-desc" placeholder="e.g. Rajshahi branch"></div>
+    <div class="fg"><label>🔢 Display Order</label><input class="fi" type="number" id="np-order" min="1" placeholder="e.g. 1, 2, 3..."></div>
+    <div class="fg">
+      <label>🖼️ Logo (optional)</label>
+      <input class="fi" id="np-logo" placeholder="Or paste image URL..." style="margin-bottom:10px;">
+      <div class="up-area" onclick="document.getElementById('np-file').click()">
+        <div class="up-ico">📷</div>
+        <p>Tap to upload logo</p>
+        <input type="file" id="np-file" accept="image/*" style="display:none" onchange="prevNetworkLogo(this)">
+      </div>
+      <div class="up-prev" id="np-prev"></div>
+    </div>
+    <div class="fm-foot">
+      <button class="fc-btn" onclick="closeFM('npfm')">Cancel</button>
+      <button class="fs-btn" onclick="saveNetworkPage()">Save Page</button>
+    </div>
+  </div>
+</div>
+
+<!-- CERTIFICATE FORM -->
+<div class="fm-ov" id="cfm" onclick="if(event.target===this)closeFM('cfm')">
+  <div class="fm">
+    <div class="fm-head">
+      <h3 id="cfm-title">Add Certificate</h3>
+      <button onclick="closeFM('cfm')">✕</button>
+    </div>
+    <input type="hidden" id="cf-eid">
+    <div class="fg">
+      <label>🆔 Certificate ID *</label>
+      <input class="fi" id="cf-certid" placeholder="e.g. TVBD-2026-001" style="font-family:monospace;text-transform:uppercase;">
+    </div>
+    <div class="fg"><label>👤 Participant Name *</label><input class="fi" id="cf-name" placeholder="e.g. Rahim Uddin Ahmed"></div>
+    <div class="fg">
+      <label>✉️ Participant Email</label>
+      <input class="fi" id="cf-email" type="email" placeholder="e.g. rahim@example.com">
+    </div>
+    <div class="fg"><label>🏆 Event Name *</label><input class="fi" id="cf-event" placeholder="e.g. Bangladesh Math Olympiad 2026"></div>
+    <div class="f-row">
+      <div class="fg"><label>🥇 Position / Award *</label><input class="fi" id="cf-position" placeholder="e.g. 1st Runner Up, Champion"></div>
+      <div class="fg"><label>📅 Issue Date *</label><input class="fi" type="date" id="cf-date"></div>
+    </div>
+    <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;margin-bottom:16px;">
+      <p style="font-size:.8rem;color:#4ade80;">✅ <strong>Status will be:</strong> Verified (Auto)</p>
+    </div>
+    <div class="fm-foot">
+      <button class="fc-btn" onclick="closeFM('cfm')">Cancel</button>
+      <button class="fs-btn" onclick="saveCertificate()">Save Certificate</button>
+    </div>
+  </div>
+</div>
+<!-- CERTIFICATE VIEW MODAL -->
+<div class="fm-ov" id="cvm" onclick="if(event.target===this)closeFM('cvm')">
+  <div class="fm" style="max-width:520px;">
+    <div class="fm-head">
+      <h3>📜 Certificate Details</h3>
+      <button onclick="closeFM('cvm')">✕</button>
+    </div>
+    <div id="cv-content"></div>
+    <div class="fm-foot">
+      <button class="fc-btn" onclick="closeFM('cvm')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- QUIZ BUILDER FORM -->
 <div class="fm-ov" id="qfm" onclick="if(event.target===this)closeFM('qfm')">
   <div class="fm" style="max-width:760px;">
@@ -1174,10 +1037,8 @@ select.fi{cursor:pointer}
       <button onclick="closeFM('qfm')">✕</button>
     </div>
     <input type="hidden" id="qf-eid">
-
     <div class="fg"><label>Title *</label><input class="fi" id="qf-title" placeholder="e.g. National Math Olympiad — Prelim Quiz"></div>
-    <div class="fg"><label>Description</label><textarea class="fi" id="qf-desc" style="min-height:60px;" placeholder="Short instructions shown to students before they start..."></textarea></div>
-
+    <div class="fg"><label>Description</label><textarea class="fi" id="qf-desc" style="min-height:60px;" placeholder="Short instructions..."></textarea></div>
     <div class="f-row">
       <div class="fg"><label>Duration (minutes) *</label><input class="fi" type="number" id="qf-duration" min="1" placeholder="e.g. 30"></div>
       <div class="fg"><label>Status</label>
@@ -1187,24 +1048,18 @@ select.fi{cursor:pointer}
         </select>
       </div>
     </div>
-
     <div class="f-row">
       <div class="fg"><label>Start Time (optional)</label><input class="fi" type="datetime-local" id="qf-start"></div>
       <div class="fg"><label>End / Deadline (optional)</label><input class="fi" type="datetime-local" id="qf-end"></div>
     </div>
-    <p style="font-size:.72rem;color:var(--muted);margin:-10px 0 14px;">Leave both blank to keep the exam open any time it's Published. If set, the exam auto-opens/closes at these times — no need to change Status manually.</p>
-
     <div class="fg">
       <div class="chk-wrap"><input type="checkbox" id="qf-secure" checked><label for="qf-secure"> 🔒 Secure mode — সঠিক উত্তর লুকানো থাকবে</label></div>
-      <p style="font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.7;">টিক থাকলে সঠিক উত্তর সবার জন্য খোলা ডাটাবেসে থাকে না। তবে শিক্ষার্থী পরীক্ষা শেষে সাথে সাথে স্কোর দেখবে না। Quiz Submissions থেকে <strong>⚡ MCQ অটো-গ্রেড</strong> চাপলে স্কোর বসবে এবং তারপর ফলাফল দেখা যাবে। টিক তুললে আগের মতো সাথে সাথে স্কোর দেখাবে (কিন্তু উত্তর ডাটাবেসে খোলা থাকবে)।</p>
     </div>
-
     <div class="fg">
       <label>Questions</label>
       <div id="qf-questions"></div>
       <button type="button" class="fc-btn" style="margin-top:8px;" onclick="addQuizQuestionRow()">+ Add Question</button>
     </div>
-
     <div class="fm-foot">
       <button class="fc-btn" onclick="closeFM('qfm')">Cancel</button>
       <button class="fs-btn" onclick="saveQuiz()">Save Quiz</button>
@@ -1228,7 +1083,7 @@ select.fi{cursor:pointer}
   </div>
 </div>
 
-<!-- VOLUNTEER APPLICATION VIEW (read-only) -->
+<!-- VOLUNTEER APPLICATION VIEW -->
 <div class="fm-ov" id="vvm" onclick="if(event.target===this)closeFM('vvm')">
   <div class="fm">
     <div class="fm-head">
@@ -1240,7 +1095,7 @@ select.fi{cursor:pointer}
   </div>
 </div>
 
-<!-- FORUM POST VIEW (moderation, read-only) -->
+<!-- FORUM POST VIEW -->
 <div class="fm-ov" id="fvm" onclick="if(event.target===this)closeFM('fvm')">
   <div class="fm">
     <div class="fm-head">

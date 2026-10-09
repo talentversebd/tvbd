@@ -1485,20 +1485,6 @@ function openBulkCert() {
         <button onclick="closeUserOverlay('bulk-cert-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
 
-      function openBulkCert() {
-  const events = typeof getOlympiads === 'function' ? getOlympiads() : [];
-  if(!events.length) return toast('আগে ইভেন্ট যোগ করুন।', true);
-  const opts = events.map(o => `<option value="${bcEsc(o.id)}">${bcEsc(o.title)}</option>`).join('');
-  const year = new Date().getFullYear();
-  const today = new Date().toISOString().slice(0, 10);
-  bulkRows = []; bulkEvent = null;
-  openUserOverlay('bulk-cert-ov', `
-    <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:20px;width:100%;max-width:640px;max-height:92vh;overflow:auto;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h3 style="font-family:Montserrat;font-size:1.05rem;">⚡ Bulk Certificate Generator</h3>
-        <button onclick="closeUserOverlay('bulk-cert-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
-      </div>
-
       <div class="fg"><label>Event</label>
         <select class="fi" id="bc-event" onchange="bulkLoadEvent()"><option value="">-- ইভেন্ট বেছে নিন --</option>${opts}</select>
       </div>

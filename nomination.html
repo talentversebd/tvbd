@@ -168,12 +168,13 @@ const NM_EXTRA_INPUT = {
   date: id => `<input class="nm-fi" id="nm-extra-${id}" type="date">`,
   url: id => `<input class="nm-fi" id="nm-extra-${id}" type="url" placeholder="https://...">`
 };
+function nmEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function renderExtraFields(fields){
   const wrap = document.getElementById('nm-extra-fields');
   wrap.innerHTML = fields.map(f => `
     <div class="nm-fg">
-      <label>${f.label}${f.required?' *':''}</label>
-      ${(NM_EXTRA_INPUT[f.type] || NM_EXTRA_INPUT.text)(f.id)}
+      <label>${nmEsc(f.label)}${f.required?' *':''}</label>
+      ${(NM_EXTRA_INPUT[f.type] || NM_EXTRA_INPUT.text)(nmEsc(f.id))}
     </div>`).join('');
 }
 

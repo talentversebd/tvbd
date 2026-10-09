@@ -24,6 +24,13 @@ service cloud.firestore {
         && (p in get(/databases/$(database)/documents/member_access/$(request.auth.uid)).data.get('permissions', []));
     }
 
+    function nominationsOpen() {
+      let s = get(/databases/$(database)/documents/settings/election).data;
+      return s.get('nominationsActive', false) == true
+        && (s.get('nominationsStart', null) == null || request.time.toMillis() >= s.nominationsStart)
+        && (s.get('nominationsEnd', null) == null || request.time.toMillis() <= s.nominationsEnd);
+    }
+
     function isEC() {
       return isMain() || hasPerm('election')
         || (signedIn() && request.auth.token.email == 'ec@talentversebangladesh.com');
@@ -117,13 +124,36 @@ service cloud.firestore {
     // doc ID (electionId+email), so a repeat attempt is a Firestore "update",
     // which only the EC can do — that's what blocks a duplicate submission.
     match /election_nominations/{id} {
-      allow create: if true;
+      // one nomination per person per round (id = round + email, so a 2nd create is really an update = denied)
+      allow create: if nominationsOpen()
+                    && id.matches('[A-Za-z0-9_]{1,200}')
+                    && request.resource.data.keys().hasOnly(['electionId','name','email','phone','position','statement','photo','extra','status','createdAt'])
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.name is string && request.resource.data.name.size() <= 120
+                    && request.resource.data.email is string && request.resource.data.email.size() <= 200
+                    && request.resource.data.phone is string && request.resource.data.phone.size() <= 40
+                    && request.resource.data.position is string && request.resource.data.position.size() <= 120
+                    && request.resource.data.statement is string && request.resource.data.statement.size() <= 3000
+                    && request.resource.data.photo is string
+                    && (request.resource.data.photo == '' || request.resource.data.photo.matches('https://.*'))
+                    && request.resource.data.get('extra', {}) is map
+                    && request.resource.data.get('extra', {}).size() <= 20;
       allow read, update, delete: if isEC();
     }
 
     // ---- Volunteer / internship applications ----
     match /volunteer_applications/{id} {
-      allow create: if true;
+      allow create: if request.resource.data.keys().hasOnly(['name','email','phone','type','role','skills','message','availability','resumeLink','status','createdAt'])
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.type in ['volunteer','internship']
+                    && request.resource.data.name is string && request.resource.data.name.size() <= 120
+                    && request.resource.data.email is string && request.resource.data.email.size() <= 200
+                    && request.resource.data.phone is string && request.resource.data.phone.size() <= 40
+                    && request.resource.data.role is string && request.resource.data.role.size() <= 120
+                    && request.resource.data.skills is string && request.resource.data.skills.size() <= 2000
+                    && request.resource.data.message is string && request.resource.data.message.size() <= 3000
+                    && request.resource.data.availability is string && request.resource.data.availability.size() <= 300
+                    && request.resource.data.resumeLink is string && request.resource.data.resumeLink.size() <= 500;
       allow read, update, delete: if isMain() || hasPerm('volunteers');
     }
 
@@ -131,15 +161,38 @@ service cloud.firestore {
     // an author can edit/delete their own post or comment, admin can moderate any ----
     match /forum_posts/{id} {
       allow read: if true;
-      allow create: if verified() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if isMain() || hasPerm('forum')
-                             || (signedIn() && resource.data.authorUid == request.auth.uid);
+      allow create: if verified() && request.resource.data.authorUid == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['authorUid','authorName','authorPhoto','category','title','body','replyCount','createdAt','lastActivityAt'])
+                    && request.resource.data.category in ['General','Events','Quiz Help','Announcements']
+                    && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 200
+                    && request.resource.data.body is string && request.resource.data.body.size() > 0 && request.resource.data.body.size() <= 5000
+                    && request.resource.data.authorName is string && request.resource.data.authorName.size() <= 120
+                    && request.resource.data.replyCount == 0;
+      // admin: anything. author: only title/body. any verified member: only reply counter + activity time (when commenting)
+      allow update: if isMain() || hasPerm('forum')
+                    || (signedIn() && resource.data.authorUid == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title','body'])
+                        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 200
+                        && request.resource.data.body is string && request.resource.data.body.size() > 0 && request.resource.data.body.size() <= 5000)
+                    || (verified()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActivityAt','replyCount'])
+                        && request.resource.data.replyCount is int
+                        && request.resource.data.replyCount >= 0
+                        && (request.resource.data.replyCount - resource.data.replyCount == 1 || request.resource.data.replyCount - resource.data.replyCount == -1));
+      allow delete: if isMain() || hasPerm('forum') || (signedIn() && resource.data.authorUid == request.auth.uid);
     }
     match /forum_comments/{id} {
       allow read: if true;
-      allow create: if verified() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if isMain() || hasPerm('forum')
-                             || (signedIn() && resource.data.authorUid == request.auth.uid);
+      allow create: if verified() && request.resource.data.authorUid == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['postId','authorUid','authorName','authorPhoto','body','createdAt'])
+                    && request.resource.data.postId is string
+                    && request.resource.data.body is string && request.resource.data.body.size() > 0 && request.resource.data.body.size() <= 2000
+                    && request.resource.data.authorName is string && request.resource.data.authorName.size() <= 120;
+      allow update: if isMain() || hasPerm('forum');
+      // the comment's author, or the owner of the post (so deleting your own post can remove its comments)
+      allow delete: if isMain() || hasPerm('forum') || (signedIn() && resource.data.authorUid == request.auth.uid)
+                    || (signedIn() && exists(/databases/$(database)/documents/forum_posts/$(resource.data.postId))
+                        && get(/databases/$(database)/documents/forum_posts/$(resource.data.postId)).data.authorUid == request.auth.uid);
     }
 
     // ---- Contact messages & registrations ----

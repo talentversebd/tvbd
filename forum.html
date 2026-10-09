@@ -174,7 +174,7 @@ function foRenderList(){
   const data = getForumPosts().filter(p => !foActiveCat || p.category===foActiveCat);
   if(!data.length){ wrap.innerHTML = `<div class="fo-empty">💬<br><br>No posts yet${foActiveCat?' in '+foEsc(foActiveCat):''}. Be the first to start a discussion!</div>`; return; }
   wrap.innerHTML = data.map(p => {
-    const snippet = foEsc(p.body).slice(0,160);
+    const snippet = foEsc(String(p.body||'').slice(0,160));
     const initial = foEsc((p.authorName||'?').charAt(0).toUpperCase());
     return `<a class="fo-post" href="forum-post.html?id=${p.id}">
       <div class="fo-post-top"><span class="fo-cat">${foEsc(p.category)}</span></div>

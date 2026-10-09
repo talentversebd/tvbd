@@ -416,6 +416,9 @@ function openFM(id){ document.getElementById(id).classList.add('open'); }
 function closeFM(id){ document.getElementById(id).classList.remove('open'); }
 
 let ecElectionId = null;
+function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function safeImg(u){ u=String(u||'').trim(); return /^https?:\/\//i.test(u) ? esc(u) : ''; }
+function inRound(x){ return (x.electionId||'default') === (ecElectionId||'default'); }
 let ecSettingsCache = null;
 
 async function initPanel(){
@@ -432,9 +435,9 @@ async function initPanel(){
 
 function renderDashboard(){
   const candidates=getElectionCandidates();
-  const voters=getElectionVoters().filter(v => (v.electionId||null) === ecElectionId);
+  const voters=getElectionVoters().filter(v => inRound(v));
   const positions=new Set(candidates.map(c=>c.position||'—'));
-  const pending=getElectionNominations().filter(n=>(n.electionId||null)===ecElectionId && (n.status||'pending')==='pending');
+  const pending=getElectionNominations().filter(n=>inRound(n) && (n.status||'pending')==='pending');
   document.getElementById('db-stats').innerHTML = `
     <div class="stat-card"><div class="sl">Total Candidates</div><div class="sv">${candidates.length}</div></div>
     <div class="stat-card"><div class="sl">Positions</div><div class="sv">${positions.size}</div></div>
@@ -445,7 +448,7 @@ function renderDashboard(){
 
 function updateNomDot(){
   const dot=document.getElementById('nom-pending-dot');
-  const n=getElectionNominations().filter(x=>(x.electionId||null)===ecElectionId && (x.status||'pending')==='pending').length;
+  const n=getElectionNominations().filter(x=>inRound(x) && (x.status||'pending')==='pending').length;
   dot.textContent=n; dot.style.display=n>0?'inline-block':'none';
 }
 
@@ -457,8 +460,8 @@ function renderCandidatesTable(){
   tbody.innerHTML='';
   data.forEach(c=>{
     tbody.innerHTML += `<tr>
-      <td>${c.photo?`<img src="${c.photo}" class="thumb">`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;background:var(--card2);font-size:.7rem;color:var(--blue-br);font-weight:700;">${(c.name||'NA').substring(0,2).toUpperCase()}</div>`}</td>
-      <td>${c.name}</td><td>${c.position||'—'}</td><td>${c.ballotNo||'—'}</td><td>${c.order||'—'}</td>
+      <td>${safeImg(c.photo)?`<img src="${safeImg(c.photo)}" class="thumb">`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;background:var(--card2);font-size:.7rem;color:var(--blue-br);font-weight:700;">${(c.name||'NA').substring(0,2).toUpperCase()}</div>`}</td>
+      <td>${esc(c.name)}</td><td>${c.position||'—'}</td><td>${c.ballotNo||'—'}</td><td>${c.order||'—'}</td>
       <td class="tbl-acts"><button class="e-btn" onclick="editCandidate('${c.id}')">Edit</button><button class="d-btn" onclick="deleteCandidateAction('${c.id}')">Delete</button></td></tr>`;
   });
 }
@@ -466,7 +469,7 @@ function renderCandidatesTable(){
 function populatePositionList(){
   const list=document.getElementById('cf-pos-list');
   const positions=[...new Set(getElectionCandidates().map(c=>c.position).filter(Boolean))];
-  list.innerHTML = positions.map(p=>`<option value="${p}">`).join('');
+  list.innerHTML = positions.map(p=>`<option value="${esc(p)}">`).join('');
 }
 
 function openCandidateForm(){
@@ -486,8 +489,8 @@ function editCandidate(id){
   document.getElementById('cf-ballotno').value=c.ballotNo||'';
   document.getElementById('cf-order').value=c.order||'';
   document.getElementById('cf-manifesto').value=c.manifesto||'';
-  document.getElementById('cf-photo').value=c.photo||'';
-  document.getElementById('cf-prev').innerHTML=c.photo?`<img src="${c.photo}">`:'';
+  document.getElementById('cf-photo').value=/^https?:\/\//i.test(c.photo||'')?c.photo:'';
+  document.getElementById('cf-prev').innerHTML=safeImg(c.photo)?`<img src="${safeImg(c.photo)}">`:'';
   populatePositionList();
   openFM('cfm');
 }
@@ -533,12 +536,12 @@ async function loadAndRenderVoters(){
 function renderVotersTable(){
   const tbody=document.getElementById('votbl');
   const voters=getElectionVoters()
-    .filter(v => (v.electionId||null) === ecElectionId)
+    .filter(v => inRound(v))
     .sort((a,b)=>(b.votedAt||0)-(a.votedAt||0));
   if(!voters.length){ tbody.innerHTML=`<tr class="empty-row"><td colspan="4">No one has voted in this round yet.</td></tr>`; return; }
   tbody.innerHTML = voters.map(v => {
     const when = v.votedAt ? new Date(v.votedAt).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
-    return `<tr><td>${v.name||'—'}</td><td>${v.email||'—'}</td><td>${v.phone||'—'}</td><td>${when}</td></tr>`;
+    return `<tr><td>${esc(v.name||'—')}</td><td>${esc(v.email||'—')}</td><td>${esc(v.phone||'—')}</td><td>${when}</td></tr>`;
   }).join('');
 }
 
@@ -553,7 +556,7 @@ function renderNominationsTable(){
   const tbody=document.getElementById('ntbl');
   const order={pending:0,approved:1,rejected:2};
   const data=getElectionNominations()
-    .filter(n=>(n.electionId||null)===ecElectionId)
+    .filter(n=>inRound(n))
     .slice()
     .sort((a,b)=>(order[a.status||'pending']-order[b.status||'pending'])||((b.createdAt||0)-(a.createdAt||0)));
   if(!data.length){ tbody.innerHTML=`<tr class="empty-row"><td colspan="5">No nominations submitted yet.</td></tr>`; return; }
@@ -561,14 +564,14 @@ function renderNominationsTable(){
   data.forEach(n=>{
     const status=n.status||'pending';
     tbody.innerHTML += `<tr>
-      <td>${n.photo?`<img src="${n.photo}" class="thumb">`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;background:var(--card2);font-size:.7rem;color:var(--blue-br);font-weight:700;">${(n.name||'NA').substring(0,2).toUpperCase()}</div>`}</td>
-      <td>${n.name||'—'}</td><td>${n.position||'—'}</td>
+      <td>${safeImg(n.photo)?`<img src="${safeImg(n.photo)}" class="thumb">`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;background:var(--card2);font-size:.7rem;color:var(--blue-br);font-weight:700;">${(n.name||'NA').substring(0,2).toUpperCase()}</div>`}</td>
+      <td>${esc(n.name||'—')}</td><td>${esc(n.position||'—')}</td>
       <td><span class="st-badge st-${status}">${status}</span></td>
       <td class="tbl-acts">
-        <button class="e-btn" onclick="viewNomination('${n.id}')">View</button>
-        ${status!=='approved'?`<button class="e-btn" onclick="approveNomination('${n.id}')">Approve</button>`:''}
-        ${status!=='rejected'?`<button class="d-btn" onclick="rejectNomination('${n.id}')">Reject</button>`:''}
-        <button class="d-btn" onclick="deleteNominationAction('${n.id}')">Delete</button>
+        <button class="e-btn" data-id="${esc(n.id)}" onclick="viewNomination(this.dataset.id)">View</button>
+        ${status!=='approved'?`<button class="e-btn" data-id="${esc(n.id)}" onclick="approveNomination(this.dataset.id)">Approve</button>`:''}
+        ${status!=='rejected'?`<button class="d-btn" data-id="${esc(n.id)}" onclick="rejectNomination(this.dataset.id)">Reject</button>`:''}
+        <button class="d-btn" data-id="${esc(n.id)}" onclick="deleteNominationAction(this.dataset.id)">Delete</button>
       </td></tr>`;
   });
 }
@@ -577,19 +580,19 @@ function viewNomination(id){
   const status=n.status||'pending';
   const when=n.createdAt?new Date(n.createdAt).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
   document.getElementById('nv-body').innerHTML = `
-    ${n.photo?`<div style="text-align:center;margin-bottom:16px;"><img src="${n.photo}" style="width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--bdr2);"></div>`:''}
-    <div class="vw-row"><b>Name</b><span>${n.name||'—'}</span></div>
-    <div class="vw-row"><b>Position</b><span>${n.position||'—'}</span></div>
-    <div class="vw-row"><b>Email</b><span>${n.email||'—'}</span></div>
-    <div class="vw-row"><b>Phone</b><span>${n.phone||'—'}</span></div>
+    ${n.photo?`<div style="text-align:center;margin-bottom:16px;"><img src="${safeImg(n.photo)}" style="width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--bdr2);"></div>`:''}
+    <div class="vw-row"><b>Name</b><span>${esc(n.name||'—')}</span></div>
+    <div class="vw-row"><b>Position</b><span>${esc(n.position||'—')}</span></div>
+    <div class="vw-row"><b>Email</b><span>${esc(n.email||'—')}</span></div>
+    <div class="vw-row"><b>Phone</b><span>${esc(n.phone||'—')}</span></div>
     <div class="vw-row"><b>Status</b><span class="st-badge st-${status}">${status}</span></div>
     <div class="vw-row"><b>Submitted</b><span>${when}</span></div>
-    <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Statement</b><div class="vw-stmt">${n.statement||'(no statement provided)'}</div></div>
+    <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Statement</b><div class="vw-stmt">${esc(n.statement||'(no statement provided)')}</div></div>
     ${((ecSettingsCache && ecSettingsCache.nominationFields) || []).map(f => `
-      <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">${f.label}</b><div class="vw-stmt">${(n.extra && n.extra[f.id]) || '—'}</div></div>`).join('')}`;
+      <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">${esc(f.label)}</b><div class="vw-stmt">${esc((n.extra && n.extra[f.id]) || '—')}</div></div>`).join('')}`;
   document.getElementById('nv-foot').innerHTML = `
-    ${status!=='approved'?`<button class="fs-btn" onclick="closeFM('nvm');approveNomination('${n.id}')">✅ Approve & Add as Candidate</button>`:''}
-    ${status!=='rejected'?`<button class="fc-btn" style="color:#f87171;border-color:rgba(239,68,68,.35);" onclick="closeFM('nvm');rejectNomination('${n.id}')">Reject</button>`:''}
+    ${status!=='approved'?`<button class="fs-btn" data-id="${esc(n.id)}" onclick="closeFM('nvm');approveNomination(this.dataset.id)">✅ Approve & Add as Candidate</button>`:''}
+    ${status!=='rejected'?`<button class="fc-btn" style="color:#f87171;border-color:rgba(239,68,68,.35);" data-id="${esc(n.id)}" onclick="closeFM('nvm');rejectNomination(this.dataset.id)">Reject</button>`:''}
     <button class="fc-btn" onclick="closeFM('nvm')">Close</button>`;
   openFM('nvm');
 }
@@ -607,8 +610,8 @@ async function approveNomination(id){
   document.getElementById('cf-ballotno').value='';
   document.getElementById('cf-order').value='';
   document.getElementById('cf-manifesto').value=n.statement||'';
-  document.getElementById('cf-photo').value=n.photo||'';
-  document.getElementById('cf-prev').innerHTML=n.photo?`<img src="${n.photo}">`:'';
+  document.getElementById('cf-photo').value=/^https?:\/\//i.test(n.photo||'')?n.photo:'';
+  document.getElementById('cf-prev').innerHTML=safeImg(n.photo)?`<img src="${safeImg(n.photo)}">`:'';
   populatePositionList();
   openFM('cfm');
 }
@@ -675,7 +678,7 @@ function renderNomFieldsUI(){
   wrap.innerHTML = nomFieldsDraft.map((f,i) => `
     <div class="qf-qrow">
       <div class="qf-qrow-head">
-        <input type="text" class="fi" placeholder="Question label, e.g. Institution Name" value="${(f.label||'').replace(/"/g,'&quot;')}" oninput="updateNomField(${i},'label',this.value)">
+        <input type="text" class="fi" placeholder="Question label, e.g. Institution Name" value="${esc(f.label)}" oninput="updateNomField(${i},'label',this.value)">
         <select class="fi" onchange="updateNomField(${i},'type',this.value)">
           ${Object.entries(NOM_FIELD_TYPES).map(([v,l])=>`<option value="${v}" ${f.type===v?'selected':''}>${l}</option>`).join('')}
         </select>
@@ -697,7 +700,9 @@ async function saveElectionSettings(){
   try {
     const title=document.getElementById('es-title').value.trim();
     if(!title) return toast("Title is required!", true);
+    const cur = await getElectionSettings();
     const data={
+      ...cur,
       active: document.getElementById('es-active').checked,
       title,
       description: document.getElementById('es-desc').value.trim(),
@@ -743,9 +748,9 @@ async function loadAndRenderResults(){
   renderResults();
 }
 function renderResults(){
-  const votes=getElectionVotes().filter(v => (v.electionId||null) === ecElectionId);
+  const votes=getElectionVotes().filter(v => inRound(v));
   const candidates=getElectionCandidates();
-  const voters=getElectionVoters().filter(v => (v.electionId||null) === ecElectionId);
+  const voters=getElectionVoters().filter(v => inRound(v));
   const container=document.getElementById('res-content');
 
   if(!votes.length){
@@ -772,8 +777,8 @@ function renderResults(){
     tally.forEach(({c,count})=>{
       const pct = Math.round((count/total)*100);
       html += `<div class="res-row">
-        ${c.photo?`<img src="${c.photo}">`:''}
-        <span class="res-name">${c.name}</span>
+        ${safeImg(c.photo)?`<img src="${safeImg(c.photo)}">`:''}
+        <span class="res-name">${esc(c.name)}</span>
         <div class="res-bar-wrap"><div class="res-bar" style="width:${pct}%;"></div></div>
         <span class="res-count">${count} (${pct}%)</span>
       </div>`;

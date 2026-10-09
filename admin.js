@@ -2481,7 +2481,7 @@ function viewVolunteerApp(id) {
     <div class="vw-row"><b>Email</b><span>${escUser(a.email)}</span></div>
     <div class="vw-row"><b>Phone</b><span>${escUser(a.phone)}</span></div>
     <div class="vw-row"><b>Availability</b><span>${escUser(a.availability)}</span></div>
-    ${a.resumeLink ? `<div class="vw-row"><b>Resume</b><span><a href="${escUser(a.resumeLink)}" target="_blank" style="color:var(--blue-br);">${escUser(a.resumeLink)}</a></span></div>` : ''}
+    ${/^https?:\/\//i.test(a.resumeLink||'') ? `<div class="vw-row"><b>Resume</b><span><a href="${escUser(a.resumeLink)}" target="_blank" style="color:var(--blue-br);">${escUser(a.resumeLink)}</a></span></div>` : ''}
     <div class="vw-row"><b>Status</b><span class="st-badge st-${status}">${status}</span></div>
     <div class="vw-row"><b>Submitted</b><span>${fmtUserDate(a.createdAt)}</span></div>
     <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Skills</b><div class="vw-stmt">${escUser(a.skills) === '—' ? '(none given)' : escUser(a.skills)}</div></div>

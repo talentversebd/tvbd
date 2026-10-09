@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discussion — TalentVerse Bangladesh</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.fp-container{max-width:740px;margin:0 auto;padding:0 16px;}
+.fp-back{display:inline-block;color:var(--blue-br);font-size:.84rem;font-weight:600;margin-bottom:16px;text-decoration:none;}
+.fp-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:28px;box-shadow:var(--glow);margin-bottom:20px;}
+@media(max-width:500px){.fp-card{padding:18px;}}
+.fp-cat{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(59,130,246,.14);color:var(--blue-br);display:inline-block;margin-bottom:12px;}
+.fp-title{font-family:Montserrat;font-weight:800;font-size:1.5rem;margin-bottom:14px;line-height:1.3;}
+.fp-meta{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--bdr);}
+.fp-avatar{width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:var(--blue-br);}
+.fp-body{font-size:.95rem;line-height:1.8;white-space:pre-wrap;}
+.fp-ownbtns{margin-top:16px;display:flex;gap:8px;}
+.fp-ownbtns button{background:none;border:1px solid var(--bdr2);color:var(--muted);border-radius:6px;padding:6px 14px;font-size:.78rem;cursor:pointer;}
+.fp-ownbtns button:hover{color:var(--blue-br);border-color:var(--blue-br);}
+.fp-ownbtns button.danger:hover{color:#f87171;border-color:#f87171;}
+.fp-section-title{font-family:Montserrat;font-weight:800;font-size:1.05rem;margin:28px 0 14px;}
+.fp-comment{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:14px 16px;margin-bottom:10px;}
+.fp-comment-top{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--muted);margin-bottom:8px;}
+.fp-comment-body{font-size:.88rem;line-height:1.65;white-space:pre-wrap;}
+.fp-comment-del{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.74rem;}
+.fp-comment-del:hover{color:#f87171;}
+.fp-fi{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:11px 14px;border-radius:8px;font-size:.9rem;outline:none;font-family:inherit;min-height:80px;resize:vertical;margin-bottom:10px;}
+.fp-fi:focus{border-color:var(--blue-br);}
+.fp-gate{background:var(--card2);border:1px dashed var(--bdr2);border-radius:10px;padding:16px;font-size:.84rem;color:var(--lblue);text-align:center;}
+.fp-gate a{color:var(--blue-br);font-weight:700;}
+.fp-send-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:10px 22px;border-radius:8px;font-weight:700;font-size:.85rem;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<section class="section" style="padding-top:36px;">
+  <div class="fp-container">
+    <a class="fp-back" href="forum.html">← Back to Forum</a>
+
+    <div id="fp-loading" style="text-align:center;padding:50px;color:var(--muted);">⏳ Loading...</div>
+
+    <div id="fp-content" style="display:none;">
+      <div class="fp-card">
+        <span class="fp-cat" id="fp-cat"></span>
+        <div class="fp-title" id="fp-title"></div>
+        <div class="fp-meta" id="fp-meta"></div>
+        <div class="fp-body" id="fp-body"></div>
+        <div class="fp-ownbtns" id="fp-ownbtns" style="display:none;"></div>
+      </div>
+
+      <div class="fp-section-title" id="fp-comment-count">Comments</div>
+      <div id="fp-comments"></div>
+
+      <div id="fp-comment-gate" class="fp-gate" style="display:none;margin-top:14px;"></div>
+      <div id="fp-comment-box" style="display:none;margin-top:14px;">
+        <textarea class="fp-fi" id="fp-in-comment" placeholder="Write a comment..."></textarea>
+        <button class="fp-send-btn" id="fp-comment-btn" onclick="fpSubmitComment()">Comment</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<script type="module" src="firebase-config.js"></script>
+<script src="data.js?v=5"></script>
+
+<script>
+function toast(msg, isErr=false){
+  const t=document.getElementById('toast'),ico=document.getElementById('t-ico'),m=document.getElementById('t-msg');
+  ico.textContent = isErr?'❌':'✅'; m.textContent = msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+function fpEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fpTimeAgo(ts){
+  if(!ts) return '';
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  if(s<2592000) return Math.floor(s/86400)+'d ago';
+  return new Date(ts).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+const fpPostId = new URLSearchParams(location.search).get('id');
+let fpUser=null, fpProfile=null, fpPost=null;
+
+function fpWaitForFirebase(){
+  return new Promise(resolve=>{
+    const check=setInterval(()=>{
+      if(window.firebaseAuth && window.firebaseAuthFunctions && window.firebaseDB){ clearInterval(check); resolve(); }
+    },100);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if(!fpPostId){ document.getElementById('fp-loading').textContent = '❌ No post specified.'; return; }
+
+  await fpWaitForFirebase();
+  window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, async user => {
+    fpUser = (user && user.emailVerified) ? user : null;
+    if(fpUser) fpProfile = await getRegisteredUserById(fpUser.uid).catch(()=>({}));
+    fpRenderGate();
+    fpRenderOwnBtns();
+  });
+
+  fpPost = await getForumPost(fpPostId);
+  if(!fpPost){
+    document.getElementById('fp-loading').textContent = '❌ This post was not found — it may have been removed.';
+    return;
+  }
+  document.getElementById('fp-loading').style.display='none';
+  document.getElementById('fp-content').style.display='block';
+  fpRenderPost();
+  await loadForumComments(fpPostId);
+  fpRenderComments();
+});
+
+function fpRenderPost(){
+  document.getElementById('fp-cat').textContent = fpPost.category;
+  document.getElementById('fp-title').textContent = fpPost.title;
+  const initial = fpEsc((fpPost.authorName||'?').charAt(0).toUpperCase());
+  document.getElementById('fp-meta').innerHTML = `
+    ${fpPost.authorPhoto ? `<img class="fp-avatar" src="${fpEsc(fpPost.authorPhoto)}">` : `<span class="fp-avatar">${initial}</span>`}
+    <span>${fpEsc(fpPost.authorName)}</span><span>·</span><span>${fpTimeAgo(fpPost.createdAt)}</span>`;
+  document.getElementById('fp-body').textContent = fpPost.body;
+}
+
+function fpRenderOwnBtns(){
+  const wrap=document.getElementById('fp-ownbtns');
+  if(fpUser && fpPost && fpUser.uid===fpPost.authorUid){
+    wrap.style.display='flex';
+    wrap.innerHTML = `<button onclick="fpEditPost()">✏️ Edit</button><button class="danger" onclick="fpDeletePost()">🗑 Delete</button>`;
+  } else {
+    wrap.style.display='none';
+  }
+}
+
+async function fpEditPost(){
+  const newTitle = prompt("Edit title:", fpPost.title);
+  if(newTitle===null) return;
+  const newBody = prompt("Edit body:", fpPost.body);
+  if(newBody===null) return;
+  if(!newTitle.trim() || !newBody.trim()) return toast("Title and body can't be empty.", true);
+  const ok = await updateForumPost(fpPostId, { title:newTitle.trim(), body:newBody.trim() });
+  if(ok){
+    fpPost.title=newTitle.trim(); fpPost.body=newBody.trim();
+    fpRenderPost(); fpRenderOwnBtns();
+    toast("Post updated! ✅");
+  } else toast("Failed to update.", true);
+}
+
+async function fpDeletePost(){
+  if(!confirm("Delete this post and all its comments? This can't be undone.")) return;
+  const ok = await deleteForumPost(fpPostId);
+  if(ok){ toast("Post deleted."); setTimeout(()=>window.location.href='forum.html', 800); }
+  else toast("Failed to delete.", true);
+}
+
+function fpRenderGate(){
+  const gate=document.getElementById('fp-comment-gate');
+  const box=document.getElementById('fp-comment-box');
+  if(fpUser){
+    gate.style.display='none'; box.style.display='block';
+  } else {
+    box.style.display='none'; gate.style.display='block';
+    if(window.firebaseAuth && window.firebaseAuth.currentUser && !window.firebaseAuth.currentUser.emailVerified){
+      gate.innerHTML = `Please verify your email to comment. Check your inbox, or resend from your <a href="dashboard.html">dashboard</a>.`;
+    } else {
+      gate.innerHTML = `<a href="account.html">Sign in</a> to leave a comment.`;
+    }
+  }
+}
+
+function fpRenderComments(){
+  const list = getForumComments();
+  document.getElementById('fp-comment-count').textContent = `Comments (${list.length})`;
+  const wrap = document.getElementById('fp-comments');
+  if(!list.length){ wrap.innerHTML = `<p style="color:var(--muted);font-size:.85rem;">No comments yet. Start the conversation!</p>`; return; }
+  wrap.innerHTML = list.map(c => {
+    const initial = fpEsc((c.authorName||'?').charAt(0).toUpperCase());
+    const canDel = fpUser && fpUser.uid===c.authorUid;
+    return `<div class="fp-comment">
+      <div class="fp-comment-top">
+        ${c.authorPhoto ? `<img class="fp-avatar" style="width:22px;height:22px;" src="${fpEsc(c.authorPhoto)}">` : `<span class="fp-avatar" style="width:22px;height:22px;font-size:.65rem;">${initial}</span>`}
+        <span>${fpEsc(c.authorName)}</span><span>·</span><span>${fpTimeAgo(c.createdAt)}</span>
+        ${canDel ? `<button class="fp-comment-del" onclick="fpDeleteComment('${c.id}')">Delete</button>` : ''}
+      </div>
+      <div class="fp-comment-body">${fpEsc(c.body)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function fpSubmitComment(){
+  if(!fpUser) return toast("Please sign in first.", true);
+  const body = document.getElementById('fp-in-comment').value.trim();
+  if(!body) return toast("Write something first!", true);
+
+  const btn=document.getElementById('fp-comment-btn');
+  btn.disabled=true; btn.textContent='Posting...';
+
+  const authorName = [fpProfile?.firstName, fpProfile?.lastName].filter(Boolean).join(' ') || fpUser.email.split('@')[0];
+  const result = await addForumComment({ postId:fpPostId, authorUid:fpUser.uid, authorName, authorPhoto:fpProfile?.photo||'', body });
+
+  btn.disabled=false; btn.textContent='Comment';
+
+  if(result.success){
+    document.getElementById('fp-in-comment').value='';
+    fpPost.replyCount = (fpPost.replyCount||0)+1;
+    await loadForumComments(fpPostId);
+    fpRenderComments();
+    toast("Comment posted! ✅");
+  } else toast("Failed to post comment.", true);
+}
+
+async function fpDeleteComment(id){
+  if(!confirm("Delete this comment?")) return;
+  const ok = await deleteForumComment(id, fpPostId);
+  if(ok){ await loadForumComments(fpPostId); fpRenderComments(); toast("Deleted."); }
+  else toast("Failed to delete.", true);
+}
+</script>
+</body>
+</html>

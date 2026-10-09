@@ -10,6 +10,12 @@ service cloud.firestore {
       return signedIn() && request.auth.token.email == 'talentversebangladesh@gmail.com';
     }
 
+    // A real account whose email is verified (same bar account.html/dashboard.html
+    // already use before showing someone's dashboard). Required to post in the forum.
+    function verified() {
+      return signedIn() && request.auth.token.email_verified == true;
+    }
+
     // Official members: the main admin gives each person a list of pages in
     // member_access/{their uid}. Only the main admin can write that document.
     function hasPerm(p) {
@@ -113,6 +119,27 @@ service cloud.firestore {
     match /election_nominations/{id} {
       allow create: if true;
       allow read, update, delete: if isEC();
+    }
+
+    // ---- Volunteer / internship applications ----
+    match /volunteer_applications/{id} {
+      allow create: if true;
+      allow read, update, delete: if isMain() || hasPerm('volunteers');
+    }
+
+    // ---- Discussion forum: everyone reads, only verified accounts post,
+    // an author can edit/delete their own post or comment, admin can moderate any ----
+    match /forum_posts/{id} {
+      allow read: if true;
+      allow create: if verified() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if isMain() || hasPerm('forum')
+                             || (signedIn() && resource.data.authorUid == request.auth.uid);
+    }
+    match /forum_comments/{id} {
+      allow read: if true;
+      allow create: if verified() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if isMain() || hasPerm('forum')
+                             || (signedIn() && resource.data.authorUid == request.auth.uid);
     }
 
     // ---- Contact messages & registrations ----

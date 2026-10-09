@@ -19,6 +19,8 @@ const PERM_CATALOG = [
   { key:'qsubs',         label:'Quiz Submissions',          sec:'qsub-adm' },
   { key:'messages',      label:'Contact Messages',          sec:'msg-adm' },
   { key:'registrations', label:'Registrations',             sec:'reg-adm' },
+  { key:'volunteers',    label:'Volunteer Applications',    sec:'vol-adm' },
+  { key:'forum',         label:'Discussion Forum',          sec:'forum-adm' },
   { key:'certificates',  label:'Certificates',              sec:'cert-adm' },
   { key:'founder',       label:"Founder's Message",         sec:'founder-adm' },
   { key:'popup',         label:'Popup Notice',              sec:'popup-adm' },
@@ -85,6 +87,8 @@ function adminLoadData() {
   };
   run('messages',      'loadMessages',      'renderMessagesTable');
   run('registrations', 'loadRegistrations', 'renderRegistrationsTable');
+  run('volunteers',    'loadVolunteerApplications', 'renderVolunteerTable');
+  run('forum',         'loadForumPosts',    'renderForumTable');
   run('certificates',  'loadCertificates',  'renderCertificatesTable');
   run('team',          'loadTeam',          'renderTeamTable');
   run('network',       'loadNetworkPages',  'renderNetworkTable');
@@ -187,6 +191,8 @@ function goSec(btn) {
     'log-adm': 'Activity Log',
     'msg-adm': 'Contact Messages',
     'reg-adm': 'Registrations',
+    'vol-adm': 'Volunteer Applications',
+    'forum-adm': 'Discussion Forum',
     'cert-adm': 'Certificates',
     'popup-adm': 'Popup Notice',
     'notify-adm': 'Email Notifications',
@@ -231,6 +237,14 @@ function goSec(btn) {
   if(secId === 'qsub-adm' && typeof loadQuizSubmissions === 'function') {
     Promise.all([loadQuizzes(), loadQuizSubmissions()]).then(() => renderQuizSubmissionsTable());
   }
+  if(secId === 'vol-adm' && typeof loadVolunteerApplications === 'function') {
+    document.getElementById('voltbl').innerHTML = `<tr class="empty-row"><td colspan="6">⏳ Loading...</td></tr>`;
+    loadVolunteerApplications().then(() => renderVolunteerTable());
+  }
+  if(secId === 'forum-adm' && typeof loadForumPosts === 'function') {
+    document.getElementById('forumtbl').innerHTML = `<tr class="empty-row"><td colspan="6">⏳ Loading...</td></tr>`;
+    loadForumPosts().then(() => renderForumTable());
+  }
   if(window.innerWidth <= 700) closeSidebar();
 }
 
@@ -257,6 +271,9 @@ function renderDashboard() {
 
   const active = olympiads.filter(o => o.status === 'active').length;
   const upcoming = olympiads.filter(o => o.status === 'upcoming').length;
+  const volunteerApps = typeof getVolunteerApplications === 'function' ? getVolunteerApplications() : [];
+  const pendingVol = volunteerApps.filter(a => (a.status||'pending') === 'pending').length;
+  const forumPosts = typeof getForumPosts === 'function' ? getForumPosts() : [];
 
   const stats = document.getElementById('db-stats');
   if(stats) {
@@ -268,7 +285,9 @@ function renderDashboard() {
       <div class="stat-card"><div class="sl">News Posts</div><div class="sv">${news.length}</div></div>
       <div class="stat-card"><div class="sl">Messages</div><div class="sv">${messages.length}</div></div>
       <div class="stat-card"><div class="sl">Registrations</div><div class="sv">${registrations.length}</div></div>
-      <div class="stat-card"><div class="sl">Certificates</div><div class="sv" style="color:#4ade80;">${certificates.length}</div></div>`;
+      <div class="stat-card"><div class="sl">Certificates</div><div class="sv" style="color:#4ade80;">${certificates.length}</div></div>
+      <div class="stat-card"><div class="sl">Pending Volunteer Apps</div><div class="sv" style="color:#eab308;">${pendingVol}</div></div>
+      <div class="stat-card"><div class="sl">Forum Posts</div><div class="sv">${forumPosts.length}</div></div>`;
   }
 
   const recent = document.getElementById('db-recent');
@@ -2420,6 +2439,115 @@ async function deleteBellNotification(id) {
   toast(ok ? "মুছে ফেলা হয়েছে" : "মোছা যায়নি", !ok);
   await loadAnnouncements();
   renderBellList();
+}
+
+/*===== VOLUNTEER / INTERNSHIP APPLICATIONS =====*/
+function renderVolunteerTable() {
+  const tbody = document.getElementById('voltbl');
+  if(!tbody) return;
+  const typeF = document.getElementById('vol-type-filter')?.value || '';
+  const statusF = document.getElementById('vol-status-filter')?.value || '';
+  const order = { pending:0, approved:1, rejected:2 };
+  const data = getVolunteerApplications()
+    .filter(a => (!typeF || a.type === typeF) && (!statusF || (a.status||'pending') === statusF))
+    .slice()
+    .sort((a,b) => (order[a.status||'pending']-order[b.status||'pending']) || ((b.createdAt||0)-(a.createdAt||0)));
+
+  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No applications found.</td></tr>`; return; }
+  tbody.innerHTML = '';
+  data.forEach(a => {
+    const status = a.status || 'pending';
+    tbody.innerHTML += `<tr>
+      <td>${escUser(a.name)}</td>
+      <td style="text-transform:capitalize;">${escUser(a.type)}</td>
+      <td>${escUser(a.role)}</td>
+      <td><span class="st-badge st-${status}">${status}</span></td>
+      <td>${fmtUserDate(a.createdAt)}</td>
+      <td class="tbl-acts">
+        <button class="e-btn" onclick="viewVolunteerApp('${a.id}')">View</button>
+        ${status!=='approved'?`<button class="e-btn" onclick="approveVolunteerApp('${a.id}')">Approve</button>`:''}
+        ${status!=='rejected'?`<button class="d-btn" onclick="rejectVolunteerApp('${a.id}')">Reject</button>`:''}
+        <button class="d-btn" onclick="deleteVolunteerApp('${a.id}')">Delete</button>
+      </td></tr>`;
+  });
+}
+function viewVolunteerApp(id) {
+  const a = getVolunteerApplications().find(x => x.id === id); if(!a) return;
+  const status = a.status || 'pending';
+  document.getElementById('vv-body').innerHTML = `
+    <div class="vw-row"><b>Name</b><span>${escUser(a.name)}</span></div>
+    <div class="vw-row"><b>Type</b><span style="text-transform:capitalize;">${escUser(a.type)}</span></div>
+    <div class="vw-row"><b>Role</b><span>${escUser(a.role)}</span></div>
+    <div class="vw-row"><b>Email</b><span>${escUser(a.email)}</span></div>
+    <div class="vw-row"><b>Phone</b><span>${escUser(a.phone)}</span></div>
+    <div class="vw-row"><b>Availability</b><span>${escUser(a.availability)}</span></div>
+    ${a.resumeLink ? `<div class="vw-row"><b>Resume</b><span><a href="${escUser(a.resumeLink)}" target="_blank" style="color:var(--blue-br);">${escUser(a.resumeLink)}</a></span></div>` : ''}
+    <div class="vw-row"><b>Status</b><span class="st-badge st-${status}">${status}</span></div>
+    <div class="vw-row"><b>Submitted</b><span>${fmtUserDate(a.createdAt)}</span></div>
+    <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Skills</b><div class="vw-stmt">${escUser(a.skills) === '—' ? '(none given)' : escUser(a.skills)}</div></div>
+    <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Message</b><div class="vw-stmt">${escUser(a.message) === '—' ? '(none given)' : escUser(a.message)}</div></div>`;
+  document.getElementById('vv-foot').innerHTML = `
+    ${status!=='approved'?`<button class="fs-btn" onclick="closeFM('vvm');approveVolunteerApp('${a.id}')">✅ Approve</button>`:''}
+    ${status!=='rejected'?`<button class="fc-btn" style="color:#f87171;border-color:rgba(239,68,68,.35);" onclick="closeFM('vvm');rejectVolunteerApp('${a.id}')">Reject</button>`:''}
+    <button class="fc-btn" onclick="closeFM('vvm')">Close</button>`;
+  openFM('vvm');
+}
+async function approveVolunteerApp(id) {
+  const ok = await updateVolunteerApplicationStatus(id, 'approved');
+  if(ok) { renderVolunteerTable(); renderDashboard(); toast("Application approved! ✅"); }
+  else toast("Failed to update.", true);
+}
+async function rejectVolunteerApp(id) {
+  if(!confirm("Reject this application? This doesn't notify the applicant automatically.")) return;
+  const ok = await updateVolunteerApplicationStatus(id, 'rejected');
+  if(ok) { renderVolunteerTable(); renderDashboard(); toast("Application rejected."); }
+  else toast("Failed to update.", true);
+}
+async function deleteVolunteerApp(id) {
+  if(!confirm("Permanently delete this application?")) return;
+  if(await deleteVolunteerApplication(id)) { renderVolunteerTable(); renderDashboard(); toast("Deleted."); }
+}
+
+/*===== FORUM MODERATION =====*/
+function renderForumTable() {
+  const tbody = document.getElementById('forumtbl');
+  if(!tbody) return;
+  const data = getForumPosts().slice().sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
+  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No posts yet.</td></tr>`; return; }
+  tbody.innerHTML = '';
+  data.forEach(p => {
+    tbody.innerHTML += `<tr>
+      <td>${escUser(p.title)}</td>
+      <td>${escUser(p.category)}</td>
+      <td>${escUser(p.authorName)}</td>
+      <td>${p.replyCount || 0}</td>
+      <td>${fmtUserDate(p.createdAt)}</td>
+      <td class="tbl-acts">
+        <button class="e-btn" onclick="viewForumPostAdmin('${p.id}')">View</button>
+        <a class="e-btn" href="forum-post.html?id=${p.id}" target="_blank" style="text-decoration:none;display:inline-block;">Open ↗</a>
+        <button class="d-btn" onclick="deleteForumPostAdmin('${p.id}')">Delete</button>
+      </td></tr>`;
+  });
+}
+function viewForumPostAdmin(id) {
+  const p = getForumPosts().find(x => x.id === id); if(!p) return;
+  document.getElementById('fv-body').innerHTML = `
+    <div class="vw-row"><b>Title</b><span>${escUser(p.title)}</span></div>
+    <div class="vw-row"><b>Category</b><span>${escUser(p.category)}</span></div>
+    <div class="vw-row"><b>Author</b><span>${escUser(p.authorName)}</span></div>
+    <div class="vw-row"><b>Replies</b><span>${p.replyCount || 0}</span></div>
+    <div class="vw-row"><b>Posted</b><span>${fmtUserDate(p.createdAt)}</span></div>
+    <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Body</b><div class="vw-stmt">${escUser(p.body)}</div></div>`;
+  document.getElementById('fv-foot').innerHTML = `
+    <a class="fc-btn" style="text-decoration:none;display:inline-block;" href="forum-post.html?id=${p.id}" target="_blank">Open on site ↗</a>
+    <button class="fc-btn" style="color:#f87171;border-color:rgba(239,68,68,.35);" onclick="closeFM('fvm');deleteForumPostAdmin('${p.id}')">Delete</button>
+    <button class="fc-btn" onclick="closeFM('fvm')">Close</button>`;
+  openFM('fvm');
+}
+async function deleteForumPostAdmin(id) {
+  if(!confirm("Permanently delete this post and all its comments?")) return;
+  if(await deleteForumPost(id)) { renderForumTable(); renderDashboard(); toast("Post deleted."); }
+  else toast("Failed to delete — check Firestore rules.", true);
 }
 
 function renderBellList() {

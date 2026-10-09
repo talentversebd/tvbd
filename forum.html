@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discussion Forum — TalentVerse Bangladesh</title>
+<meta name="description" content="Ask questions, share updates and discuss with the TalentVerse Bangladesh community.">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.fo-container{max-width:800px;margin:0 auto;padding:0 16px;}
+.fo-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.fo-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+.fo-tab{padding:7px 16px;border-radius:20px;border:1px solid var(--bdr);background:var(--card2);color:var(--muted);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.fo-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+.fo-newbtn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:.85rem;cursor:pointer;white-space:nowrap;}
+.fo-gate{background:var(--card2);border:1px dashed var(--bdr2);border-radius:10px;padding:16px;margin-bottom:18px;font-size:.84rem;color:var(--lblue);text-align:center;}
+.fo-gate a{color:var(--blue-br);font-weight:700;}
+.fo-new-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:22px;margin-bottom:22px;box-shadow:var(--glow);}
+.fo-fi{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:11px 14px;border-radius:8px;font-size:.9rem;outline:none;margin-bottom:12px;font-family:inherit;}
+.fo-fi:focus{border-color:var(--blue-br);}
+textarea.fo-fi{min-height:110px;resize:vertical;}
+.fo-post{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px 20px;margin-bottom:14px;cursor:pointer;transition:border-color .15s,transform .15s;text-decoration:none;display:block;color:var(--txt);}
+.fo-post:hover{border-color:var(--blue-br);transform:translateY(-1px);}
+.fo-post-top{display:flex;gap:10px;align-items:center;margin-bottom:8px;}
+.fo-cat{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(59,130,246,.14);color:var(--blue-br);}
+.fo-title{font-family:Montserrat;font-weight:800;font-size:1.05rem;margin-bottom:6px;}
+.fo-snippet{color:var(--muted);font-size:.85rem;line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.fo-meta{display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--muted);}
+.fo-avatar{width:22px;height:22px;border-radius:50%;object-fit:cover;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:var(--blue-br);}
+.fo-empty{text-align:center;padding:50px 20px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<!-- Standalone forum page (not in main nav), shared site footer kept for branding/navigation. -->
+<div class="page-header">
+  <span class="eyebrow">💬 Community</span>
+  <h1>Discussion <span>Forum</span></h1>
+  <p>Ask questions, share updates, and talk with other members. Signed-in, verified accounts can post and comment.</p>
+</div>
+
+<section class="section">
+  <div class="fo-container">
+
+    <div class="fo-bar">
+      <div class="fo-tabs" id="fo-tabs"></div>
+      <button class="fo-newbtn" id="fo-new-toggle" onclick="foToggleNewPost()" style="display:none;">+ New Post</button>
+    </div>
+
+    <div class="fo-gate" id="fo-gate" style="display:none;"></div>
+
+    <div class="fo-new-card" id="fo-new-card" style="display:none;">
+      <select class="fo-fi" id="fo-in-category"></select>
+      <input class="fo-fi" id="fo-in-title" placeholder="Title">
+      <textarea class="fo-fi" id="fo-in-body" placeholder="What do you want to discuss?"></textarea>
+      <button class="fo-newbtn" id="fo-post-btn" onclick="foSubmitPost()" style="width:100%;">Post →</button>
+    </div>
+
+    <div id="fo-list">
+      <div style="text-align:center;padding:40px;color:var(--muted);">⏳ Loading...</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<script type="module" src="firebase-config.js"></script>
+<script src="data.js?v=5"></script>
+
+<script>
+function toast(msg, isErr=false){
+  const t=document.getElementById('toast'),ico=document.getElementById('t-ico'),m=document.getElementById('t-msg');
+  ico.textContent = isErr?'❌':'✅'; m.textContent = msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+function foEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function foTimeAgo(ts){
+  if(!ts) return '';
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  if(s<2592000) return Math.floor(s/86400)+'d ago';
+  return new Date(ts).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+let foUser=null, foProfile=null, foActiveCat='';
+
+function foWaitForFirebase(){
+  return new Promise(resolve=>{
+    const check=setInterval(()=>{
+      if(window.firebaseAuth && window.firebaseAuthFunctions && window.firebaseDB){ clearInterval(check); resolve(); }
+    },100);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // category tabs
+  const tabs=document.getElementById('fo-tabs');
+  tabs.innerHTML = ['All', ...FORUM_CATEGORIES].map(c => `<button class="fo-tab ${c==='All'?'active':''}" onclick="foSetCategory('${c==='All'?'':c}',this)">${c}</button>`).join('');
+  document.getElementById('fo-in-category').innerHTML = FORUM_CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('');
+
+  await foWaitForFirebase();
+  window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, async user => {
+    foUser = (user && user.emailVerified) ? user : null;
+    if(foUser) foProfile = await getRegisteredUserById(foUser.uid).catch(()=>({}));
+    foRenderGate();
+  });
+
+  await loadForumPosts();
+  foRenderList();
+});
+
+function foRenderGate(){
+  const gate=document.getElementById('fo-gate');
+  const newBtn=document.getElementById('fo-new-toggle');
+  if(foUser){
+    gate.style.display='none';
+    newBtn.style.display='inline-block';
+  } else {
+    newBtn.style.display='none';
+    document.getElementById('fo-new-card').style.display='none';
+    gate.style.display='block';
+    if(window.firebaseAuth && window.firebaseAuth.currentUser && !window.firebaseAuth.currentUser.emailVerified){
+      gate.innerHTML = `Please verify your email to post. Check your inbox, or resend from your <a href="dashboard.html">dashboard</a>.`;
+    } else {
+      gate.innerHTML = `<a href="account.html">Sign in</a> to start a discussion or leave a comment. Browsing is open to everyone.`;
+    }
+  }
+}
+
+function foSetCategory(cat, btn){
+  foActiveCat = cat;
+  document.querySelectorAll('.fo-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  foRenderList();
+}
+
+function foToggleNewPost(){
+  const card=document.getElementById('fo-new-card');
+  card.style.display = card.style.display==='none' ? 'block' : 'none';
+}
+
+async function foSubmitPost(){
+  if(!foUser) return toast("Please sign in first.", true);
+  const category=document.getElementById('fo-in-category').value;
+  const title=document.getElementById('fo-in-title').value.trim();
+  const body=document.getElementById('fo-in-body').value.trim();
+  if(!title || !body) return toast("Title and body are required!", true);
+
+  const btn=document.getElementById('fo-post-btn');
+  btn.disabled=true; btn.textContent='Posting...';
+
+  const authorName = [foProfile?.firstName, foProfile?.lastName].filter(Boolean).join(' ') || foUser.email.split('@')[0];
+  const result = await addForumPost({ authorUid: foUser.uid, authorName, authorPhoto: foProfile?.photo || '', category, title, body });
+
+  btn.disabled=false; btn.textContent='Post →';
+
+  if(result.success){
+    window.location.href = 'forum-post.html?id=' + result.id;
+  } else {
+    toast("Failed to post. Please try again.", true);
+  }
+}
+
+function foRenderList(){
+  const wrap=document.getElementById('fo-list');
+  const data = getForumPosts().filter(p => !foActiveCat || p.category===foActiveCat);
+  if(!data.length){ wrap.innerHTML = `<div class="fo-empty">💬<br><br>No posts yet${foActiveCat?' in '+foEsc(foActiveCat):''}. Be the first to start a discussion!</div>`; return; }
+  wrap.innerHTML = data.map(p => {
+    const snippet = foEsc(p.body).slice(0,160);
+    const initial = foEsc((p.authorName||'?').charAt(0).toUpperCase());
+    return `<a class="fo-post" href="forum-post.html?id=${p.id}">
+      <div class="fo-post-top"><span class="fo-cat">${foEsc(p.category)}</span></div>
+      <div class="fo-title">${foEsc(p.title)}</div>
+      <div class="fo-snippet">${snippet}</div>
+      <div class="fo-meta">
+        ${p.authorPhoto ? `<img class="fo-avatar" src="${foEsc(p.authorPhoto)}">` : `<span class="fo-avatar">${initial}</span>`}
+        <span>${foEsc(p.authorName)}</span><span>·</span><span>${foTimeAgo(p.createdAt)}</span><span>·</span><span>💬 ${p.replyCount||0}</span>
+      </div>
+    </a>`;
+  }).join('');
+}
+</script>
+<footer>
+  <div class="f-grid">
+    <div class="f-brand">
+      <a class="h-logo" href="index.html" style="text-decoration:none;">
+        <img class="h-logo-img" src="logo.jpg" alt="Logo">
+        <div class="h-logo-text">
+          <div class="name">Talent<span>Verse</span></div>
+          <div class="sub">Bangladesh</div>
+        </div>
+      </a>
+      <p data-i18n="f_desc">TalentVerse Bangladesh is the country's most dedicated platform for event information, resources, and community.</p>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_quicklinks">Quick Links</h4>
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
+      <a href="team.html" data-i18n="nav_team">Team</a>
+      <a href="news.html" data-i18n="nav_news">News</a>
+      <a href="register.html" data-i18n="nav_register">Register</a>
+      <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_contact">Contact</h4>
+      <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
+      <a id="f-phone" href="#">+880 1634-428536</a>
+      <a id="f-addr" href="#">Dhaka, Bangladesh</a>
+    </div>
+  </div>
+  <div class="f-bottom">
+    <p data-i18n="f_bottom">© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Samin & Fahad.</p>
+  </div>
+</footer>
+<script src="lang.js"></script>
+</body>
+</html>

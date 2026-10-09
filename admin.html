@@ -69,6 +69,13 @@
 .bs-active{background:rgba(34,197,94,.14);color:#4ade80;border:1px solid rgba(34,197,94,.22)}
 .bs-upcoming{background:rgba(59,130,246,.14);color:#60a5fa;border:1px solid rgba(59,130,246,.22)}
 .bs-past{background:rgba(107,114,128,.14);color:#9ca3af;border:1px solid rgba(107,114,128,.18)}
+.st-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:capitalize;white-space:nowrap}
+.st-pending{background:rgba(234,179,8,.14);color:#eab308}
+.st-approved{background:rgba(74,222,128,.14);color:#4ade80}
+.st-rejected{background:rgba(239,68,68,.14);color:#f87171}
+.vw-row{display:flex;gap:10px;margin-bottom:12px;font-size:.87rem}
+.vw-row b{color:var(--muted);min-width:90px;flex-shrink:0;font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+.vw-stmt{background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:12px 14px;font-size:.86rem;line-height:1.6;white-space:pre-wrap}
 .empty-row td{text-align:center;color:var(--muted);padding:32px!important}
 .he-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media(max-width:640px){.he-grid{grid-template-columns:1fr}}
@@ -170,6 +177,10 @@ select.fi{cursor:pointer}
         <div class="adm-ns">Inbox</div>
 <button class="adm-nb" data-sec="msg-adm" onclick="goSec(this)"><span class="ico">✉️</span>Messages</button>
 <button class="adm-nb" data-sec="reg-adm" onclick="goSec(this)"><span class="ico">📝</span>Registrations</button>
+
+<div class="adm-ns">Community</div>
+<button class="adm-nb" data-sec="vol-adm" onclick="goSec(this)"><span class="ico">🙋</span>Volunteers</button>
+<button class="adm-nb" data-sec="forum-adm" onclick="goSec(this)"><span class="ico">💬</span>Forum</button>
 
 <div class="adm-ns">Accounts</div>
 <button class="adm-nb" data-sec="users-adm" onclick="goSec(this)"><span class="ico">👥</span>Registered Users</button>
@@ -427,6 +438,36 @@ select.fi{cursor:pointer}
           </table>
         </div>
       </div>
+      <!-- VOLUNTEERS -->
+      <div class="adm-sec" id="vol-adm">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+          <select class="fi" id="vol-type-filter" style="width:auto;min-width:160px;" onchange="renderVolunteerTable()">
+            <option value="">All Types</option><option value="volunteer">Volunteer</option><option value="internship">Internship</option>
+          </select>
+          <select class="fi" id="vol-status-filter" style="width:auto;min-width:140px;" onchange="renderVolunteerTable()">
+            <option value="">All Status</option><option value="pending">⏳ Pending</option><option value="approved">✅ Approved</option><option value="rejected">❌ Rejected</option>
+          </select>
+        </div>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">🙋 People apply from the public <a href="volunteer.html" target="_blank" style="color:var(--blue-br);">volunteer.html</a> page. Share that link wherever you're recruiting.</p>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Type</th><th>Role</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="voltbl"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FORUM -->
+      <div class="adm-sec" id="forum-adm">
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">💬 Signed-in, email-verified members post and comment from <a href="forum.html" target="_blank" style="color:var(--blue-br);">forum.html</a>. An author can edit/delete their own post; you can moderate (delete) anything here.</p>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Replies</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="forumtbl"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- CERTIFICATES -->
 <div class="adm-sec" id="cert-adm">
   
@@ -1181,6 +1222,30 @@ select.fi{cursor:pointer}
       <button class="fc-btn" onclick="closeFM('qgm')">Cancel</button>
       <button class="fs-btn" onclick="saveQuizGrade()">💾 Save Score</button>
     </div>
+  </div>
+</div>
+
+<!-- VOLUNTEER APPLICATION VIEW (read-only) -->
+<div class="fm-ov" id="vvm" onclick="if(event.target===this)closeFM('vvm')">
+  <div class="fm">
+    <div class="fm-head">
+      <h3>Application Details</h3>
+      <button onclick="closeFM('vvm')">✕</button>
+    </div>
+    <div id="vv-body"></div>
+    <div class="fm-foot" id="vv-foot"></div>
+  </div>
+</div>
+
+<!-- FORUM POST VIEW (moderation, read-only) -->
+<div class="fm-ov" id="fvm" onclick="if(event.target===this)closeFM('fvm')">
+  <div class="fm">
+    <div class="fm-head">
+      <h3>Post Details</h3>
+      <button onclick="closeFM('fvm')">✕</button>
+    </div>
+    <div id="fv-body"></div>
+    <div class="fm-foot" id="fv-foot"></div>
   </div>
 </div>
 

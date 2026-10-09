@@ -58,6 +58,9 @@
     addElectionCandidate: { section: 'Election', action: 'add', obj: 0, keys: T },
     updateElectionCandidate:{ section: 'Election', action: 'edit', id: 0, obj: 1, list: 'getElectionCandidates', keys: T },
     deleteElectionCandidate:{ section: 'Election', action: 'delete', id: 0, list: 'getElectionCandidates', keys: T },
+    updateVolunteerApplicationStatus:{ section: 'Volunteers', action: 'review', id: 0, list: 'getVolunteerApplications', label: (a, f) => f ? `${f.name || ''} — ${f.role || ''}` : '', details: a => a[1] },
+    deleteVolunteerApplication:{ section: 'Volunteers', action: 'delete', id: 0, list: 'getVolunteerApplications', label: (a, f) => f ? `${f.name || ''} — ${f.role || ''}` : '' },
+    deleteForumPost:{ section: 'Forum', action: 'delete post', id: 0, list: 'getForumPosts', label: (a, f) => f ? f.title || '' : '' },
     updateElectionNominationStatus:{ section: 'Election', action: 'nomination review', id: 0, list: 'getElectionNominations', label: (a, f) => f ? `${f.name || ''} — ${f.position || ''}` : '', details: a => a[1] },
     deleteElectionNomination:{ section: 'Election', action: 'delete nomination', id: 0, list: 'getElectionNominations', label: (a, f) => f ? `${f.name || ''} — ${f.position || ''}` : '' },
 

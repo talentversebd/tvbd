@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volunteer & Internship — TalentVerse Bangladesh</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Apply to volunteer or intern with TalentVerse Bangladesh.">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.vl-container{max-width:720px;margin:0 auto;padding:0 16px;}
+.vl-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:32px;box-shadow:var(--glow);}
+@media(max-width:500px){.vl-card{padding:22px 18px;}}
+.vl-card h2{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:8px;}
+.vl-card h2 span{color:var(--blue-br);}
+.vl-fg{margin-bottom:15px;}
+.vl-fg label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:6px;}
+.vl-fi{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:11px 14px;border-radius:8px;font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit;}
+.vl-fi:focus{border-color:var(--blue-br);}
+textarea.vl-fi{min-height:100px;resize:vertical;}
+.vl-type-toggle{display:flex;gap:10px;margin-bottom:15px;}
+.vl-type-opt{flex:1;text-align:center;padding:14px 10px;border:1px solid var(--bdr);border-radius:9px;cursor:pointer;background:var(--card2);transition:border-color .2s,background .2s;}
+.vl-type-opt.active{border-color:var(--blue-br);background:rgba(59,130,246,.08);}
+.vl-type-opt .ti{font-size:1.5rem;margin-bottom:4px;}
+.vl-type-opt .tl{font-weight:700;font-size:.85rem;}
+.vl-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;text-decoration:none;padding:14px 20px;border-radius:9px;font-weight:700;font-size:.92rem;border:none;cursor:pointer;transition:opacity .2s;}
+.vl-btn:hover{opacity:.88;}
+.vl-btn:disabled{opacity:.5;cursor:not-allowed;}
+.vl-hidden{display:none;}
+.vl-result{text-align:center;padding:20px;}
+.vl-result .ri{font-size:4rem;margin-bottom:16px;}
+.vl-result h2{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- Standalone application page (not in main nav), shared site footer kept for branding/navigation. -->
+<div class="page-header">
+  <span class="eyebrow">🙋 Join The Team</span>
+  <h1>Volunteer & <span>Internship</span></h1>
+  <p>Want to help build TalentVerse Bangladesh? Tell us a bit about yourself below.</p>
+</div>
+
+<section class="section">
+  <div class="vl-container">
+
+    <!-- VIEW: Form -->
+    <div id="vl-view-form">
+      <div class="vl-card">
+        <h2>Apply to <span>Join Us</span></h2>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px;">We'll reach out using the email/phone you provide below.</p>
+
+        <label style="display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:8px;">I'm applying as a *</label>
+        <div class="vl-type-toggle">
+          <div class="vl-type-opt active" id="vl-opt-volunteer" onclick="vlSetType('volunteer')">
+            <div class="ti">🙋</div><div class="tl">Volunteer</div>
+          </div>
+          <div class="vl-type-opt" id="vl-opt-internship" onclick="vlSetType('internship')">
+            <div class="ti">💼</div><div class="tl">Intern</div>
+          </div>
+        </div>
+
+        <div class="vl-fg"><label>Full Name *</label><input class="vl-fi" id="vl-in-name" placeholder="e.g. Abdur Rahman"></div>
+        <div class="vl-fg"><label>Email *</label><input class="vl-fi" type="email" id="vl-in-email" placeholder="you@email.com"></div>
+        <div class="vl-fg"><label>Phone *</label><input class="vl-fi" id="vl-in-phone" placeholder="01XXXXXXXXX"></div>
+        <div class="vl-fg">
+          <label>Area / Role You're Interested In *</label>
+          <input class="vl-fi" id="vl-in-role" list="vl-role-list" placeholder="e.g. Event Management, Content Writing, Graphic Design...">
+          <datalist id="vl-role-list">
+            <option value="Event Management"><option value="Content Writing"><option value="Social Media">
+            <option value="Graphic Design"><option value="Quiz Setting"><option value="Web Development">
+            <option value="Outreach & Partnerships"><option value="Photography/Videography">
+          </datalist>
+        </div>
+        <div class="vl-fg"><label>Relevant Skills</label><input class="vl-fi" id="vl-in-skills" placeholder="e.g. Canva, public speaking, Python..."></div>
+        <div class="vl-fg"><label>Availability</label><input class="vl-fi" id="vl-in-availability" placeholder="e.g. Weekends, 5 hrs/week..."></div>
+        <div class="vl-fg"><label>Why do you want to join?</label><textarea class="vl-fi" id="vl-in-message" placeholder="A few lines about your motivation..."></textarea></div>
+        <div class="vl-fg"><label>Resume / Portfolio Link (optional)</label><input class="vl-fi" type="url" id="vl-in-resume" placeholder="https://drive.google.com/..."></div>
+
+        <button class="vl-btn" id="vl-submit-btn" onclick="submitVolunteer()">Submit Application →</button>
+      </div>
+    </div>
+
+    <!-- VIEW: Result -->
+    <div id="vl-view-result" class="vl-hidden">
+      <div class="vl-card vl-result" id="vl-result-content"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<script type="module" src="firebase-config.js"></script>
+<script src="data.js?v=5"></script>
+
+<script>
+function toast(msg, isErr=false){
+  const t=document.getElementById('toast'),ico=document.getElementById('t-ico'),m=document.getElementById('t-msg');
+  ico.textContent = isErr?'❌':'✅'; m.textContent = msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+let vlType='volunteer';
+function vlSetType(t){
+  vlType=t;
+  document.getElementById('vl-opt-volunteer').classList.toggle('active', t==='volunteer');
+  document.getElementById('vl-opt-internship').classList.toggle('active', t==='internship');
+}
+
+async function submitVolunteer(){
+  const name=document.getElementById('vl-in-name').value.trim();
+  const email=document.getElementById('vl-in-email').value.trim();
+  const phone=document.getElementById('vl-in-phone').value.trim();
+  const role=document.getElementById('vl-in-role').value.trim();
+  const skills=document.getElementById('vl-in-skills').value.trim();
+  const availability=document.getElementById('vl-in-availability').value.trim();
+  const message=document.getElementById('vl-in-message').value.trim();
+  const resumeLink=document.getElementById('vl-in-resume').value.trim();
+  if(!name || !email || !phone || !role) return toast("Name, email, phone and role are required!", true);
+
+  const btn=document.getElementById('vl-submit-btn');
+  btn.disabled=true; btn.textContent='Submitting...';
+
+  const result = await submitVolunteerApplication({ name, email, phone, type:vlType, role, skills, availability, message, resumeLink });
+
+  btn.disabled=false; btn.textContent='Submit Application →';
+
+  if(!result.success){
+    toast("Something went wrong. Please try again.", true);
+    return;
+  }
+
+  document.getElementById('vl-view-form').classList.add('vl-hidden');
+  document.getElementById('vl-view-result').classList.remove('vl-hidden');
+  document.getElementById('vl-result-content').innerHTML = `<div class="ri">🎉</div><h2>Application Submitted!</h2><p style="color:var(--muted);">Thanks, ${name.split(' ')[0]}! We'll review your application and reach out using the email/phone you provided.</p>`;
+}
+</script>
+<footer>
+  <div class="f-grid">
+    <div class="f-brand">
+      <a class="h-logo" href="index.html" style="text-decoration:none;">
+        <img class="h-logo-img" src="logo.jpg" alt="Logo">
+        <div class="h-logo-text">
+          <div class="name">Talent<span>Verse</span></div>
+          <div class="sub">Bangladesh</div>
+        </div>
+      </a>
+      <p data-i18n="f_desc">TalentVerse Bangladesh is the country's most dedicated platform for event information, resources, and community.</p>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_quicklinks">Quick Links</h4>
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
+      <a href="team.html" data-i18n="nav_team">Team</a>
+      <a href="news.html" data-i18n="nav_news">News</a>
+      <a href="register.html" data-i18n="nav_register">Register</a>
+      <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_contact">Contact</h4>
+      <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
+      <a id="f-phone" href="#">+880 1634-428536</a>
+      <a id="f-addr" href="#">Dhaka, Bangladesh</a>
+    </div>
+  </div>
+  <div class="f-bottom">
+    <p data-i18n="f_bottom">© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Samin & Fahad.</p>
+  </div>
+</footer>
+<script src="lang.js"></script>
+</body>
+</html>

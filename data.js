@@ -2476,3 +2476,39 @@ async function loadNotificationHistory() {
   }
 }
 function getNotificationHistory() { return cache.notificationHistory || []; }
+/*===== RESOURCE HUB =====*/
+// সবাই পড়তে পারে, শুধু main admin বা 'resources' permission থাকা মেম্বার লিখতে পারে
+
+async function loadResources() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(query(collection(db, "resources"), orderBy("uploadDate", "desc")));
+    cache.resources = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return cache.resources;
+  } catch(err) {
+    console.error("Load resources error:", err);
+    cache.resources = cache.resources || [];
+    return cache.resources;
+  }
+}
+
+function getResources() {
+  return cache.resources || [];
+}
+
+async function incrementResourceDownload(id) {
+  await waitForFirebase();
+  const { doc, updateDoc, increment } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    await updateDoc(doc(db, "resources", id), { downloads: increment(1) });
+    const r = (cache.resources || []).find(x => x.id === id);
+    if(r) r.downloads = (Number(r.downloads) || 0) + 1;
+    return true;
+  } catch(err) {
+    console.error("Increment download error:", err);
+    return false;
+  }
+}

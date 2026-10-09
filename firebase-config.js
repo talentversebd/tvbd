@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc, query, orderBy, where, onSnapshot, writeBatch, limit, deleteField, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA1VAUyNGYE7XpgLRN6-xeAI5QMjN-Q_Lk",
@@ -36,6 +37,16 @@ try {
   console.error("Firebase Auth init failed (Firestore still works):", err);
 }
 
+// Firebase Storage — used by the Resource Hub to upload PDFs/notes.
+// Wrapped in try/catch for the same reason as Auth above.
+try {
+  const storage = getStorage(app);
+  window.firebaseStorage = storage;
+  window.firebaseStorageFunctions = { ref, uploadBytes, getDownloadURL };
+} catch(err) {
+  console.error("Firebase Storage init failed:", err);
+}
+
 window.IMGBB_KEY = "b374ae6a3edcf12a90a5b7be9ec39f50";
 
 window.EMAILJS_CONFIG = {
@@ -52,4 +63,4 @@ window.NOTIFY_MAILER = {
   scriptUrl: "https://script.google.com/macros/s/AKfycbyzhCAQBmj4287xiykwDBjyTO1a1gd04zlY5t6mSL8p9rvUNzMJdroQXdiYzmyVTM-j1Q/exec"
 };
 
-console.log("🔥 Firebase Initialized (Firestore + Auth)!");
+console.log("🔥 Firebase Initialized (Firestore + Auth + Storage)!");

@@ -15,6 +15,7 @@ const PERM_CATALOG = [
   { key:'team',          label:'Team Members',              sec:'team-adm' },
   { key:'network',       label:'Our Network',               sec:'network-adm' },
   { key:'news',          label:'News',                      sec:'news-adm' },
+  { key:'resources',     label:'Resource Hub',              sec:'resources-adm' },
   { key:'quizzes',       label:'Quizzes',                   sec:'quiz-adm' },
   { key:'qsubs',         label:'Quiz Submissions',          sec:'qsub-adm' },
   { key:'messages',      label:'Contact Messages',          sec:'msg-adm' },
@@ -32,7 +33,7 @@ const PERM_CATALOG = [
 const SEC_PERM = {};
 PERM_CATALOG.forEach(p => { if(p.sec) SEC_PERM[p.sec] = p.key; });
 
-let adminAccess = null;   // { all:true } for the main admin, { all:false, perms:[...] } for members
+let adminAccess = null;
 function canAdmin(key) {
   return !!adminAccess && (adminAccess.all || (adminAccess.perms || []).includes(key));
 }
@@ -41,7 +42,7 @@ function secAllowed(sec) {
   if(!adminAccess) return false;
   if(adminAccess.all) return true;
   const key = SEC_PERM[sec];
-  return key ? canAdmin(key) : false;      // users-adm, set-adm … stay main-admin only
+  return key ? canAdmin(key) : false;
 }
 function applyAccessToNav() {
   const nav = document.querySelector('.adm-nav');
@@ -49,7 +50,6 @@ function applyAccessToNav() {
   nav.querySelectorAll('.adm-nb').forEach(b => {
     b.style.display = secAllowed(b.getAttribute('data-sec')) ? '' : 'none';
   });
-  // hide section headings that have no visible buttons under them
   let heading = null, any = false;
   const flush = () => { if(heading) heading.style.display = any ? '' : 'none'; };
   Array.from(nav.children).forEach(el => {
@@ -63,7 +63,6 @@ function applyAccessToNav() {
 function openAdmin() {
   window.location.href = 'admin.html';
 }
-
 function closeAdmin() {
   window.location.href = 'index.html';
 }
@@ -92,6 +91,7 @@ function adminLoadData() {
   run('certificates',  'loadCertificates',  'renderCertificatesTable');
   run('team',          'loadTeam',          'renderTeamTable');
   run('network',       'loadNetworkPages',  'renderNetworkTable');
+  run('resources',     'loadResources',     'renderResourcesTable');
   run('quizzes',       'loadQuizzes',       'renderQuizTable');
 }
 
@@ -106,7 +106,7 @@ async function doLogin() {
   adminBusy = true;
   adminFresh = true;
   try {
-    await tvbdAdminAuth.login(u, p, ADMIN_ALLOWED);   // the watcher below opens the panel
+    await tvbdAdminAuth.login(u, p, ADMIN_ALLOWED);
   } catch(e) {
     adminFresh = false;
     adminShowErr(tvbdAdminAuth.friendlyError(e));
@@ -150,7 +150,6 @@ function checkAdminAuth() {
   ).catch(e => adminShowErr(tvbdAdminAuth.friendlyError(e)));
 }
 
-// Auto check on page load
 document.addEventListener('DOMContentLoaded', checkAdminAuth);
 
 /*===== SIDEBAR =====*/
@@ -158,7 +157,6 @@ function openSidebar() {
   document.getElementById('adm-sb').classList.add('open');
   document.getElementById('sb-ov').classList.add('open');
 }
-
 function closeSidebar() {
   document.getElementById('adm-sb').classList.remove('open');
   document.getElementById('sb-ov').classList.remove('open');
@@ -182,6 +180,7 @@ function goSec(btn) {
     'olymp-adm': 'Manage Olympiads',
     'gal-adm': 'Gallery Manager',
     'news-adm': 'News Updates',
+    'resources-adm': 'Resource Hub',
     'quiz-adm': 'Manage Quizzes',
     'qsub-adm': 'Quiz Submissions',
     'team-adm': 'Team Members',
@@ -213,6 +212,8 @@ function goSec(btn) {
       actions.innerHTML = `<button class="add-btn" onclick="openGalleryForm()">+ Add Media</button>`;
     } else if(secId === 'news-adm') {
       actions.innerHTML = `<button class="add-btn" onclick="openNewsForm()">+ Add News</button>`;
+    } else if(secId === 'resources-adm') {
+      actions.innerHTML = `<button class="add-btn" onclick="openResourceForm()">+ Add Resource</button>`;
     } else if(secId === 'team-adm') {
       actions.innerHTML = `<button class="add-btn" onclick="openTeamForm()">+ Add Member</button>`;
     } else if(secId === 'network-adm') {
@@ -233,6 +234,9 @@ function goSec(btn) {
   if(secId === 'popup-adm' && typeof loadPopupSettings === 'function') loadPopupSettings();
   if(secId === 'notify-adm' && typeof initNotifyPanel === 'function') initNotifyPanel();
   if(secId === 'bell-adm' && typeof initBellPanel === 'function') initBellPanel();
+  if(secId === 'resources-adm' && typeof loadResources === 'function') {
+    loadResources().then(() => renderResourcesTable());
+  }
   if(secId === 'quiz-adm' && typeof loadQuizzes === 'function') loadQuizzes().then(() => renderQuizTable());
   if(secId === 'qsub-adm' && typeof loadQuizSubmissions === 'function') {
     Promise.all([loadQuizzes(), loadQuizSubmissions()]).then(() => renderQuizSubmissionsTable());
@@ -254,6 +258,7 @@ function renderAdminAll() {
   if(typeof renderOlympiadTable === 'function') renderOlympiadTable();
   if(typeof renderGalleryTable === 'function') renderGalleryTable();
   if(typeof renderNewsTable === 'function') renderNewsTable();
+  if(typeof renderResourcesTable === 'function') renderResourcesTable();
   if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
   if(typeof renderTeamTable === 'function') renderTeamTable();
   if(typeof renderNetworkTable === 'function') renderNetworkTable();
@@ -274,6 +279,7 @@ function renderDashboard() {
   const volunteerApps = typeof getVolunteerApplications === 'function' ? getVolunteerApplications() : [];
   const pendingVol = volunteerApps.filter(a => (a.status||'pending') === 'pending').length;
   const forumPosts = typeof getForumPosts === 'function' ? getForumPosts() : [];
+  const resources = typeof getResources === 'function' ? getResources() : [];
 
   const stats = document.getElementById('db-stats');
   if(stats) {
@@ -283,6 +289,7 @@ function renderDashboard() {
       <div class="stat-card"><div class="sl">Upcoming</div><div class="sv">${upcoming}</div></div>
       <div class="stat-card"><div class="sl">Gallery Items</div><div class="sv">${gallery.length}</div></div>
       <div class="stat-card"><div class="sl">News Posts</div><div class="sv">${news.length}</div></div>
+      <div class="stat-card"><div class="sl">Resources</div><div class="sv" style="color:#a78bfa;">${resources.length}</div></div>
       <div class="stat-card"><div class="sl">Messages</div><div class="sv">${messages.length}</div></div>
       <div class="stat-card"><div class="sl">Registrations</div><div class="sv">${registrations.length}</div></div>
       <div class="stat-card"><div class="sl">Certificates</div><div class="sv" style="color:#4ade80;">${certificates.length}</div></div>
@@ -380,7 +387,6 @@ function renderRegistrationsTable() {
   if(!tbody) return;
   const all = getRegistrations();
 
-  // event filter options (keep the current choice)
   const evSel = document.getElementById('reg-event-filter');
   if(evSel) {
     const keep = evSel.value;
@@ -409,8 +415,7 @@ function renderRegistrationsTable() {
         <button class="e-btn" onclick="viewRegistration('${r.id}')">View</button><button class="d-btn" onclick="deleteRegistrationAction('${r.id}')">Delete</button>
       </td></tr>`;
   }).join('');
-}
-
+  }
 async function setRegApproval(id, status) {
   const ok = await setRegistrationApproval(id, status);
   if(!ok) return toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);
@@ -532,7 +537,7 @@ function editOlympiad(id) {
   const o = getOlympiads().find(x => x.id === id); if(!o) return;
   window._ofGroupLoaded = false;
   const glEl = document.getElementById('of-group'); if(glEl) glEl.value = '';
-  getEventLink(id).then(u => {                        // the group link is stored privately, not in the event itself
+  getEventLink(id).then(u => {
     if(document.getElementById('of-eid').value !== id) return;
     const el = document.getElementById('of-group'); if(el) el.value = u || '';
     window._ofGroupLoaded = true;
@@ -554,7 +559,7 @@ function editOlympiad(id) {
   document.getElementById('of-iu').value = o.img||'';
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = o.regEnabled||false;
   const qr = document.getElementById('of-qreg'); if(qr) qr.checked = o.quizRegisteredOnly !== false;
-  const ap = document.getElementById('of-approve'); if(ap) ap.checked = o.approvalRequired === true;   // old events stay as they were until you tick it
+  const ap = document.getElementById('of-approve'); if(ap) ap.checked = o.approvalRequired === true;
   document.getElementById('of-iprev').innerHTML = o.img ? `<img src="${o.img}">` : '';
   populateQuizDropdown(o.quizId || '');
   populateRegFormDropdown(o.registrationFormId || '');
@@ -571,7 +576,7 @@ async function saveOlympiad() {
   if(groupUrl && !/^https?:\/\//i.test(groupUrl)) return toast("Group link must start with http:// or https://", true);
   const ok = eid === '' ? await addOlympiad(o) : await updateOlympiad(eid, o);
   if(ok && (eid === '' || window._ofGroupLoaded)) {
-    const targetId = eid || (getOlympiads()[0] && getOlympiads()[0].id);   // a new event is put first in the list
+    const targetId = eid || (getOlympiads()[0] && getOlympiads()[0].id);
     if(targetId) await saveEventLink(targetId, groupUrl);
   }
   if(ok) { renderOlympiadTable(); renderDashboard(); closeFM('ofm'); toast("Saved! ✅"); }
@@ -637,6 +642,153 @@ async function saveNews() {
 }
 async function deleteNews(id) { if(!confirm("Delete?")) return; if(await deleteNewsData(id)) { renderNewsTable(); renderDashboard(); toast("Deleted."); } }
 
+/*===== RESOURCE HUB =====*/
+function escRes(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderResourcesTable() {
+  const tbody = document.getElementById('rtbl-resources');
+  if(!tbody) return;
+  const list = (typeof getResources === 'function' ? getResources() : []) || [];
+  if(!list.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">এখনো কোনো রিসোর্স যোগ করা হয়নি।</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(r => `
+    <tr>
+      <td><strong>${escRes(r.title)}</strong></td>
+      <td>${escRes(r.category)}</td>
+      <td>${escRes(r.classLevel)}</td>
+      <td>${escRes(r.fileSize)}</td>
+      <td>${r.downloads || 0}</td>
+      <td>${escRes(r.uploadDate)}</td>
+      <td><div class="tbl-acts">
+        <button class="e-btn" onclick="editResource('${r.id}')">Edit</button>
+        <button class="d-btn" onclick="deleteResourceUI('${r.id}')">Delete</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function openResourceForm(id) {
+  const isEdit = !!id;
+  document.getElementById('rfm-title').textContent = isEdit ? 'Edit Resource' : 'Add Resource';
+  document.getElementById('rf-eid').value = id || '';
+  document.getElementById('rf-upload-status').style.display = 'none';
+  if(isEdit) {
+    const r = (getResources() || []).find(x => x.id === id);
+    if(r) {
+      document.getElementById('rf-title').value = r.title || '';
+      document.getElementById('rf-desc').value = r.description || '';
+      document.getElementById('rf-cat').value = r.category || '';
+      document.getElementById('rf-class').value = r.classLevel || '';
+      document.getElementById('rf-subject').value = r.subject || '';
+    }
+  } else {
+    ['rf-title','rf-desc','rf-cat','rf-class','rf-subject'].forEach(i => {
+      const el = document.getElementById(i); if(el) el.value = '';
+    });
+    const f = document.getElementById('rf-file'); if(f) f.value = '';
+  }
+  openFM('rfm');
+}
+function editResource(id) { openResourceForm(id); }
+
+async function saveResource() {
+  const id = document.getElementById('rf-eid').value;
+  const title = document.getElementById('rf-title').value.trim();
+  const desc = document.getElementById('rf-desc').value.trim();
+  const category = document.getElementById('rf-cat').value;
+  const classLevel = document.getElementById('rf-class').value;
+  const subject = document.getElementById('rf-subject').value.trim();
+  const file = document.getElementById('rf-file').files[0];
+  const btn = document.getElementById('rf-save-btn');
+
+  if(!title) return showResStatus('⚠️ শিরোনাম লিখুন', 'error');
+  if(!category) return showResStatus('⚠️ ক্যাটাগরি সিলেক্ট করুন', 'error');
+  if(!classLevel) return showResStatus('⚠️ ক্লাস সিলেক্ট করুন', 'error');
+  if(!id && !file) return showResStatus('⚠️ ফাইল সিলেক্ট করুন', 'error');
+
+  try {
+    btn.disabled = true;
+    showResStatus('⏳ আপলোড হচ্ছে...', 'loading');
+
+    let fileUrl = null, fileSize = null, fileType = null;
+    if(file) {
+      if(file.size > 10 * 1024 * 1024) {
+        btn.disabled = false;
+        return showResStatus('⚠️ ফাইল ১০ MB-এর বেশি হতে পারবে না', 'error');
+      }
+      const fns = window.firebaseStorageFunctions || {};
+      if(!fns.ref) {
+        btn.disabled = false;
+        return showResStatus('❌ Firebase Storage সেটআপ হয়নি', 'error');
+      }
+      const storageRef = fns.ref(window.firebaseStorage, `resources/${Date.now()}_${file.name}`);
+      await fns.uploadBytes(storageRef, file);
+      fileUrl = await fns.getDownloadURL(storageRef);
+      fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+      fileType = file.name.split('.').pop().toLowerCase();
+    }
+
+    const fns = window.firebaseFunctions;
+    const db = window.firebaseDB;
+
+    if(id) {
+      const update = { title, description: desc, category, classLevel, subject };
+      if(fileUrl) { update.fileUrl = fileUrl; update.fileSize = fileSize; update.fileType = fileType; }
+      await fns.updateDoc(fns.doc(db, 'resources', id), update);
+    } else {
+      await fns.addDoc(fns.collection(db, 'resources'), {
+        title, description: desc, category, classLevel, subject,
+        fileUrl, fileSize, fileType,
+        uploadedBy: 'admin',
+        uploadDate: new Date().toISOString().split('T')[0],
+        createdAt: Date.now(),
+        views: 0, downloads: 0
+      });
+    }
+
+    showResStatus('✅ সফলভাবে সেভ হয়েছে!', 'success');
+    if(typeof loadResources === 'function') await loadResources();
+    renderResourcesTable();
+    if(typeof renderDashboard === 'function') renderDashboard();
+    setTimeout(() => {
+      closeFM('rfm');
+      btn.disabled = false;
+    }, 1200);
+  } catch(err) {
+    console.error(err);
+    btn.disabled = false;
+    showResStatus('❌ ' + err.message, 'error');
+  }
+}
+
+function showResStatus(msg, type) {
+  const el = document.getElementById('rf-upload-status');
+  if(!el) return;
+  const colors = { loading: '#3b82f6', success: '#16a34a', error: '#dc2626' };
+  el.style.display = 'block';
+  el.style.background = colors[type] + '20';
+  el.style.color = colors[type];
+  el.textContent = msg;
+}
+
+async function deleteResourceUI(id) {
+  if(!confirm('এই রিসোর্সটি মুছে ফেলবেন?')) return;
+  try {
+    const fns = window.firebaseFunctions;
+    await fns.deleteDoc(fns.doc(window.firebaseDB, 'resources', id));
+    if(typeof loadResources === 'function') await loadResources();
+    renderResourcesTable();
+    if(typeof renderDashboard === 'function') renderDashboard();
+    if(typeof toast === 'function') toast('✅ মুছে ফেলা হয়েছে');
+  } catch(err) {
+    console.error(err);
+    if(typeof toast === 'function') toast('❌ মুছতে ব্যর্থ', true);
+  }
+}
+
 /*===== IMAGE UPLOAD =====*/
 async function prevOImg(input) {
   if(!input.files?.[0]) return;
@@ -685,7 +837,7 @@ function openCertificateForm() {
 }
 async function editCertificate(id) {
   const c = getCertificates().find(x => x.id === id); if(!c) return;
-  await loadCertificateOwners();        // the email lives in a private collection
+  await loadCertificateOwners();
   document.getElementById('cfm-title').textContent = "Edit Certificate";
   document.getElementById('cf-eid').value = id;
   document.getElementById('cf-certid').value = c.certId||'';
@@ -713,7 +865,7 @@ async function saveCertificate() {
 }
 async function deleteCertificateAction(id) { if(!confirm("Delete?")) return; if(await deleteCertificate(id)) { renderCertificatesTable(); renderDashboard(); toast("Deleted."); } }
 
-/*===== CERTIFICATE PREVIEW / DOWNLOAD (built-in design, nothing to upload) =====*/
+/*===== CERTIFICATE PREVIEW / DOWNLOAD =====*/
 async function previewCertificate(id) {
   const c = getCertificates().find(x => x.id === id);
   if(!c) return;
@@ -806,7 +958,6 @@ async function saveRegistrationSettings() {
   else toast("Failed!", true);
 }
 
-/*===== POPUP SETTINGS =====*/
 /*===== FOUNDER'S MESSAGE SETTINGS =====*/
 async function loadFounderSettingsUI() {
   if(typeof getFounderSettings !== 'function') return;
@@ -848,7 +999,7 @@ async function prevFounderPhoto(input) {
   } else { prev.innerHTML = `<div style="color:#f87171">❌ Failed</div>`; toast("Failed!", true); }
 }
 
-/*===== REGISTERED USERS + MEMBER ACCESS (main admin only) =====*/
+/*===== REGISTERED USERS + MEMBER ACCESS =====*/
 function fmtUserDate(t) {
   return t ? new Date(t).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
 }
@@ -969,6 +1120,13 @@ async function openMemberAccess(uid) {
   openUserOverlay('member-access-ov', `
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:90vh;overflow:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <h3 style="font-family:Montserrat;font-size:1.05rem;">🔑 Manage Access</h3>
+        <button onclick="closeUserOverlay('member-access-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:.85rem;margin-bottom:4px;"><strong>${escUser(name)}</strong> · <span style="font-family:monospace;">${escUser(u.memberCode)}</span></p>
+      <p style="font-size:.76rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">যে পেজগুলো টিক দেবেন শুধু সেগুলোই এই সদস্য নিজের অ্যাকাউন্ট দিয়ে admin.html-এ এডিট করতে পারবেন।</p>
+      <div class="fg"><label>Role label (optional)</label>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <h3 style="font-family:Montserrat;font-size:1.05rem;">🔑 Manage Access</h3>
         <button onclick="closeUserOverlay('member-access-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
@@ -1105,9 +1263,7 @@ async function prUnpublish() {
   if(typeof renderQuizSubmissionsTable === 'function') renderQuizSubmissionsTable();
 }
 
-/*===== CERTIFICATE TEMPLATE EDITOR =====
-   Upload your own designed certificate once, tap where the Name, Verify ID and
-   QR code should be printed. All certificates then use that design. */
+/*===== CERTIFICATE TEMPLATE EDITOR =====*/
 let tplCfg = null, tplSel = 'name', tplTimer = null, tplTarget = '', tplHasOwn = false;
 
 async function openCertTemplate(targetId) {
@@ -1115,18 +1271,18 @@ async function openCertTemplate(targetId) {
   const events = typeof getOlympiads === 'function' ? getOlympiads() : [];
   let saved = await loadCertTemplate(true, tplTarget || undefined);
   tplHasOwn = !!saved;
-  if(!saved && tplTarget) {                       // new design for an event: start from the default positions, but no image yet
+  if(!saved && tplTarget) {
     const base = await loadCertTemplate(true);
     saved = base ? { ...base, url: '' } : null;
   }
   tplCfg = tvbdCert.mergeCfg(saved);
   tplSel = 'name';
   const c = tplCfg;
-  const evOpts = `<option value="" ${tplTarget ? '' : 'selected'}>🌐 ডিফল্ট ডিজাইন (যে ইভেন্টের নিজস্ব ডিজাইন নেই, সেগুলোতে)</option>` +
+  const evOpts = `<option value="" ${tplTarget ? '' : 'selected'}>🌐 ডিফল্ট ডিজাইন</option>` +
     events.map(o => `<option value="${bcEsc(o.id)}" ${tplTarget === o.id ? 'selected' : ''}>🎯 ${bcEsc(o.title)}</option>`).join('');
   const status = tplTarget
-    ? (tplHasOwn ? '✅ এই ইভেন্টের নিজস্ব ডিজাইন আছে।' : 'ℹ️ এই ইভেন্টের নিজস্ব ডিজাইন এখনও নেই — আপলোড না করলে ডিফল্ট ডিজাইন ব্যবহার হবে।')
-    : 'এটা ডিফল্ট ডিজাইন — নিজস্ব ডিজাইন নেই এমন সব ইভেন্টে এটা ব্যবহার হবে।';
+    ? (tplHasOwn ? '✅ এই ইভেন্টের নিজস্ব ডিজাইন আছে।' : 'ℹ️ এই ইভেন্টের নিজস্ব ডিজাইন এখনও নেই।')
+    : 'এটা ডিফল্ট ডিজাইন।';
   const range = (el, key, min, max, step) =>
     `<input type="range" min="${min}" max="${max}" step="${step}" value="${c[el][key]}" oninput="tplSet('${el}','${key}',this.value)" style="width:100%;">`;
   const color = el =>
@@ -1141,7 +1297,7 @@ async function openCertTemplate(targetId) {
         <h3 style="font-family:Montserrat;font-size:1.05rem;">🖼 Certificate Template</h3>
         <button onclick="closeUserOverlay('cert-tpl-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
-      <p style="font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:10px;">১) আপনার ডিজাইন করা সার্টিফিকেটের ছবি (JPG/PNG) আপলোড করুন। ২) নিচে Name / Verify ID / QR বেছে ছবির যেখানে বসাতে চান সেখানে ট্যাপ করুন। ৩) Save করুন। ডিজাইনে নামের জায়গা ফাঁকা রাখবেন।</p>
+      <p style="font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:10px;">১) সার্টিফিকেটের ছবি আপলোড করুন। ২) Name / Verify ID / QR বেছে ছবির যেখানে বসাতে চান সেখানে ট্যাপ করুন। ৩) Save করুন।</p>
 
       <div class="fg"><label>কোন ইভেন্টের জন্য ডিজাইন?</label>
         <select class="fi" onchange="openCertTemplate(this.value)">${evOpts}</select>
@@ -1154,7 +1310,7 @@ async function openCertTemplate(targetId) {
       </div>
       <p id="tpl-warn" style="display:none;font-size:.78rem;line-height:1.7;margin:4px 0 8px;"></p>
 
-      <div class="fg"><label>প্রিভিউর নাম (শুধু দেখার জন্য)</label><input class="fi" id="tpl-sample" value="Abdur Rahman" oninput="tplRefresh()"></div>
+      <div class="fg"><label>প্রিভিউর নাম</label><input class="fi" id="tpl-sample" value="Abdur Rahman" oninput="tplRefresh()"></div>
 
       <div style="display:flex;gap:8px;margin:6px 0;">${pickBtn('name', '✍️ Name')}${pickBtn('id', '🆔 Verify ID')}${pickBtn('qr', '▦ QR Code')}</div>
       <p id="tpl-hint" style="font-size:.78rem;color:var(--blue-br);margin:4px 0 8px;"></p>
@@ -1186,10 +1342,10 @@ async function openCertTemplate(targetId) {
 
       <h4 style="font-size:.9rem;margin:16px 0 6px;">📝 সার্টিফিকেটের নিয়ম</h4>
       <div class="chk-wrap" style="margin-bottom:4px;"><input type="checkbox" id="tpl-examonly" ${c.examOnly !== false ? 'checked' : ''} onchange="tplCfg.examOnly = this.checked"><label for="tpl-examonly"> শুধু যারা Exam দিয়েছে তারাই সার্টিফিকেট পাবে</label></div>
-      <p style="font-size:.74rem;color:var(--muted);line-height:1.7;margin-bottom:4px;">টিক থাকলে Bulk Generate-এ যারা Exam দেয়নি তাদের বাছা যাবে না। টিক তুলে দিলে রেজিস্টার করা সবাইকে বাছা যাবে।</p>
+      <p style="font-size:.74rem;color:var(--muted);line-height:1.7;margin-bottom:4px;">টিক থাকলে Bulk Generate-এ যারা Exam দেয়নি তাদের বাছা যাবে না।</p>
 
       <button class="save-btn" style="width:100%;margin-top:14px;" onclick="tplSave()">💾 Save Template</button>
-      <button class="d-btn" style="width:100%;margin-top:10px;padding:10px;" onclick="tplRemove()">🗑 Template মুছুন (বিল্ট-ইন ডিজাইন ব্যবহার হবে)</button>
+      <button class="d-btn" style="width:100%;margin-top:10px;padding:10px;" onclick="tplRemove()">🗑 Template মুছুন</button>
     </div>`);
   tplPick('name');
   tplRefresh();
@@ -1233,7 +1389,7 @@ async function tplDraw() {
   if(!tplCfg.url) {
     pv.style.display = 'none';
     warn.style.display = 'block'; warn.style.color = 'var(--muted)';
-    warn.textContent = tplTarget ? 'এই ইভেন্টের জন্য ডিজাইনের ছবি আপলোড করুন।' : 'এখনও কোনো ডিফল্ট ডিজাইন বেছে নেওয়া হয়নি। এখন সার্টিফিকেটে বিল্ট-ইন ডিজাইন ব্যবহার হচ্ছে।';
+    warn.textContent = tplTarget ? 'এই ইভেন্টের জন্য ডিজাইনের ছবি আপলোড করুন।' : 'এখনও কোনো ডিফল্ট ডিজাইন বেছে নেওয়া হয়নি।';
     return;
   }
   const sample = {
@@ -1246,7 +1402,7 @@ async function tplDraw() {
   if(c.templateFailed) {
     pv.style.display = 'none';
     warn.style.display = 'block'; warn.style.color = '#f87171';
-    warn.textContent = 'ছবিটা লোড করা যায়নি (ব্রাউজার ছবিটা ব্যবহার করতে দিচ্ছে না)। ছবিটা GitHub রিপোতে certificate-template.jpg নামে আপলোড করুন, তারপর ওপরের "GitHub-এর certificate-template.jpg ব্যবহার করুন" বাটন চাপুন।';
+    warn.textContent = 'ছবিটা লোড করা যায়নি। GitHub-এ certificate-template.jpg নামে আপলোড করুন।';
     return;
   }
   warn.style.display = 'none';
@@ -1274,7 +1430,7 @@ async function tplSave() {
   if(tplTarget && !tplCfg.url) return toast('আগে এই ইভেন্টের ডিজাইনের ছবি আপলোড করুন।', true);
   const ok = await saveCertTemplate(tplCfg, tplTarget || undefined);
   if(!ok) return toast('Save failed! Rules/internet চেক করুন।', true);
-  toast(tplCfg.url ? 'Template saved! ✅' : 'Saved! (ডিজাইনের ছবি নেই, বিল্ট-ইন ডিজাইন ব্যবহার হবে)');
+  toast(tplCfg.url ? 'Template saved! ✅' : 'Saved! (বিল্ট-ইন ডিজাইন ব্যবহার হবে)');
   closeUserOverlay('cert-tpl-ov');
 }
 
@@ -1283,10 +1439,10 @@ async function tplRemove() {
     if(!confirm('এই ইভেন্টের নিজস্ব ডিজাইন মুছে ডিফল্ট ডিজাইনে ফিরে যাবেন?')) return;
     const ok = await removeCertTemplate(tplTarget);
     if(!ok) return toast('Failed!', true);
-    toast('ইভেন্টের ডিজাইন মুছে গেছে — এখন ডিফল্ট ডিজাইন ব্যবহার হবে।');
+    toast('ইভেন্টের ডিজাইন মুছে গেছে।');
     return closeUserOverlay('cert-tpl-ov');
   }
-  if(!confirm('ডিজাইনের ছবি সরিয়ে বিল্ট-ইন ডিজাইনে ফিরে যাবেন? (জায়গা ও নিয়মের সেটিং থেকে যাবে)')) return;
+  if(!confirm('ডিজাইনের ছবি সরিয়ে বিল্ট-ইন ডিজাইনে ফিরে যাবেন?')) return;
   tplCfg.url = '';
   const ok = await saveCertTemplate(tplCfg);
   if(!ok) return toast('Failed!', true);
@@ -1294,19 +1450,15 @@ async function tplRemove() {
   closeUserOverlay('cert-tpl-ov');
 }
 
-/*===== BULK CERTIFICATE GENERATOR =====
-   Event -> registered participants (with quiz score) -> tick who gets a
-   certificate -> positions are suggested from the scores and can be edited by
-   hand -> certificates are saved with automatic IDs. */
+/*===== BULK CERTIFICATE GENERATOR =====*/
 let bulkRows = [];
 let bulkEvent = null;
+let bulkExamOnly = true;
 
 function bcEsc(v) {
   return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function bcNorm(v) { return String(v || '').trim().toLowerCase(); }
-// Only people who actually took the exam (quiz) get a certificate. If the event has no quiz linked, registered people are eligible.
-let bulkExamOnly = true;   // comes from the Template settings
 function bulkEligible(r) { return !!(!bulkExamOnly || r.hasQuiz || !(bulkEvent && bulkEvent.quizId)); }
 function bcIsWinner(pos) { return /champion|winner|runner|1st|2nd|3rd|first|second|third/i.test(String(pos || '')); }
 function bulkSelect(mode) {
@@ -1314,13 +1466,26 @@ function bulkSelect(mode) {
     if(c.disabled) return;
     if(mode === 'all') { c.checked = true; return; }
     const posEl = document.querySelector(`.bc-pos[data-i="${c.dataset.i}"]`);
-    // "participants" mode = everyone who took the exam, except winners (people without an exam are disabled)
     c.checked = !bcIsWinner(posEl ? posEl.value : '');
   });
   bulkUpdateCount();
 }
 
 function openBulkCert() {
+  const events = typeof getOlympiads === 'function' ? getOlympiads() : [];
+  if(!events.length) return toast('আগে ইভেন্ট যোগ করুন।', true);
+  const opts = events.map(o => `<option value="${bcEsc(o.id)}">${bcEsc(o.title)}</option>`).join('');
+  const year = new Date().getFullYear();
+  const today = new Date().toISOString().slice(0, 10);
+  bulkRows = []; bulkEvent = null;
+  openUserOverlay('bulk-cert-ov', `
+    <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:20px;width:100%;max-width:640px;max-height:92vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="font-family:Montserrat;font-size:1.05rem;">⚡ Bulk Certificate Generator</h3>
+        <button onclick="closeUserOverlay('bulk-cert-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+      </div>
+
+      function openBulkCert() {
   const events = typeof getOlympiads === 'function' ? getOlympiads() : [];
   if(!events.length) return toast('আগে ইভেন্ট যোগ করুন।', true);
   const opts = events.map(o => `<option value="${bcEsc(o.id)}">${bcEsc(o.title)}</option>`).join('');
@@ -1350,10 +1515,10 @@ function openBulkCert() {
         <button class="e-btn" onclick="bulkSelect('participants')">Quiz দিয়েছে এমন সবাই (Winners বাদে)</button>
         <button class="e-btn" onclick="bulkSelect('all')">Select all</button>
         <button class="e-btn" onclick="document.querySelectorAll('.bc-chk').forEach(c=>c.checked=false);bulkUpdateCount()">Clear</button>
-        <button class="e-btn" onclick="bulkRecalc()">🔄 Positions আবার হিসাব (হাতে বদল মুছবে)</button>
+        <button class="e-btn" onclick="bulkRecalc()">🔄 Positions আবার হিসাব</button>
       </div>
 
-      <p id="bc-note" style="font-size:.76rem;color:var(--muted);line-height:1.7;margin:4px 0 8px;">📝 শুধু যারা এই ইভেন্টের Exam (কুইজ) দিয়েছে তারাই সার্টিফিকেট পাবে। যারা শুধু রেজিস্টার করেছে কিন্তু Exam দেয়নি, তাদের টিক দেওয়া যাবে না। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন। (ইভেন্টে কুইজ লিংক করা না থাকলে সব রেজিস্টার করা সদস্যকে বাছা যাবে।)</p>
+      <p id="bc-note" style="font-size:.76rem;color:var(--muted);line-height:1.7;margin:4px 0 8px;">📝 শুধু যারা এই ইভেন্টের Exam (কুইজ) দিয়েছে তারাই সার্টিফিকেট পাবে। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন।</p>
       <datalist id="bc-pos-list">
         <option value="Champion"><option value="1st Runner Up"><option value="2nd Runner Up"><option value="Merit"><option value="Participant">
       </datalist>
@@ -1382,8 +1547,8 @@ async function bulkLoadEvent() {
   bulkExamOnly = !tplSetting || tplSetting.examOnly !== false;
   const note = document.getElementById('bc-note');
   if(note) note.innerHTML = bulkExamOnly
-    ? '📝 শুধু যারা এই ইভেন্টের Exam (কুইজ) দিয়েছে তারাই সার্টিফিকেট পাবে। যারা শুধু রেজিস্টার করেছে কিন্তু Exam দেয়নি, তাদের টিক দেওয়া যাবে না। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন। (Template এডিটর থেকে এই নিয়ম বন্ধ করা যায়।)'
-    : '📝 Exam-এর নিয়ম এখন বন্ধ আছে, তাই রেজিস্টার করা সবাইকে বাছা যাবে (Template এডিটরে চালু করা যায়)। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন।';
+    ? '📝 শুধু যারা এই ইভেন্টের Exam (কুইজ) দিয়েছে তারাই সার্টিফিকেট পাবে। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন।'
+    : '📝 Exam-এর নিয়ম এখন বন্ধ আছে, তাই রেজিস্টার করা সবাইকে বাছা যাবে।';
 
   const title = bcNorm(bulkEvent.title);
   const regs = getRegistrations().filter(r => bcNorm(r.olympiad) === title);
@@ -1393,7 +1558,7 @@ async function bulkLoadEvent() {
   const seen = new Set();
   regs.forEach(r => {
     const em = bcNorm(r.email);
-    if(seen.has(em)) return;             // same person registered twice
+    if(seen.has(em)) return;
     seen.add(em);
     const sub = subs.find(s => bcNorm(s.email) === em);
     const hasScore = sub && sub.totalScore != null;
@@ -1416,7 +1581,6 @@ async function bulkLoadEvent() {
   bulkRecalc();
 }
 
-// Champion / 1st / 2nd Runner Up from scores (ties: faster time wins), the rest Merit or Participant
 function bulkRecalc() {
   const bySeg = document.getElementById('bc-seg').checked;
   const meritPct = parseFloat(document.getElementById('bc-merit').value);
@@ -1439,7 +1603,7 @@ function bulkRecalc() {
 function bulkRender() {
   const list = document.getElementById('bc-list');
   if(!bulkRows.length) {
-    list.innerHTML = '<p style="color:var(--muted);font-size:.85rem;padding:14px 4px;line-height:1.7;">এই ইভেন্টে কেউ রেজিস্ট্রেশন করেনি (অথবা এই অ্যাকাউন্টের Registrations/Quiz Submissions দেখার অনুমতি নেই)।</p>';
+    list.innerHTML = '<p style="color:var(--muted);font-size:.85rem;padding:14px 4px;line-height:1.7;">এই ইভেন্টে কেউ রেজিস্ট্রেশন করেনি।</p>';
     return bulkUpdateCount();
   }
   const sorted = [...bulkRows].sort((a, b) => ((b.score ?? -1) - (a.score ?? -1)) || a.name.localeCompare(b.name));
@@ -1450,7 +1614,7 @@ function bulkRender() {
       <input type="checkbox" class="bc-chk" data-i="${r.i}" ${(r.issued || !bulkEligible(r)) ? 'disabled' : (bcIsWinner(r.position) ? '' : 'checked')} style="width:18px;height:18px;" onchange="bulkUpdateCount()">
       <div style="flex:1;min-width:150px;">
         <div style="font-weight:700;font-size:.88rem;">${bcEsc(r.name)}</div>
-        <div style="font-size:.72rem;color:var(--muted);">${bcEsc(r.segment)}${r.segment ? ' · ' : ''}Score: ${score}${!bulkEligible(r) ? ' · 📝 Exam দেননি — certificate পাবেন না' : ''}${r.issued ? ' · ✅ Already issued' : (bcIsWinner(r.position) ? ' · 🏆 Winner — আপনি মেইল করবেন' : '')}</div>
+        <div style="font-size:.72rem;color:var(--muted);">${bcEsc(r.segment)}${r.segment ? ' · ' : ''}Score: ${score}${!bulkEligible(r) ? ' · 📝 Exam দেননি' : ''}${r.issued ? ' · ✅ Already issued' : (bcIsWinner(r.position) ? ' · 🏆 Winner' : '')}</div>
       </div>
       <input class="fi bc-pos" data-i="${r.i}" list="bc-pos-list" value="${bcEsc(r.position)}" ${r.issued ? 'disabled' : ''} style="width:150px;">
     </div>`;
@@ -1514,7 +1678,6 @@ async function bulkGenerate() {
   bulkShowResult();
 }
 
-/*----- after saving: download every certificate as images in ZIP files (40 per ZIP) -----*/
 let bulkCreated = [];
 const BULK_ZIP_SIZE = 40;
 
@@ -1528,7 +1691,7 @@ function bulkShowResult() {
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:90vh;overflow:auto;text-align:center;">
       <div style="font-size:2.4rem;margin-bottom:6px;">✅</div>
       <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">${bulkCreated.length}টা সার্টিফিকেট তৈরি হয়েছে</h3>
-      <p style="font-size:.82rem;color:var(--muted);line-height:1.7;">প্রতিটা সার্টিফিকেটে নাম, Verify ID ও QR কোড নিজে থেকে বসানো আছে। ছবি আকারে নামাতে নিচের বাটন চাপুন। ${parts > 1 ? 'ফোনে ভারী না হওয়ার জন্য ৪০টা করে ZIP আলাদা করা হয়েছে।' : ''}</p>
+      <p style="font-size:.82rem;color:var(--muted);line-height:1.7;">প্রতিটা সার্টিফিকেটে নাম, Verify ID ও QR কোড নিজে থেকে বসানো আছে। ${parts > 1 ? 'ফোনে ভারী না হওয়ার জন্য ৪০টা করে ZIP আলাদা করা হয়েছে।' : ''}</p>
       ${btns}
       <button class="e-btn" style="width:100%;margin-top:14px;padding:10px;" onclick="closeUserOverlay('bulk-cert-ov')">Done</button>
     </div>`);
@@ -1603,25 +1766,29 @@ async function loadPopupSettings() {
   const a = document.getElementById('ps-active'); if(a) a.checked = s.active||false;
   const nb = document.getElementById('ps-nb-active'); if(nb) nb.checked = s.showNoticeBar||false;
 }
+
+async function savePopupSettings() {
+  const data = { active:document.getElementById('ps-active')?.checked||false, title:document.getElementById('ps-title')?.value.trim()||'', message:document.getElementById('ps-message')?.value.trim()||'', buttonText:document.getElementById('ps-btn-text')?.value.trim()||'Apply Now', buttonLink:document.getElementById('ps-btn-link')?.value.trim()||'', deadline:document.getElementById('ps-deadline')?.value||'', showNoticeBar:document.getElementById('ps-nb-active')?.checked||false, noticeBarText:document.getElementById('ps-nb-text')?.value.trim()||'' };
+  if(data.active && !data.title) return toast("Title required!", true);
+  if(await updatePopupSettings(data)) toast("Saved! ✅");
+  else toast("Failed!", true);
+                  }
 async function savePopupSettings() {
   const data = { active:document.getElementById('ps-active')?.checked||false, title:document.getElementById('ps-title')?.value.trim()||'', message:document.getElementById('ps-message')?.value.trim()||'', buttonText:document.getElementById('ps-btn-text')?.value.trim()||'Apply Now', buttonLink:document.getElementById('ps-btn-link')?.value.trim()||'', deadline:document.getElementById('ps-deadline')?.value||'', showNoticeBar:document.getElementById('ps-nb-active')?.checked||false, noticeBarText:document.getElementById('ps-nb-text')?.value.trim()||'' };
   if(data.active && !data.title) return toast("Title required!", true);
   if(await updatePopupSettings(data)) toast("Saved! ✅");
   else toast("Failed!", true);
 }
-/*===== TEAM MANAGEMENT =====*/
 
-// Render Team Table
+/*===== TEAM MANAGEMENT =====*/
 function renderTeamTable() {
   const tbody = document.getElementById('ttbl');
   if(!tbody) return;
-  
   const team = getTeam();
   if(team.length === 0) {
     tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No team members yet. Click "+ Add Member" to start.</td></tr>`;
     return;
   }
-  
   tbody.innerHTML = '';
   team.forEach((m) => {
     tbody.innerHTML += `
@@ -1644,7 +1811,6 @@ function renderTeamTable() {
   });
 }
 
-// Open Add Team Form
 function openTeamForm() {
   document.getElementById('tfm-title').textContent = "Add Team Member";
   document.getElementById('tf-eid').value = '';
@@ -1659,7 +1825,6 @@ function openTeamForm() {
   openFM('tfm');
 }
 
-// Edit Team Member
 function editTeamMember(id) {
   const m = getTeam().find(x => x.id === id);
   if(!m) return;
@@ -1676,7 +1841,6 @@ function editTeamMember(id) {
   openFM('tfm');
 }
 
-// Save Team Member
 async function saveTeamMember() {
   const name = document.getElementById('tf-name').value.trim();
   const role = document.getElementById('tf-role').value.trim();
@@ -1711,7 +1875,6 @@ async function saveTeamMember() {
   }
 }
 
-// Delete Team Member
 async function deleteTeamMemberAction(id) {
   if(!confirm("Delete this team member?")) return;
   const ok = await deleteTeamMember(id);
@@ -1724,7 +1887,6 @@ async function deleteTeamMemberAction(id) {
   }
 }
 
-// Team Photo Upload
 async function prevTeamPhoto(input) {
   if(!input.files?.[0]) return;
   const file = input.files[0];
@@ -1780,7 +1942,6 @@ function renderNetworkTable() {
   });
 }
 
-// Open Add Network Page Form
 function openNetworkForm() {
   document.getElementById('npfm-title').textContent = "Add Network Page";
   document.getElementById('np-eid').value = '';
@@ -1793,7 +1954,6 @@ function openNetworkForm() {
   openFM('npfm');
 }
 
-// Edit Network Page
 function editNetworkPage(id) {
   const p = getNetworkPages().find(x => x.id === id);
   if(!p) return;
@@ -1808,7 +1968,6 @@ function editNetworkPage(id) {
   openFM('npfm');
 }
 
-// Save Network Page
 async function saveNetworkPage() {
   const name = document.getElementById('np-name').value.trim();
   let url = document.getElementById('np-url').value.trim();
@@ -1841,7 +2000,6 @@ async function saveNetworkPage() {
   }
 }
 
-// Delete Network Page
 async function deleteNetworkPageAction(id) {
   if(!confirm("Delete this network page?")) return;
   const ok = await deleteNetworkPage(id);
@@ -1853,7 +2011,6 @@ async function deleteNetworkPageAction(id) {
   }
 }
 
-// Network Page Logo Upload
 async function prevNetworkLogo(input) {
   if(!input.files?.[0]) return;
   const file = input.files[0];
@@ -1880,8 +2037,6 @@ async function prevNetworkLogo(input) {
 /*===== QUIZ / EXAM ADMIN =====*/
 let qfQuestionCount = 0;
 
-// datetime-local inputs need "YYYY-MM-DDTHH:mm" in local time — Date's
-// own ISO string is UTC, so build it from local field values instead.
 function qfTimestampToLocalInput(ts) {
   if(!ts) return '';
   const d = new Date(ts);
@@ -1906,7 +2061,7 @@ function openQuizForm() {
   document.getElementById('qf-end').value = '';
   document.getElementById('qf-questions').innerHTML = '';
   qfQuestionCount = 0;
-  addQuizQuestionRow(); // start with one blank question
+  addQuizQuestionRow();
   openFM('qfm');
 }
 
@@ -1949,7 +2104,7 @@ function toggleQfOptions(sel) {
 async function editQuiz(id) {
   let q = getQuizzes().find(x => x.id === id);
   if(!q) return;
-  if(q.secure) {                                    // the correct answers live in the private quiz_keys document
+  if(q.secure) {
     const keys = await loadQuizKey(id);
     if(!keys) toast('উত্তরের চাবি পড়া যায়নি — সঠিক উত্তর নতুন করে বেছে নিন।', true);
     q = { ...q, questions: (q.questions || []).map(x => x.type === 'mcq' ? { ...x, correctIndex: keys ? keys[x.id] : undefined } : x) };
@@ -2081,7 +2236,7 @@ function renderQuizSubmissionsTable() {
     }
     return `
     <tr>
-      <td><strong>${s.name}</strong><br><span style="color:var(--muted);font-size:.75rem;">${s.email || ''} ${s.phone ? '· ' + s.phone : ''}</span></td>
+            <td><strong>${s.name}</strong><br><span style="color:var(--muted);font-size:.75rem;">${s.email || ''} ${s.phone ? '· ' + s.phone : ''}</span></td>
       <td>${quiz ? quiz.title : '(deleted quiz)'}</td>
       <td>${s.mcqScore == null ? '—' : s.mcqScore + ' / ' + (s.mcqTotal ?? 0)}</td>
       <td>${s.shortScore === null || s.shortScore === undefined ? '—' : s.shortScore + ' / ' + s.shortTotal}</td>
@@ -2218,7 +2373,6 @@ function applyNotifyTemplate(key) {
 }
 
 async function initNotifyPanel() {
-  // Warn if the Google Apps Script mailer hasn't been configured yet
   const warn = document.getElementById('ntf-config-warning');
   if(!window.NOTIFY_MAILER || !window.NOTIFY_MAILER.scriptUrl) {
     warn.style.display = 'block';
@@ -2229,14 +2383,11 @@ async function initNotifyPanel() {
     document.getElementById('ntf-send-btn').disabled = false;
   }
 
-  // Populate quiz dropdown
   if(typeof loadQuizzes === 'function') await loadQuizzes();
   const quizSelect = document.getElementById('ntf-quiz-select');
   const quizzes = typeof getQuizzes === 'function' ? getQuizzes() : [];
   quizSelect.innerHTML = quizzes.map(q => `<option value="${q.id}">${q.title}</option>`).join('') || '<option value="">(no quizzes yet)</option>';
 
-  // Each audience needs the matching permission. The main admin has all of them; a member only gets
-  // what they were given (so granting "Email Notifications" never exposes more personal data than before).
   const canUsers = !!(adminAccess && adminAccess.all);
   const canRegs = canAdmin('registrations');
   const canSubs = canAdmin('qsubs');
@@ -2279,7 +2430,6 @@ function getNotifyRecipientEmails() {
     emails = raw.split(/[\n,]/).map(e => e.trim()).filter(Boolean);
   }
 
-  // Dedupe + basic validity filter
   const seen = new Set();
   return emails
     .map(e => (e || '').trim().toLowerCase())
@@ -2321,10 +2471,6 @@ async function sendNotificationCampaign() {
     const to = recipients[i];
     done = i + 1;
     try {
-      // Sent as text/plain (no custom headers) so the browser skips a CORS
-      // preflight — Apps Script still parses it fine via e.postData.contents.
-      // The mailer no longer trusts a shared key: it checks the admin's Firebase login token instead.
-      // (Firebase keeps the token fresh; getIdToken() is instant while it is still valid.)
       const idToken = await window.firebaseAuth.currentUser.getIdToken();
       const res = await fetch(window.NOTIFY_MAILER.scriptUrl, {
         method: 'POST',
@@ -2334,7 +2480,7 @@ async function sendNotificationCampaign() {
       if(data.success) sent++;
       else {
         failed++; console.error("Notify send failed for", to, data.error);
-        if(data.error === 'unauthorized' || data.error === 'quota') { abortReason = data.error; break; }   // no point trying the rest
+        if(data.error === 'unauthorized' || data.error === 'quota') { abortReason = data.error; break; }
       }
     } catch(err) {
       console.error("Notify send failed for", to, err);
@@ -2343,11 +2489,10 @@ async function sendNotificationCampaign() {
     const pct = Math.round(((i + 1) / recipients.length) * 100);
     progressBar.style.width = pct + '%';
     progressText.textContent = `Sending... ${i + 1} / ${recipients.length} (${sent} sent, ${failed} failed)`;
-    // Small delay to stay well under Gmail's sending rate
     await new Promise(r => setTimeout(r, 400));
   }
 
-  if(abortReason) failed += recipients.length - done;      // the ones we never tried
+  if(abortReason) failed += recipients.length - done;
   await addNotificationRecord({ subject, audience, recipientCount: recipients.length, sent, failed });
   await loadNotificationHistory();
   renderNotifyHistory();
@@ -2383,7 +2528,6 @@ function renderNotifyHistory() {
       <td style="color:var(--muted);font-size:.78rem;">${h.sentAt ? new Date(h.sentAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
     </tr>`).join('');
 }
-
 
 /*===== DASHBOARD NOTIFICATIONS (bell icon) =====*/
 
@@ -2563,4 +2707,4 @@ function renderBellList() {
       <td style="color:var(--muted);font-size:.78rem;white-space:nowrap;">${a.createdAt ? new Date(a.createdAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}</td>
       <td><button class="fc-btn" onclick="deleteBellNotification('${a.id}')">🗑️ Delete</button></td>
     </tr>`).join('');
-}
+     }

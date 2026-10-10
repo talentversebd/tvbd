@@ -64,6 +64,7 @@
     updateResource:{ section: 'Resources', action: 'edit', id: 0, obj: 1, list: 'getResources', keys: T },
     deleteResource:{ section: 'Resources', action: 'delete', id: 0, list: 'getResources', keys: T },
     deleteForumPost:{ section: 'Forum', action: 'delete post', id: 0, list: 'getForumPosts', label: (a, f) => f ? f.title || '' : '' },
+    updateForumPostStatus:{ section: 'Forum', action: 'review post', id: 0, list: 'getForumPosts', label: (a, f) => f ? f.title || '' : '', details: a => a[1] },
     updateElectionNominationStatus:{ section: 'Election', action: 'nomination review', id: 0, list: 'getElectionNominations', label: (a, f) => f ? `${f.name || ''} — ${f.position || ''}` : '', details: a => a[1] },
     deleteElectionNomination:{ section: 'Election', action: 'delete nomination', id: 0, list: 'getElectionNominations', label: (a, f) => f ? `${f.name || ''} — ${f.position || ''}` : '' },
 

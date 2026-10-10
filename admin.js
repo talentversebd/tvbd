@@ -247,7 +247,7 @@ function goSec(btn) {
   }
   if(secId === 'forum-adm' && typeof loadForumPosts === 'function') {
     document.getElementById('forumtbl').innerHTML = `<tr class="empty-row"><td colspan="6">⏳ Loading...</td></tr>`;
-    loadForumPosts().then(() => renderForumTable());
+    loadForumPosts().then(() => { renderForumTable(); renderDashboard(); });
   }
   if(window.innerWidth <= 700) closeSidebar();
 }
@@ -279,6 +279,7 @@ function renderDashboard() {
   const volunteerApps = typeof getVolunteerApplications === 'function' ? getVolunteerApplications() : [];
   const pendingVol = volunteerApps.filter(a => (a.status||'pending') === 'pending').length;
   const forumPosts = typeof getForumPosts === 'function' ? getForumPosts() : [];
+  const pendingForum = forumPosts.filter(p => (p.status||'pending') === 'pending').length;
   const resources = typeof getResources === 'function' ? getResources() : [];
 
   const stats = document.getElementById('db-stats');
@@ -294,8 +295,11 @@ function renderDashboard() {
       <div class="stat-card"><div class="sl">Registrations</div><div class="sv">${registrations.length}</div></div>
       <div class="stat-card"><div class="sl">Certificates</div><div class="sv" style="color:#4ade80;">${certificates.length}</div></div>
       <div class="stat-card"><div class="sl">Pending Volunteer Apps</div><div class="sv" style="color:#eab308;">${pendingVol}</div></div>
+      <div class="stat-card"><div class="sl">Pending Forum Posts</div><div class="sv" style="color:#eab308;">${pendingForum}</div></div>
       <div class="stat-card"><div class="sl">Forum Posts</div><div class="sv">${forumPosts.length}</div></div>`;
   }
+  const forumDot = document.getElementById('forum-pending-dot');
+  if(forumDot) { forumDot.textContent = pendingForum; forumDot.style.display = pendingForum>0 ? 'inline-block' : 'none'; }
 
   const recent = document.getElementById('db-recent');
   if(recent) {
@@ -2645,37 +2649,60 @@ async function deleteVolunteerApp(id) {
 function renderForumTable() {
   const tbody = document.getElementById('forumtbl');
   if(!tbody) return;
-  const data = getForumPosts().slice().sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
-  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No posts yet.</td></tr>`; return; }
+  const statusF = document.getElementById('forum-status-filter')?.value || '';
+  const order = { pending:0, approved:1, rejected:2 };
+  const data = getForumPosts()
+    .filter(p => !statusF || (p.status||'pending') === statusF)
+    .slice()
+    .sort((a,b) => (order[a.status||'pending']-order[b.status||'pending']) || ((b.createdAt||0)-(a.createdAt||0)));
+  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No posts found.</td></tr>`; return; }
   tbody.innerHTML = '';
   data.forEach(p => {
+    const status = p.status || 'pending';
     tbody.innerHTML += `<tr>
       <td>${escUser(p.title)}</td>
       <td>${escUser(p.category)}</td>
       <td>${escUser(p.authorName)}</td>
+      <td><span class="st-badge st-${status}">${status}</span></td>
       <td>${p.replyCount || 0}</td>
       <td>${fmtUserDate(p.createdAt)}</td>
       <td class="tbl-acts">
         <button class="e-btn" onclick="viewForumPostAdmin('${p.id}')">View</button>
-        <a class="e-btn" href="forum-post.html?id=${p.id}" target="_blank" style="text-decoration:none;display:inline-block;">Open ↗</a>
+        ${status!=='approved'?`<button class="e-btn" onclick="approveForumPostAdmin('${p.id}')">Approve</button>`:''}
+        ${status!=='rejected'?`<button class="d-btn" onclick="rejectForumPostAdmin('${p.id}')">Reject</button>`:''}
         <button class="d-btn" onclick="deleteForumPostAdmin('${p.id}')">Delete</button>
       </td></tr>`;
   });
 }
 function viewForumPostAdmin(id) {
   const p = getForumPosts().find(x => x.id === id); if(!p) return;
+  const status = p.status || 'pending';
   document.getElementById('fv-body').innerHTML = `
     <div class="vw-row"><b>Title</b><span>${escUser(p.title)}</span></div>
     <div class="vw-row"><b>Category</b><span>${escUser(p.category)}</span></div>
     <div class="vw-row"><b>Author</b><span>${escUser(p.authorName)}</span></div>
+    <div class="vw-row"><b>Status</b><span class="st-badge st-${status}">${status}</span></div>
     <div class="vw-row"><b>Replies</b><span>${p.replyCount || 0}</span></div>
     <div class="vw-row"><b>Posted</b><span>${fmtUserDate(p.createdAt)}</span></div>
     <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Body</b><div class="vw-stmt">${escUser(p.body)}</div></div>`;
   document.getElementById('fv-foot').innerHTML = `
+    ${status!=='approved'?`<button class="fs-btn" onclick="closeFM('fvm');approveForumPostAdmin('${p.id}')">✅ Approve</button>`:''}
+    ${status!=='rejected'?`<button class="fc-btn" style="color:#f87171;border-color:rgba(239,68,68,.35);" onclick="closeFM('fvm');rejectForumPostAdmin('${p.id}')">Reject</button>`:''}
     <a class="fc-btn" style="text-decoration:none;display:inline-block;" href="forum-post.html?id=${p.id}" target="_blank">Open on site ↗</a>
     <button class="fc-btn" style="color:#f87171;border-color:rgba(239,68,68,.35);" onclick="closeFM('fvm');deleteForumPostAdmin('${p.id}')">Delete</button>
     <button class="fc-btn" onclick="closeFM('fvm')">Close</button>`;
   openFM('fvm');
+}
+async function approveForumPostAdmin(id) {
+  const ok = await updateForumPostStatus(id, 'approved');
+  if(ok) { renderForumTable(); renderDashboard(); toast("Post approved! ✅"); }
+  else toast("Failed to update.", true);
+}
+async function rejectForumPostAdmin(id) {
+  if(!confirm("Reject this post? It won't show on the public forum.")) return;
+  const ok = await updateForumPostStatus(id, 'rejected');
+  if(ok) { renderForumTable(); renderDashboard(); toast("Post rejected."); }
+  else toast("Failed to update.", true);
 }
 async function deleteForumPostAdmin(id) {
   if(!confirm("Permanently delete this post and all its comments?")) return;

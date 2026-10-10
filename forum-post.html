@@ -46,6 +46,15 @@
 .fp-gate{background:var(--card2);border:1px dashed var(--bdr2);border-radius:10px;padding:16px;font-size:.84rem;color:var(--lblue);text-align:center;}
 .fp-gate a{color:var(--blue-br);font-weight:700;}
 .fp-send-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:10px 22px;border-radius:8px;font-weight:700;font-size:.85rem;cursor:pointer;}
+.fp-status-note{background:var(--card2);border:1px dashed var(--bdr2);border-radius:10px;padding:12px 14px;font-size:.8rem;margin-bottom:14px;}
+.fp-status-note.pending{color:#eab308;}
+.fp-status-note.rejected{color:#f87171;}
+.fp-reply-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.74rem;}
+.fp-reply-btn:hover{color:var(--blue-br);}
+.fp-reply-tag{font-size:.74rem;color:var(--blue-br);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.fp-reply-chip{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;font-size:.8rem;color:var(--muted);margin-bottom:10px;}
+.fp-reply-chip button{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;}
+.fp-reply-chip button:hover{color:#f87171;}
 </style>
 <link rel="stylesheet" href="loader.css">
 </head>
@@ -114,6 +123,7 @@
 
     <div id="fp-content" style="display:none;">
       <div class="fp-card">
+        <div id="fp-status-note" style="display:none;"></div>
         <span class="fp-cat" id="fp-cat"></span>
         <div class="fp-title" id="fp-title"></div>
         <div class="fp-meta" id="fp-meta"></div>
@@ -126,6 +136,7 @@
 
       <div id="fp-comment-gate" class="fp-gate" style="display:none;margin-top:14px;"></div>
       <div id="fp-comment-box" style="display:none;margin-top:14px;">
+        <div id="fp-reply-chip" style="display:none;"></div>
         <textarea class="fp-fi" id="fp-in-comment" placeholder="Write a comment..." data-i18n-ph="fp_ph_comment"></textarea>
         <button class="fp-send-btn" id="fp-comment-btn" onclick="fpSubmitComment()" data-i18n="fp_comment">Comment</button>
       </div>
@@ -189,6 +200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('fp-content').style.display='block';
     fpRenderPost();
     fpRenderOwnBtns();
+    fpApplyStatusGate();
     await loadForumComments(fpPostId);
     fpRenderComments();
   })().catch(() => {
@@ -203,8 +215,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(fpUser) fpProfile = await getRegisteredUserById(fpUser.uid).catch(()=>({}));
     fpRenderGate();
     fpRenderOwnBtns();
+    // re-check now that we know who's viewing — a pending/rejected post only shows to its author
+    if(fpPost){ fpRenderPost(); fpApplyStatusGate(); }
   });
 });
+
+// A pending/rejected post is only shown in full to its own author; everyone
+// else sees a short notice instead (the data itself is still readable by
+// design — forum_posts allows public read — this is a UI-level gate, not a
+// security boundary, since the EC needs to review it via admin.html anyway).
+function fpApplyStatusGate(){
+  const status = fpPost.status || 'pending';
+  const note = document.getElementById('fp-status-note');
+  const isOwner = fpUser && fpUser.uid === fpPost.authorUid;
+  if(status === 'approved'){ note.style.display='none'; return; }
+  if(isOwner){
+    note.className = 'fp-status-note ' + status;
+    note.style.display = 'block';
+    note.textContent = status === 'pending'
+      ? tr('fp_status_pending', '⏳ This post is awaiting admin approval — only you can see it right now.')
+      : tr('fp_status_rejected', '❌ This post was rejected by the admin and is not visible to others.');
+  } else {
+    document.getElementById('fp-body').textContent = '';
+    note.className = 'fp-status-note pending';
+    note.style.display = 'block';
+    note.textContent = tr('fp_status_unavailable', 'This post is not available.');
+  }
+}
 
 function fpRenderPost(){
   document.getElementById('fp-cat').textContent = fpPost.category;
@@ -270,15 +307,38 @@ function fpRenderComments(){
   wrap.innerHTML = list.map(c => {
     const initial = fpEsc((c.authorName||'?').charAt(0).toUpperCase());
     const canDel = fpUser && fpUser.uid===c.authorUid;
+    const replyTag = c.replyTo ? `<div class="fp-reply-tag">↪ ${tr('fp_replying_to','Replying to')} <b>${fpEsc(c.replyToAuthor||'')}</b></div>` : '';
     return `<div class="fp-comment">
+      ${replyTag}
       <div class="fp-comment-top">
         ${c.authorPhoto ? `<img class="fp-avatar" style="width:22px;height:22px;" src="${fpEsc(c.authorPhoto)}">` : `<span class="fp-avatar" style="width:22px;height:22px;font-size:.65rem;">${initial}</span>`}
         <span>${fpEsc(c.authorName)}</span><span>·</span><span>${fpTimeAgo(c.createdAt)}</span>
+        <button class="fp-reply-btn" onclick="fpStartReply('${c.id}')">${tr('fp_reply','Reply')}</button>
         ${canDel ? `<button class="fp-comment-del" onclick="fpDeleteComment('${c.id}')">${tr('fp_del','Delete')}</button>` : ''}
       </div>
       <div class="fp-comment-body">${fpEsc(c.body)}</div>
     </div>`;
   }).join('');
+}
+
+let fpReplyTo = null;
+
+function fpStartReply(commentId){
+  if(!fpUser) return toast(tr("t_signin_first","Please sign in first."), true);
+  const c = getForumComments().find(x => x.id === commentId);
+  if(!c) return;
+  fpReplyTo = { id: c.id, authorName: c.authorName };
+  const chip = document.getElementById('fp-reply-chip');
+  chip.style.display='flex';
+  chip.className='fp-reply-chip';
+  chip.innerHTML = `<span>↪ ${tr('fp_replying_to','Replying to')} <b>${fpEsc(c.authorName)}</b></span><button onclick="fpCancelReply()">✕</button>`;
+  const box = document.getElementById('fp-in-comment');
+  box.focus();
+  box.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+function fpCancelReply(){
+  fpReplyTo = null;
+  document.getElementById('fp-reply-chip').style.display='none';
 }
 
 async function fpSubmitComment(){
@@ -290,12 +350,16 @@ async function fpSubmitComment(){
   btn.disabled=true; btn.textContent=tr('fo_posting','Posting...');
 
   const authorName = [fpProfile?.firstName, fpProfile?.lastName].filter(Boolean).join(' ') || fpUser.email.split('@')[0];
-  const result = await addForumComment({ postId:fpPostId, authorUid:fpUser.uid, authorName, authorPhoto:fpProfile?.photo||'', body });
+  const result = await addForumComment({
+    postId:fpPostId, authorUid:fpUser.uid, authorName, authorPhoto:fpProfile?.photo||'', body,
+    replyTo: fpReplyTo?.id || null, replyToAuthor: fpReplyTo?.authorName || null
+  });
 
   btn.disabled=false; btn.textContent=tr('fp_comment','Comment');
 
   if(result.success){
     document.getElementById('fp-in-comment').value='';
+    fpCancelReply();
     fpPost.replyCount = (fpPost.replyCount||0)+1;
     await loadForumComments(fpPostId);
     fpRenderComments();

@@ -2014,7 +2014,7 @@ async function addForumPost(p) {
     const ref = await addDoc(collection(db, "forum_posts"), {
       authorUid: p.authorUid, authorName: p.authorName, authorPhoto: p.authorPhoto || '',
       category: p.category, title: p.title, body: p.body,
-      replyCount: 0, createdAt: now, lastActivityAt: now
+      status: 'pending', replyCount: 0, createdAt: now, lastActivityAt: now
     });
     return { success:true, id: ref.id };
   } catch(err) {
@@ -2028,11 +2028,20 @@ async function updateForumPost(id, data) {
   const { doc, updateDoc } = window.firebaseFunctions;
   try {
     await updateDoc(doc(window.firebaseDB, "forum_posts", id), data);
+    if(cache.forumPosts) {
+      const idx = cache.forumPosts.findIndex(x => x.id === id);
+      if(idx > -1) Object.assign(cache.forumPosts[idx], data);
+    }
     return true;
   } catch(err) {
     console.error("Update forum post error:", err);
     return false;
   }
+}
+
+// EC/admin: approve or reject a pending post
+async function updateForumPostStatus(id, status) {
+  return updateForumPost(id, { status });
 }
 
 async function deleteForumPost(id) {
@@ -2054,11 +2063,14 @@ async function deleteForumPost(id) {
 
 async function loadForumComments(postId) {
   await waitForFirebase();
-  const { collection, getDocs, query, where, orderBy } = window.firebaseFunctions;
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
   const db = window.firebaseDB;
   try {
-    const snap = await getDocs(query(collection(db, "forum_comments"), where("postId", "==", postId), orderBy("createdAt", "asc")));
-    cache.forumComments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Sorted client-side on purpose: where("postId") + orderBy("createdAt") on
+    // two different fields needs a Firestore composite index, which doesn't
+    // exist for this collection — that silently failed every load.
+    const snap = await getDocs(query(collection(db, "forum_comments"), where("postId", "==", postId)));
+    cache.forumComments = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.createdAt||0)-(b.createdAt||0));
     return cache.forumComments;
   } catch(err) {
     console.error("Load forum comments error:", err);
@@ -2074,10 +2086,14 @@ async function addForumComment(c) {
   const db = window.firebaseDB;
   try {
     const now = Date.now();
-    await addDoc(collection(db, "forum_comments"), {
+    const payload = {
       postId: c.postId, authorUid: c.authorUid, authorName: c.authorName, authorPhoto: c.authorPhoto || '',
       body: c.body, createdAt: now
-    });
+    };
+    // only attach these when actually replying to another comment — the rules'
+    // keys().hasOnly() allows them, but omitting them for a top-level comment keeps docs smaller
+    if(c.replyTo) { payload.replyTo = c.replyTo; payload.replyToAuthor = c.replyToAuthor || ''; }
+    await addDoc(collection(db, "forum_comments"), payload);
     // best-effort: bump the post's reply count / activity time so the list sorts correctly
     try { await updateDoc(doc(db, "forum_posts", c.postId), { lastActivityAt: now, replyCount: increment(1) }); } catch(e) {}
     return { success:true };

@@ -195,7 +195,7 @@ select.fi{cursor:pointer}
 
         <div class="adm-ns">Community</div>
         <button class="adm-nb" data-sec="vol-adm" onclick="goSec(this)"><span class="ico">🙋</span>Volunteers</button>
-        <button class="adm-nb" data-sec="forum-adm" onclick="goSec(this)"><span class="ico">💬</span>Forum</button>
+        <button class="adm-nb" data-sec="forum-adm" onclick="goSec(this)"><span class="ico">💬</span>Forum<span id="forum-pending-dot" style="display:none;margin-left:auto;background:#eab308;color:#1a1a1a;border-radius:20px;font-size:.68rem;font-weight:800;padding:1px 7px;"></span></button>
 
         <div class="adm-ns">Accounts</div>
         <button class="adm-nb" data-sec="users-adm" onclick="goSec(this)"><span class="ico">👥</span>Registered Users</button>
@@ -468,10 +468,15 @@ select.fi{cursor:pointer}
 
       <!-- FORUM -->
       <div class="adm-sec" id="forum-adm">
-        <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">💬 Signed-in, email-verified members post and comment from <a href="forum.html" target="_blank" style="color:var(--blue-br);">forum.html</a>.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+          <select class="fi" id="forum-status-filter" style="width:auto;min-width:140px;" onchange="renderForumTable()">
+            <option value="">All Status</option><option value="pending">⏳ Pending</option><option value="approved">✅ Approved</option><option value="rejected">❌ Rejected</option>
+          </select>
+        </div>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">💬 New posts need your approval before they're visible on <a href="forum.html" target="_blank" style="color:var(--blue-br);">forum.html</a>. An author can edit/delete their own post; you can moderate (delete) anything here.</p>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Replies</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Status</th><th>Replies</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody id="forumtbl"></tbody>
           </table>
         </div>

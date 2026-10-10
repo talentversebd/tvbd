@@ -1917,12 +1917,36 @@ async function submitVolunteerApplication(a) {
       name: a.name, email: a.email, phone: a.phone,
       type: a.type, role: a.role, skills: a.skills || '',
       message: a.message || '', availability: a.availability || '', resumeLink: a.resumeLink || '',
+      extra: a.extra || {},
       status: 'pending', createdAt: Date.now()
     });
     return { success:true };
   } catch(err) {
     console.error("Submit volunteer application error:", err);
     return { success:false, error: err.message };
+  }
+}
+
+// Extra form questions the admin adds on top of the standard fields.
+// Stored in settings/volunteer as { fields:[{id,label,type,required,for,options}] }.
+async function getVolunteerSettings() {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try {
+    const snap = await getDoc(doc(window.firebaseDB, "settings", "volunteer"));
+    if(snap.exists()) { const d = snap.data(); return { fields: Array.isArray(d.fields) ? d.fields : [] }; }
+  } catch(err) { console.error("Get volunteer settings error:", err); }
+  return { fields: [] };
+}
+async function updateVolunteerSettings(data) {
+  await waitForFirebase();
+  const { doc, setDoc } = window.firebaseFunctions;
+  try {
+    await setDoc(doc(window.firebaseDB, "settings", "volunteer"), data);
+    return true;
+  } catch(err) {
+    console.error("Update volunteer settings error:", err);
+    return false;
   }
 }
 

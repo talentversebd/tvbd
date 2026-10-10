@@ -244,6 +244,7 @@ function goSec(btn) {
   if(secId === 'vol-adm' && typeof loadVolunteerApplications === 'function') {
     document.getElementById('voltbl').innerHTML = `<tr class="empty-row"><td colspan="6">⏳ Loading...</td></tr>`;
     loadVolunteerApplications().then(() => renderVolunteerTable());
+    loadVolFieldsDraft();
   }
   if(secId === 'forum-adm' && typeof loadForumPosts === 'function') {
     document.getElementById('forumtbl').innerHTML = `<tr class="empty-row"><td colspan="6">⏳ Loading...</td></tr>`;
@@ -279,7 +280,7 @@ function renderDashboard() {
   const volunteerApps = typeof getVolunteerApplications === 'function' ? getVolunteerApplications() : [];
   const pendingVol = volunteerApps.filter(a => (a.status||'pending') === 'pending').length;
   const forumPosts = typeof getForumPosts === 'function' ? getForumPosts() : [];
-  const pendingForum = forumPosts.filter(p => (p.status||'pending') === 'pending').length;
+  const pendingForum = forumPosts.filter(p => (p.status||'approved') === 'pending').length;
   const resources = typeof getResources === 'function' ? getResources() : [];
 
   const stats = document.getElementById('db-stats');
@@ -2622,7 +2623,12 @@ function viewVolunteerApp(id) {
     <div class="vw-row"><b>Status</b><span class="st-badge st-${status}">${status}</span></div>
     <div class="vw-row"><b>Submitted</b><span>${fmtUserDate(a.createdAt)}</span></div>
     <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Skills</b><div class="vw-stmt">${escUser(a.skills) === '—' ? '(none given)' : escUser(a.skills)}</div></div>
-    <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Message</b><div class="vw-stmt">${escUser(a.message) === '—' ? '(none given)' : escUser(a.message)}</div></div>`;
+    <div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">Message</b><div class="vw-stmt">${escUser(a.message) === '—' ? '(none given)' : escUser(a.message)}</div></div>`
+  + Object.entries(a.extra || {}).map(([k,v]) => {
+      const label = (v && typeof v === 'object') ? v.l : ((volFieldsDraft.find(f => f.id === k) || {}).label || k);
+      const val = (v && typeof v === 'object') ? v.v : v;
+      return `<div class="vw-row" style="flex-direction:column;"><b style="margin-bottom:6px;">${escUser(label)}</b><div class="vw-stmt">${escUser(val)}</div></div>`;
+    }).join('');
   document.getElementById('vv-foot').innerHTML = `
     ${status!=='approved'?`<button class="fs-btn" onclick="closeFM('vvm');approveVolunteerApp('${a.id}')">✅ Approve</button>`:''}
     ${status!=='rejected'?`<button class="fc-btn" style="color:#f87171;border-color:rgba(239,68,68,.35);" onclick="closeFM('vvm');rejectVolunteerApp('${a.id}')">Reject</button>`:''}
@@ -2652,13 +2658,13 @@ function renderForumTable() {
   const statusF = document.getElementById('forum-status-filter')?.value || '';
   const order = { pending:0, approved:1, rejected:2 };
   const data = getForumPosts()
-    .filter(p => !statusF || (p.status||'pending') === statusF)
+    .filter(p => !statusF || (p.status||'approved') === statusF)
     .slice()
-    .sort((a,b) => (order[a.status||'pending']-order[b.status||'pending']) || ((b.createdAt||0)-(a.createdAt||0)));
+    .sort((a,b) => (order[a.status||'approved']-order[b.status||'approved']) || ((b.createdAt||0)-(a.createdAt||0)));
   if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No posts found.</td></tr>`; return; }
   tbody.innerHTML = '';
   data.forEach(p => {
-    const status = p.status || 'pending';
+    const status = p.status || 'approved';
     tbody.innerHTML += `<tr>
       <td>${escUser(p.title)}</td>
       <td>${escUser(p.category)}</td>
@@ -2676,7 +2682,7 @@ function renderForumTable() {
 }
 function viewForumPostAdmin(id) {
   const p = getForumPosts().find(x => x.id === id); if(!p) return;
-  const status = p.status || 'pending';
+  const status = p.status || 'approved';
   document.getElementById('fv-body').innerHTML = `
     <div class="vw-row"><b>Title</b><span>${escUser(p.title)}</span></div>
     <div class="vw-row"><b>Category</b><span>${escUser(p.category)}</span></div>
@@ -2743,4 +2749,61 @@ function filterAdminNav(q) {
     }
   });
   flush();
+}
+
+
+/*===== VOLUNTEER FORM FIELD BUILDER =====
+   Admin adds extra questions; saved in settings/volunteer, shown on volunteer.html. */
+let volFieldsDraft = [];
+function vfEsc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const VOL_FIELD_TYPES = { text:'Short answer', textarea:'Paragraph', number:'Number', date:'Date', url:'Link / URL', select:'Dropdown (choose one)' };
+const VOL_FIELD_FOR = { all:'Volunteer + Internship', volunteer:'Volunteer only', internship:'Internship only' };
+async function loadVolFieldsDraft() {
+  try { const s = await getVolunteerSettings(); volFieldsDraft = (s.fields || []).map(f => ({ ...f })); } catch(e) { volFieldsDraft = []; }
+  renderVolFieldsUI();
+}
+function renderVolFieldsUI() {
+  const wrap = document.getElementById('vf-fields');
+  if(!wrap) return;
+  if(!volFieldsDraft.length) { wrap.innerHTML = '<p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;">No extra fields yet.</p>'; return; }
+  wrap.innerHTML = volFieldsDraft.map((f, i) => `
+    <div class="qf-qrow">
+      <div class="qf-qrow-head">
+        <input type="text" class="fi" placeholder="Question, e.g. Which university are you from?" value="${vfEsc(f.label)}" oninput="updateVolField(${i},'label',this.value)">
+        <select class="fi" onchange="updateVolField(${i},'type',this.value);renderVolFieldsUI()">
+          ${Object.entries(VOL_FIELD_TYPES).map(([v, l]) => `<option value="${v}" ${f.type === v ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+        <button type="button" class="qf-qdel" onclick="removeVolFieldRow(${i})">Delete</button>
+      </div>
+      ${f.type === 'select' ? `<input type="text" class="fi" style="margin:8px 0;" placeholder="Choices, separated by commas (e.g. Dhaka, Chattogram, Other)" value="${vfEsc((f.options || []).join(', '))}" oninput="updateVolField(${i},'options',this.value)">` : ''}
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+        <div class="chk-wrap" style="padding:8px 10px;">
+          <input type="checkbox" id="vf-req-${i}" ${f.required ? 'checked' : ''} onchange="updateVolField(${i},'required',this.checked)">
+          <label for="vf-req-${i}">Required</label>
+        </div>
+        <select class="fi" style="width:auto;" onchange="updateVolField(${i},'for',this.value)">
+          ${Object.entries(VOL_FIELD_FOR).map(([v, l]) => `<option value="${v}" ${(f.for || 'all') === v ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+      </div>
+    </div>`).join('');
+}
+function addVolFieldRow() {
+  volFieldsDraft.push({ id: 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), label: '', type: 'text', required: false, for: 'all', options: [] });
+  renderVolFieldsUI();
+}
+function updateVolField(i, key, val) {
+  if(!volFieldsDraft[i]) return;
+  volFieldsDraft[i][key] = key === 'options' ? String(val).split(',').map(x => x.trim()).filter(Boolean) : val;
+}
+function removeVolFieldRow(i) { volFieldsDraft.splice(i, 1); renderVolFieldsUI(); }
+async function saveVolFields() {
+  const fields = volFieldsDraft.filter(f => (f.label || '').trim()).map(f => ({
+    id: f.id, label: f.label.trim().slice(0, 150), type: f.type || 'text', required: !!f.required, for: f.for || 'all',
+    options: f.type === 'select' ? (f.options || []).slice(0, 30) : []
+  }));
+  if(fields.length > 20) return toast("Maximum 20 extra fields.", true);
+  if(fields.some(f => f.type === 'select' && f.options.length < 2)) return toast("A dropdown needs at least 2 choices (comma separated).", true);
+  const ok = await updateVolunteerSettings({ fields });
+  if(ok) { volFieldsDraft = fields; toast("Form fields saved! ✅"); renderVolFieldsUI(); }
+  else toast("Failed to save — publish the latest Firestore rules first.", true);
 }

@@ -458,6 +458,15 @@ select.fi{cursor:pointer}
           </select>
         </div>
         <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">🙋 People apply from the public <a href="volunteer.html" target="_blank" style="color:var(--blue-br);">volunteer.html</a> page.</p>
+        <details style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+          <summary style="cursor:pointer;font-weight:700;font-size:.9rem;">🧩 Application Form Fields (add your own questions)</summary>
+          <p style="font-size:.74rem;color:var(--muted);margin:10px 0;">The form already asks Name, Email, Phone, Role, Skills, Availability, Why join, Resume link. Add extra questions below — they appear on the public form and in each application.</p>
+          <div id="vf-fields"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
+            <button type="button" class="qf-addopt" onclick="addVolFieldRow()">+ Add Field</button>
+            <button type="button" class="fs-btn" onclick="saveVolFields()">💾 Save Form Fields</button>
+          </div>
+        </details>
         <div class="tbl-wrap">
           <table class="tbl">
             <thead><tr><th>Name</th><th>Type</th><th>Role</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>

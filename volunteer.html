@@ -148,6 +148,8 @@ textarea.vl-fi{min-height:100px;resize:vertical;}
         <div class="vl-fg"><label data-i18n="vl_why">Why do you want to join?</label><textarea class="vl-fi" id="vl-in-message" placeholder="A few lines about your motivation..." data-i18n-ph="vl_ph_why"></textarea></div>
         <div class="vl-fg"><label data-i18n="vl_resume">Resume / Portfolio Link (optional)</label><input class="vl-fi" type="url" id="vl-in-resume" placeholder="https://drive.google.com/..."></div>
 
+        <div id="vl-extra-fields"></div>
+
         <button class="vl-btn" id="vl-submit-btn" onclick="submitVolunteer()" data-i18n="vl_submit">Submit Application →</button>
       </div>
     </div>
@@ -181,7 +183,29 @@ function vlSetType(t){
   vlType=t;
   document.getElementById('vl-opt-volunteer').classList.toggle('active', t==='volunteer');
   document.getElementById('vl-opt-internship').classList.toggle('active', t==='internship');
+  vlRenderExtra();
 }
+
+// ---- extra questions added by the admin (settings/volunteer) ----
+let vlFields=[];
+function vlEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function vlFieldsForType(){ return vlFields.filter(f => !f.for || f.for==='all' || f.for===vlType); }
+function vlRenderExtra(){
+  const wrap=document.getElementById('vl-extra-fields'); if(!wrap) return;
+  // keep what the person already typed when they switch Volunteer/Internship
+  const keep={}; vlFields.forEach(f=>{const el=document.getElementById('vl-extra-'+f.id); if(el) keep[f.id]=el.value;});
+  const inp={
+    text:f=>`<input class="vl-fi" id="vl-extra-${vlEsc(f.id)}" type="text">`,
+    textarea:f=>`<textarea class="vl-fi" id="vl-extra-${vlEsc(f.id)}"></textarea>`,
+    number:f=>`<input class="vl-fi" id="vl-extra-${vlEsc(f.id)}" type="number">`,
+    date:f=>`<input class="vl-fi" id="vl-extra-${vlEsc(f.id)}" type="date">`,
+    url:f=>`<input class="vl-fi" id="vl-extra-${vlEsc(f.id)}" type="url" placeholder="https://...">`,
+    select:f=>`<select class="vl-fi" id="vl-extra-${vlEsc(f.id)}"><option value="">—</option>${(f.options||[]).map(o=>`<option>${vlEsc(o)}</option>`).join('')}</select>`
+  };
+  wrap.innerHTML=vlFieldsForType().map(f=>`<div class="vl-fg"><label>${vlEsc(f.label)}${f.required?' *':''}</label>${(inp[f.type]||inp.text)(f)}</div>`).join('');
+  Object.keys(keep).forEach(id=>{const el=document.getElementById('vl-extra-'+id); if(el) el.value=keep[id];});
+}
+(async()=>{ try{ const s=await getVolunteerSettings(); vlFields=s.fields||[]; vlRenderExtra(); }catch(e){} })();
 
 async function submitVolunteer(){
   const name=document.getElementById('vl-in-name').value.trim();
@@ -193,11 +217,18 @@ async function submitVolunteer(){
   const message=document.getElementById('vl-in-message').value.trim();
   const resumeLink=document.getElementById('vl-in-resume').value.trim();
   if(!name || !email || !phone || !role) return toast(tr("vl_req","Name, email, phone and role are required!"), true);
+  const extra={};
+  for(const f of vlFieldsForType()){
+    const el=document.getElementById('vl-extra-'+f.id);
+    const val=el?el.value.trim():'';
+    if(f.required && !val) return toast(`"${f.label}" is required!`, true);
+    if(val) extra[f.id]={ l:String(f.label).slice(0,150), v:val.slice(0,1000) };
+  }
 
   const btn=document.getElementById('vl-submit-btn');
   btn.disabled=true; btn.textContent=tr('vl_submitting','Submitting...');
 
-  const result = await submitVolunteerApplication({ name, email, phone, type:vlType, role, skills, availability, message, resumeLink });
+  const result = await submitVolunteerApplication({ name, email, phone, type:vlType, role, skills, availability, message, resumeLink, extra });
 
   btn.disabled=false; btn.textContent=tr('vl_submit','Submit Application →');
 

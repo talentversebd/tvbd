@@ -55,6 +55,7 @@
     updatePopupSettings:  { section: 'Popup Notice', action: 'edit', fixed: 'Popup notice' },
     updateFounderSettings:{ section: "Founder's Message", action: 'edit', fixed: "Founder's message" },
     updateElectionSettings:{ section: 'Election', action: 'edit', fixed: 'Election settings' },
+    updateVolunteerSettings:{ section: 'Volunteers', action: 'edit', fixed: 'Volunteer form fields' },
     addElectionCandidate: { section: 'Election', action: 'add', obj: 0, keys: T },
     updateElectionCandidate:{ section: 'Election', action: 'edit', id: 0, obj: 1, list: 'getElectionCandidates', keys: T },
     deleteElectionCandidate:{ section: 'Election', action: 'delete', id: 0, list: 'getElectionCandidates', keys: T },

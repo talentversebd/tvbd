@@ -57,12 +57,48 @@ textarea.vl-fi{min-height:100px;resize:vertical;}
 </div>
 <script src="loader.js"></script>
 
+<header id="site-header">
+  <a class="h-logo" href="index.html">
+    <img class="h-logo-img" src="logo.jpg" alt="TalentVerse Logo">
+    <div class="h-logo-text">
+      <div class="name">Talent<span>Verse</span></div>
+      <div class="sub">Bangladesh</div>
+    </div>
+  </a>
+  <nav class="h-nav" id="hnav">
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <a href="events.html" data-i18n="nav_olympiads">Events &amp; Quiz</a>
+    <a href="team.html" data-i18n="nav_team">Team</a>
+    <a href="news.html" data-i18n="nav_news">News</a>
+    <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    <div class="nav-more" id="nav-more">
+      <button type="button" class="nav-more-btn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_more">More</span> <span class="nav-more-caret">▾</span></button>
+      <div class="nav-more-menu">
+        <a href="resources.html" data-i18n="nav_resources">Resources</a>
+        <a href="register.html" data-i18n="nav_register">Register</a>
+        <a href="leaderboard.html" data-i18n="nav_results">Results</a>
+        <a href="verify.html" data-i18n="nav_verify">Verify</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer" data-i18n="vl_volunteer">Volunteer</a>
+      </div>
+    </div>
+    <a href="forum.html" class="nav-forum-btn"><span>💬</span> <span data-i18n="nav_forum">Forum</span></a>
+    <a href="account.html" id="nav-account-link">Log In</a>
+    <a href="account.html#signup" id="nav-signup-link" class="nav-signup-btn">Sign Up</a>
+    <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
+      🌐 <span class="lang-toggle-label">বাং</span>
+    </button>
+  </nav>
+  <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
 
 <!-- Standalone application page (not in main nav), shared site footer kept for branding/navigation. -->
 <div class="page-header">
-  <span class="eyebrow">🙋 Join The Team</span>
-  <h1>Volunteer & <span>Internship</span></h1>
-  <p>Want to help build TalentVerse Bangladesh? Tell us a bit about yourself below.</p>
+  <span class="eyebrow" data-i18n="vl_eyebrow">🙋 Join The Team</span>
+  <h1><span data-i18n="vl_h1a" style="color:inherit">Volunteer &</span> <span data-i18n="vl_h1b">Internship</span></h1>
+  <p data-i18n="vl_sub">Want to help build TalentVerse Bangladesh? Tell us a bit about yourself below.</p>
 </div>
 
 <section class="section">
@@ -71,37 +107,37 @@ textarea.vl-fi{min-height:100px;resize:vertical;}
     <!-- VIEW: Form -->
     <div id="vl-view-form">
       <div class="vl-card">
-        <h2>Apply to <span>Join Us</span></h2>
-        <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px;">We'll reach out using the email/phone you provide below.</p>
+        <h2><span data-i18n="vl_apply1" style="color:inherit">Apply to</span> <span data-i18n="vl_apply2">Join Us</span></h2>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px;" data-i18n="vl_reach">We'll reach out using the email/phone you provide below.</p>
 
-        <label style="display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:8px;">I'm applying as a *</label>
+        <label style="display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:8px;" data-i18n="vl_as">I'm applying as a *</label>
         <div class="vl-type-toggle">
           <div class="vl-type-opt active" id="vl-opt-volunteer" onclick="vlSetType('volunteer')">
             <div class="ti">🙋</div><div class="tl">Volunteer</div>
           </div>
           <div class="vl-type-opt" id="vl-opt-internship" onclick="vlSetType('internship')">
-            <div class="ti">💼</div><div class="tl">Intern</div>
+            <div class="ti">💼</div><div class="tl" data-i18n="vl_intern">Intern</div>
           </div>
         </div>
 
-        <div class="vl-fg"><label>Full Name *</label><input class="vl-fi" id="vl-in-name" placeholder="e.g. Abdur Rahman"></div>
-        <div class="vl-fg"><label>Email *</label><input class="vl-fi" type="email" id="vl-in-email" placeholder="you@email.com"></div>
-        <div class="vl-fg"><label>Phone *</label><input class="vl-fi" id="vl-in-phone" placeholder="01XXXXXXXXX"></div>
+        <div class="vl-fg"><label data-i18n="vl_name">Full Name *</label><input class="vl-fi" id="vl-in-name" placeholder="e.g. Abdur Rahman" data-i18n-ph="vl_ph_name"></div>
+        <div class="vl-fg"><label data-i18n="vl_email">Email *</label><input class="vl-fi" type="email" id="vl-in-email" placeholder="you@email.com"></div>
+        <div class="vl-fg"><label data-i18n="vl_phone">Phone *</label><input class="vl-fi" id="vl-in-phone" placeholder="01XXXXXXXXX"></div>
         <div class="vl-fg">
-          <label>Area / Role You're Interested In *</label>
-          <input class="vl-fi" id="vl-in-role" list="vl-role-list" placeholder="e.g. Event Management, Content Writing, Graphic Design...">
+          <label data-i18n="vl_role">Area / Role You're Interested In *</label>
+          <input class="vl-fi" id="vl-in-role" list="vl-role-list" placeholder="e.g. Event Management, Content Writing, Graphic Design..." data-i18n-ph="vl_ph_role">
           <datalist id="vl-role-list">
             <option value="Event Management"><option value="Content Writing"><option value="Social Media">
             <option value="Graphic Design"><option value="Quiz Setting"><option value="Web Development">
             <option value="Outreach & Partnerships"><option value="Photography/Videography">
           </datalist>
         </div>
-        <div class="vl-fg"><label>Relevant Skills</label><input class="vl-fi" id="vl-in-skills" placeholder="e.g. Canva, public speaking, Python..."></div>
-        <div class="vl-fg"><label>Availability</label><input class="vl-fi" id="vl-in-availability" placeholder="e.g. Weekends, 5 hrs/week..."></div>
-        <div class="vl-fg"><label>Why do you want to join?</label><textarea class="vl-fi" id="vl-in-message" placeholder="A few lines about your motivation..."></textarea></div>
-        <div class="vl-fg"><label>Resume / Portfolio Link (optional)</label><input class="vl-fi" type="url" id="vl-in-resume" placeholder="https://drive.google.com/..."></div>
+        <div class="vl-fg"><label data-i18n="vl_skills">Relevant Skills</label><input class="vl-fi" id="vl-in-skills" placeholder="e.g. Canva, public speaking, Python..." data-i18n-ph="vl_ph_skills"></div>
+        <div class="vl-fg"><label data-i18n="vl_avail">Availability</label><input class="vl-fi" id="vl-in-availability" placeholder="e.g. Weekends, 5 hrs/week..." data-i18n-ph="vl_ph_avail"></div>
+        <div class="vl-fg"><label data-i18n="vl_why">Why do you want to join?</label><textarea class="vl-fi" id="vl-in-message" placeholder="A few lines about your motivation..." data-i18n-ph="vl_ph_why"></textarea></div>
+        <div class="vl-fg"><label data-i18n="vl_resume">Resume / Portfolio Link (optional)</label><input class="vl-fi" type="url" id="vl-in-resume" placeholder="https://drive.google.com/..."></div>
 
-        <button class="vl-btn" id="vl-submit-btn" onclick="submitVolunteer()">Submit Application →</button>
+        <button class="vl-btn" id="vl-submit-btn" onclick="submitVolunteer()" data-i18n="vl_submit">Submit Application →</button>
       </div>
     </div>
 
@@ -120,7 +156,7 @@ textarea.vl-fi{min-height:100px;resize:vertical;}
 </div>
 
 <script type="module" src="firebase-config.js"></script>
-<script src="data.js?v=7"></script>
+<script src="data.js?v=9"></script>
 
 <script>
 function toast(msg, isErr=false){
@@ -145,23 +181,23 @@ async function submitVolunteer(){
   const availability=document.getElementById('vl-in-availability').value.trim();
   const message=document.getElementById('vl-in-message').value.trim();
   const resumeLink=document.getElementById('vl-in-resume').value.trim();
-  if(!name || !email || !phone || !role) return toast("Name, email, phone and role are required!", true);
+  if(!name || !email || !phone || !role) return toast(tr("vl_req","Name, email, phone and role are required!"), true);
 
   const btn=document.getElementById('vl-submit-btn');
-  btn.disabled=true; btn.textContent='Submitting...';
+  btn.disabled=true; btn.textContent=tr('vl_submitting','Submitting...');
 
   const result = await submitVolunteerApplication({ name, email, phone, type:vlType, role, skills, availability, message, resumeLink });
 
-  btn.disabled=false; btn.textContent='Submit Application →';
+  btn.disabled=false; btn.textContent=tr('vl_submit','Submit Application →');
 
   if(!result.success){
-    toast("Something went wrong. Please try again.", true);
+    toast(tr("vl_fail","Something went wrong. Please try again."), true);
     return;
   }
 
   document.getElementById('vl-view-form').classList.add('vl-hidden');
   document.getElementById('vl-view-result').classList.remove('vl-hidden');
-  document.getElementById('vl-result-content').innerHTML = `<div class="ri">🎉</div><h2>Application Submitted!</h2><p style="color:var(--muted);">Thanks, ${name.split(' ')[0].replace(/[&<>"']/g,'')}! We'll review your application and reach out using the email/phone you provided.</p>`;
+  document.getElementById('vl-result-content').innerHTML = `<div class="ri">🎉</div><h2>${tr('vl_done_h','Application Submitted!')}</h2><p style="color:var(--muted);">${getLang()==='bn' ? 'ধন্যবাদ, ' : 'Thanks, '}${name.split(' ')[0].replace(/[&<>"']/g,'')}! ${tr('vl_done_p',"We'll review your application and reach out using the email/phone you provided.")}</p>`;
 }
 </script>
 <footer>
@@ -200,5 +236,6 @@ async function submitVolunteer(){
   </div>
 </footer>
 <script src="lang.js"></script>
+<script src="main.js"></script>
 </body>
 </html>

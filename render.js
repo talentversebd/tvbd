@@ -115,7 +115,7 @@ function renderOlympiads() {
         <p class="o-card-desc">${o.desc}</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="rm-btn">Read More</button>
-          ${o.regEnabled && o.status !== 'past' ? `<button class="rm-btn" style="background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;" onclick="event.stopPropagation();openModal(${i});">📝 Register Now</button>` : ''}
+          ${isRegOpen(o) ? `<button class="rm-btn" style="background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;" onclick="event.stopPropagation();openModal(${i});">📝 Register Now</button>` : ''}
         </div>
         ${quizTakeButtonHtml(o)}
       </div>`;
@@ -253,6 +253,7 @@ function renderInlineRegistration(o, prefixHtml) {
   prefixHtml = prefixHtml || '';
 
   if(!o.regEnabled || o.status === 'past') { reg.innerHTML = prefixHtml; return; }
+  if(isRegDeadlinePassed(o)) { reg.innerHTML = prefixHtml + `<div class="modal-reg-section" style="text-align:center;"><p style="color:#f87171;font-weight:600;">⛔ Registration closed — the deadline has passed.</p></div>`; return; }
 
   const sectionHead = `<h4 style="font-family:Montserrat;font-weight:800;margin:4px 0 14px;">📝 Registration</h4>`;
   const user = window.firebaseAuth && window.firebaseAuth.currentUser;

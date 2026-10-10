@@ -740,9 +740,9 @@ async function saveResource() {
     if(id) {
       const update = { title, description: desc, category, classLevel, subject };
       if(fileUrl) { update.fileUrl = fileUrl; update.fileSize = fileSize; update.fileType = fileType; }
-      await fns.updateDoc(fns.doc(db, 'resources', id), update);
+      await updateResource(id, update);
     } else {
-      await fns.addDoc(fns.collection(db, 'resources'), {
+      await addResource({
         title, description: desc, category, classLevel, subject,
         fileUrl, fileSize, fileType,
         uploadedBy: (window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.email) || 'admin',
@@ -781,7 +781,7 @@ async function deleteResourceUI(id) {
   if(!confirm('এই রিসোর্সটি মুছে ফেলবেন?')) return;
   try {
     const fns = window.firebaseFunctions;
-    await fns.deleteDoc(fns.doc(window.firebaseDB, 'resources', id));
+    await deleteResource(id);
     if(typeof loadResources === 'function') await loadResources();
     renderResourcesTable();
     if(typeof renderDashboard === 'function') renderDashboard();

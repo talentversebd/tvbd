@@ -2518,6 +2518,25 @@ async function loadResources() {
   }
 }
 
+async function addResource(obj) {
+  await waitForFirebase();
+  const { collection, addDoc } = window.firebaseFunctions;
+  const ref = await addDoc(collection(window.firebaseDB, "resources"), obj);
+  return ref.id;
+}
+async function updateResource(id, data) {
+  await waitForFirebase();
+  const { doc, updateDoc } = window.firebaseFunctions;
+  await updateDoc(doc(window.firebaseDB, "resources", id), data);
+  return true;
+}
+async function deleteResource(id) {
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  await deleteDoc(doc(window.firebaseDB, "resources", id));
+  return true;
+}
+
 function getResources() {
   return cache.resources || [];
 }

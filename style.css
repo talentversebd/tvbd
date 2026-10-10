@@ -624,3 +624,5 @@ body.lang-bn .founder-card .founder-msg-text{line-height:2.05}
   .founder-card .founder-msg-text{font-size:1rem;line-height:1.85}
   .founder-ring{width:168px;height:168px}
 }
+
+.founder-card .founder-quote-mark,.founder-quote-end{display:none}

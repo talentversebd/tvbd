@@ -2539,8 +2539,10 @@ const I18N_PAIRS = [
       st.textContent = '.lang-toggle-btn.lang-toggle-float{position:fixed;left:14px;right:auto;width:auto;max-width:none;margin:0;justify-content:center;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9998;'
         + 'display:inline-flex;align-items:center;gap:6px;background:#0b1730;color:#fff;border:1px solid rgba(96,165,250,.55);'
         + 'border-radius:999px;padding:10px 16px;font-weight:800;font-size:.85rem;line-height:1;cursor:pointer;'
-        + 'box-shadow:0 6px 20px rgba(0,0,0,.4);transition:transform .15s,background .2s;-webkit-tap-highlight-color:transparent;}'
-        + '.lang-toggle-btn.lang-toggle-float:hover{background:#12274d;transform:translateY(-2px);}'
+        + 'box-shadow:0 6px 20px rgba(0,0,0,.4);transition:transform .25s,opacity .25s,background .2s;-webkit-tap-highlight-color:transparent;'
+        + 'opacity:0;pointer-events:none;transform:translateY(16px);}'
+        + '.lang-toggle-btn.lang-toggle-float.show{opacity:1;pointer-events:auto;transform:translateY(0);}'
+        + '.lang-toggle-btn.lang-toggle-float.show:hover{background:#12274d;transform:translateY(-2px);}'
         + '.lang-toggle-btn.lang-toggle-float:active{transform:scale(.96);}'
         + '@media(max-width:700px){.lang-toggle-btn.lang-toggle-float{left:12px;width:auto;margin:0;padding:9px 14px;font-size:.8rem;}}'
         + '@media print{.lang-toggle-btn.lang-toggle-float{display:none!important;}}';
@@ -2554,6 +2556,19 @@ const I18N_PAIRS = [
     b.setAttribute('onclick', 'toggleLang()');
     b.innerHTML = '🌐 <span class="lang-toggle-label"></span>';
     document.body.appendChild(b);
+
+    // The button stays hidden; it slides in while the page is being scrolled and hides again when scrolling stops.
+    let hideTimer = null, hovering = false;
+    const reveal = () => {
+      b.classList.add('show');
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => { if (!hovering) b.classList.remove('show'); }, 2200);
+    };
+    window.addEventListener('scroll', reveal, { passive: true });
+    b.addEventListener('mouseenter', () => { hovering = true; clearTimeout(hideTimer); });
+    b.addEventListener('mouseleave', () => { hovering = false; reveal(); });
+    b.addEventListener('focus', () => { hovering = true; });
+    b.addEventListener('blur', () => { hovering = false; });
   }
 
   function start() {

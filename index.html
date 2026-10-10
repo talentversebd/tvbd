@@ -181,21 +181,6 @@
   </div>
 </section>
 
-<!-- RESOURCES INTRO -->
-<section class="section" id="resources-home" style="background:var(--card2);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);">
-  <div class="sec-hd">
-    <span class="eyebrow" data-i18n="rs_eyebrow">Free Study Material</span>
-    <h2 class="sec-title"><span data-i18n="rs_title_1">Resource</span> <span class="hl" data-i18n="rs_title_2">Hub</span></h2>
-    <div class="divider"></div>
-    <p class="sec-desc" data-i18n="rs_desc">Download free notes, question banks and study guides for SSC, HSC, admission and olympiad preparation.</p>
-  </div>
-  <div class="rs-grid" id="rs-home-grid"></div>
-  <div style="text-align:center;margin-top:36px;">
-    <a href="resources.html" class="btn-out" data-i18n="rs_viewall">Browse All Resources →</a>
-  </div>
-</section>
-
-<!-- ABOUT -->
 <section class="section" id="about">
   <div class="about-grid">
     <div class="at">
@@ -234,9 +219,7 @@
       <div class="founder-socials" id="founder-socials"></div>
     </div>
     <div class="founder-body">
-      <div class="founder-quote-mark">&ldquo;</div>
       <p class="founder-msg-text" id="founder-bio"></p>
-      <div class="founder-quote-end">&rdquo;</div>
     </div>
   </div>
 </section>
@@ -431,32 +414,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 300);
 });
 
-
-/*===== RESOURCES INTRO (Home) =====*/
-function rsEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function renderResourcesHome() {
-  const grid = document.getElementById('rs-home-grid');
-  if(!grid) return;
-  const icons = { Math:'📐', Science:'🔬', English:'📖', ICT:'💻', General:'🌍', Bangla:'📝' };
-  const list = (typeof getResources === 'function' ? getResources() : []).slice(0, 3);
-  grid.style.display = list.length ? '' : 'none';
-  grid.innerHTML = list.map(r => `
-    <a class="rs-card" href="resources.html">
-      <div class="rs-top"><span class="rs-ico">${icons[r.category] || '📄'}</span><span class="rs-badge">${rsEsc(r.classLevel || r.category || '')}</span></div>
-      <h3>${rsEsc(r.title || '')}</h3>
-      <p>${rsEsc(r.description || '')}</p>
-      <span class="rs-go">${rsEsc(tr('rs_open','View →'))}</span>
-    </a>`).join('');
-}
-document.addEventListener('DOMContentLoaded', () => {
-  const t = setInterval(async () => {
-    if(typeof loadResources === 'function' && window.firebaseDB && window.firebaseFunctions) {
-      clearInterval(t);
-      try { await loadResources(); } catch(e) {}
-      renderResourcesHome();
-    }
-  }, 300);
-});
 
 function renderTeamHome() {
   const grid = document.getElementById('team-home-grid');

@@ -659,29 +659,17 @@ body.lang-bn .founder-card .founder-msg-text{line-height:2.05}
   .h-nav > a:not(.nav-forum-btn):not(.nav-signup-btn),
   .nav-more-btn{display:flex;align-items:center;gap:12px;padding:9px 12px;font-size:.95rem;font-weight:600;color:var(--txt);border-left:none;border-radius:12px}
   .h-nav > a:not(.nav-forum-btn):not(.nav-signup-btn)::before,
-  .nav-more-btn::before{content:"•";flex:0 0 34px;height:34px;border-radius:10px;background:rgba(59,130,246,.12);display:flex;align-items:center;justify-content:center;font-size:1.05rem}
-  .h-nav > a[href="index.html"]:not(.nav-forum-btn):not(.nav-signup-btn)::before{content:"🏠"}
-  .h-nav > a[href="events.html"]:not(.nav-forum-btn):not(.nav-signup-btn)::before{content:"🏆"}
-  .h-nav > a[href="team.html"]:not(.nav-forum-btn):not(.nav-signup-btn)::before{content:"👑"}
-  .h-nav > a[href="news.html"]:not(.nav-forum-btn):not(.nav-signup-btn)::before{content:"📰"}
-  .h-nav > a[href="contact.html"]:not(.nav-forum-btn):not(.nav-signup-btn)::before{content:"📬"}
-  .nav-more-btn::before{content:"🧭"}
+  .nav-more-btn::before{content:"";background-repeat:no-repeat;background-position:center;background-size:18px;flex:0 0 34px;height:34px;border-radius:10px;background-color:rgba(59,130,246,.12);display:flex;align-items:center;justify-content:center}
   .nav-more-btn > span:first-child{flex:1;text-align:left}
   .h-nav a.active{background:linear-gradient(90deg,rgba(59,130,246,.22),rgba(59,130,246,.06));color:var(--blue-br)}
-  .h-nav a.active::before{background:rgba(59,130,246,.3)}
+  .h-nav a.active::before{background-color:rgba(59,130,246,.3)}
   .nav-more-btn{width:100%;background:none}
   .nav-more.open .nav-more-btn{background:rgba(59,130,246,.1)}
   /* More items: 2-column chips */
   .nav-more-menu{background:none;margin:6px 0 6px;padding:0 2px}
   .nav-more.open .nav-more-menu{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .nav-more-menu a{display:flex;align-items:center;gap:8px;padding:11px 12px;font-size:.84rem;font-weight:600;color:var(--txt);background:var(--card2);border:1px solid var(--bdr);border-radius:12px;border-left:1px solid var(--bdr)}
-  .nav-more-menu a::before{font-size:1rem;flex:none;background:none;width:auto;height:auto}
-  .nav-more-menu a[href="resources.html"]::before{content:"📚"}
-  .nav-more-menu a[href="register.html"]::before{content:"📝"}
-  .nav-more-menu a[href="leaderboard.html"]::before{content:"🥇"}
-  .nav-more-menu a[href="verify.html"]::before{content:"✅"}
-  .nav-more-menu a[href="volunteer.html"]::before{content:"🙋"}
-  .nav-more-menu a[href="blog.html"]::before{content:"✍️"}
+  .nav-more-menu a::before{content:"";flex:none;width:18px;height:18px;background-color:transparent;border-radius:0;background-repeat:no-repeat;background-position:center;background-size:18px}
   .nav-more-menu a.active{border-color:var(--blue-br)}
   /* Forum + auth buttons */
   .h-nav a.nav-forum-btn{margin:6px 0 2px;padding:12px 16px;background:rgba(59,130,246,.1);border-color:var(--bdr2)}
@@ -691,4 +679,18 @@ body.lang-bn .founder-card .founder-msg-text{line-height:2.05}
   /* signed-in account row */
   .nav-acc-wrap{margin-top:4px}
   .nav-acc-trigger{width:100%;background:var(--card2);border:1px solid var(--bdr);border-radius:12px;padding:10px 14px;justify-content:space-between}
+
+  /* line icons (SVG, theme blue) */
+  .h-nav > a[href="index.html"]:not(.nav-forum-btn):not(.nav-signup-btn)::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z'/%3E%3C/svg%3E")}
+  .h-nav > a[href="events.html"]:not(.nav-forum-btn):not(.nav-signup-btn)::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3'/%3E%3C/svg%3E")}
+  .h-nav > a[href="team.html"]:not(.nav-forum-btn):not(.nav-signup-btn)::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'/%3E%3C/svg%3E")}
+  .h-nav > a[href="news.html"]:not(.nav-forum-btn):not(.nav-signup-btn)::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h13v16H6a2 2 0 0 1-2-2zM17 8h3v10a2 2 0 0 1-2 2M8 8h5M8 12h5M8 16h5'/%3E%3C/svg%3E")}
+  .h-nav > a[href="contact.html"]:not(.nav-forum-btn):not(.nav-signup-btn)::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5h18v14H3zM3 7l9 6 9-6'/%3E%3C/svg%3E")}
+  .nav-more-btn::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15.5 8.5l-2 5-5 2 2-5z'/%3E%3C/svg%3E")}
+  .nav-more-menu a[href="resources.html"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19V5a2 2 0 0 1 2-2h13v14H6a2 2 0 0 0-2 2zM4 19a2 2 0 0 0 2 2h13v-4'/%3E%3C/svg%3E")}
+  .nav-more-menu a[href="register.html"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 3h6v3H9zM7 5H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2M8 12h8M8 16h5'/%3E%3C/svg%3E")}
+  .nav-more-menu a[href="leaderboard.html"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 21V10M12 21V4M19 21v-7'/%3E%3C/svg%3E")}
+  .nav-more-menu a[href="verify.html"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM8.5 12l2.5 2.5 4.5-5'/%3E%3C/svg%3E")}
+  .nav-more-menu a[href="volunteer.html"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z'/%3E%3C/svg%3E")}
+  .nav-more-menu a[href="blog.html"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4'/%3E%3C/svg%3E")}
 }

@@ -90,20 +90,20 @@
   <nav class="h-nav" id="hnav">
     <a href="index.html" data-i18n="nav_home">Home</a>
     <a href="events.html" data-i18n="nav_olympiads">Events &amp; Quiz</a>
-    <a href="resources.html" data-i18n="nav_resources">Resources</a>
-    <a href="forum.html" data-i18n="nav_forum">Forum</a>
     <a href="team.html" data-i18n="nav_team">Team</a>
     <a href="news.html" data-i18n="nav_news">News</a>
     <a href="contact.html" data-i18n="nav_contact">Contact</a>
     <div class="nav-more" id="nav-more">
       <button type="button" class="nav-more-btn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_more">More</span> <span class="nav-more-caret">▾</span></button>
       <div class="nav-more-menu">
+        <a href="resources.html" data-i18n="nav_resources">Resources</a>
         <a href="register.html" data-i18n="nav_register">Register</a>
         <a href="leaderboard.html" data-i18n="nav_results">Results</a>
         <a href="verify.html" data-i18n="nav_verify">Verify</a>
         <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
       </div>
     </div>
+    <a href="forum.html" class="nav-forum-btn"><span>💬</span> <span data-i18n="nav_forum">Forum</span></a>
     <a href="account.html" id="nav-account-link">Log In</a>
     <a href="account.html#signup" id="nav-signup-link" class="nav-signup-btn">Sign Up</a>
     <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
@@ -181,6 +181,20 @@
   </div>
 </section>
 
+<!-- RESOURCES INTRO -->
+<section class="section" id="resources-home" style="background:var(--card2);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);">
+  <div class="sec-hd">
+    <span class="eyebrow" data-i18n="rs_eyebrow">Free Study Material</span>
+    <h2 class="sec-title"><span data-i18n="rs_title_1">Resource</span> <span class="hl" data-i18n="rs_title_2">Hub</span></h2>
+    <div class="divider"></div>
+    <p class="sec-desc" data-i18n="rs_desc">Download free notes, question banks and study guides for SSC, HSC, admission and olympiad preparation.</p>
+  </div>
+  <div class="rs-grid" id="rs-home-grid"></div>
+  <div style="text-align:center;margin-top:36px;">
+    <a href="resources.html" class="btn-out" data-i18n="rs_viewall">Browse All Resources →</a>
+  </div>
+</section>
+
 <!-- ABOUT -->
 <section class="section" id="about">
   <div class="about-grid">
@@ -208,20 +222,21 @@
 <!-- FOUNDER'S MESSAGE -->
 <section class="section" id="founder-msg" style="display:none;">
   <div class="sec-hd">
-    <span class="eyebrow">From Our Founder</span>
-    <h2 class="sec-title">Founder's <span class="hl">Message</span></h2>
+    <span class="eyebrow" data-i18n="fm_eyebrow">From Our Founder</span>
+    <h2 class="sec-title"><span data-i18n="fm_title_1">Founder's</span> <span class="hl" data-i18n="fm_title_2">Message</span></h2>
     <div class="divider"></div>
   </div>
-  <div class="founder-grid">
+  <div class="founder-grid founder-card">
     <div class="founder-photo-wrap">
-      <img class="founder-photo" id="founder-photo" src="logo.jpg" alt="Founder">
+      <div class="founder-ring"><img class="founder-photo" id="founder-photo" src="logo.jpg" alt="Founder"></div>
       <div class="founder-name" id="founder-name"></div>
       <div class="founder-title" id="founder-title"></div>
       <div class="founder-socials" id="founder-socials"></div>
     </div>
-    <div>
-      <div class="founder-quote-mark">"</div>
+    <div class="founder-body">
+      <div class="founder-quote-mark">&ldquo;</div>
       <p class="founder-msg-text" id="founder-bio"></p>
+      <div class="founder-quote-end">&rdquo;</div>
     </div>
   </div>
 </section>
@@ -342,7 +357,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <!-- Site Scripts -->
-<script src="data.js?v=8"></script>
+<script src="data.js?v=9"></script>
 <script src="render.js"></script>
 <script src="lang.js"></script>
 <script src="main.js"></script>
@@ -416,13 +431,42 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 300);
 });
 
+
+/*===== RESOURCES INTRO (Home) =====*/
+function rsEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function renderResourcesHome() {
+  const grid = document.getElementById('rs-home-grid');
+  if(!grid) return;
+  const icons = { Math:'📐', Science:'🔬', English:'📖', ICT:'💻', General:'🌍', Bangla:'📝' };
+  const list = (typeof getResources === 'function' ? getResources() : []).slice(0, 3);
+  grid.style.display = list.length ? '' : 'none';
+  grid.innerHTML = list.map(r => `
+    <a class="rs-card" href="resources.html">
+      <div class="rs-top"><span class="rs-ico">${icons[r.category] || '📄'}</span><span class="rs-badge">${rsEsc(r.classLevel || r.category || '')}</span></div>
+      <h3>${rsEsc(r.title || '')}</h3>
+      <p>${rsEsc(r.description || '')}</p>
+      <span class="rs-go">${rsEsc(tr('rs_open','View →'))}</span>
+    </a>`).join('');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const t = setInterval(async () => {
+    if(typeof loadResources === 'function' && window.firebaseDB && window.firebaseFunctions) {
+      clearInterval(t);
+      try { await loadResources(); } catch(e) {}
+      renderResourcesHome();
+    }
+  }, 300);
+});
+
 function renderTeamHome() {
   const grid = document.getElementById('team-home-grid');
   if(!grid) return;
   
   const team = getTeam();
-  const preview = team.slice(0, 6); // First 6 members only
-  
+  const preview = team.filter(m => m.special).slice(0, 6); // only "Special" (leadership) members appear on Home
+  const sec = document.getElementById('team-preview');
+  if(sec) sec.style.display = (preview.length === 0 && team.length > 0) ? 'none' : '';
+
   if(preview.length === 0) {
     const dict = translations[getLang()];
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);">
@@ -553,14 +597,15 @@ async function initFounderMessage() {
   const f = await getFounderSettings();
   if(!f || !f.enabled) return;
 
+  function fmUrl(u){ u=String(u||'').trim(); return /^https?:\/\//i.test(u) ? u.replace(/"/g,'%22') : '#'; }
   document.getElementById('founder-name').textContent = f.name || '';
   document.getElementById('founder-title').textContent = f.title || '';
   document.getElementById('founder-bio').textContent = f.bio || '';
   if(f.photo) document.getElementById('founder-photo').src = f.photo;
 
   let socialsHtml = '';
-  if(f.facebook) socialsHtml += `<a class="founder-social-btn" href="${f.facebook}" target="_blank" rel="noopener" title="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.5 9.87v-6.98H7.9V12h2.6V9.8c0-2.6 1.55-4.03 3.9-4.03 1.13 0 2.32.2 2.32.2v2.55h-1.3c-1.28 0-1.68.8-1.68 1.62V12h2.86l-.46 2.89h-2.4v6.98A10 10 0 0 0 22 12z"/></svg></a>`;
-  if(f.linkedin) socialsHtml += `<a class="founder-social-btn" href="${f.linkedin}" target="_blank" rel="noopener" title="LinkedIn"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.98 3.5C4.98 4.88 3.94 6 2.5 6S0 4.88 0 3.5 1.04 1 2.48 1 4.98 2.12 4.98 3.5zM.5 8h4V23h-4V8zm7.5 0h3.8v2.05h.05c.53-1 1.82-2.05 3.75-2.05C19.5 8 21 10.24 21 14.02V23h-4v-8.06c0-1.92-.03-4.4-2.68-4.4-2.68 0-3.1 2.1-3.1 4.26V23h-4V8z"/></svg></a>`;
+  if(f.facebook) socialsHtml += `<a class="founder-social-btn" href="${fmUrl(f.facebook)}" target="_blank" rel="noopener" title="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.5 9.87v-6.98H7.9V12h2.6V9.8c0-2.6 1.55-4.03 3.9-4.03 1.13 0 2.32.2 2.32.2v2.55h-1.3c-1.28 0-1.68.8-1.68 1.62V12h2.86l-.46 2.89h-2.4v6.98A10 10 0 0 0 22 12z"/></svg></a>`;
+  if(f.linkedin) socialsHtml += `<a class="founder-social-btn" href="${fmUrl(f.linkedin)}" target="_blank" rel="noopener" title="LinkedIn"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.98 3.5C4.98 4.88 3.94 6 2.5 6S0 4.88 0 3.5 1.04 1 2.48 1 4.98 2.12 4.98 3.5zM.5 8h4V23h-4V8zm7.5 0h3.8v2.05h.05c.53-1 1.82-2.05 3.75-2.05C19.5 8 21 10.24 21 14.02V23h-4v-8.06c0-1.92-.03-4.4-2.68-4.4-2.68 0-3.1 2.1-3.1 4.26V23h-4V8z"/></svg></a>`;
   document.getElementById('founder-socials').innerHTML = socialsHtml;
 
   document.getElementById('founder-msg').style.display = 'block';

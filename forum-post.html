@@ -58,10 +58,46 @@
 </div>
 <script src="loader.js"></script>
 
+<header id="site-header">
+  <a class="h-logo" href="index.html">
+    <img class="h-logo-img" src="logo.jpg" alt="TalentVerse Logo">
+    <div class="h-logo-text">
+      <div class="name">Talent<span>Verse</span></div>
+      <div class="sub">Bangladesh</div>
+    </div>
+  </a>
+  <nav class="h-nav" id="hnav">
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <a href="events.html" data-i18n="nav_olympiads">Events &amp; Quiz</a>
+    <a href="team.html" data-i18n="nav_team">Team</a>
+    <a href="news.html" data-i18n="nav_news">News</a>
+    <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    <div class="nav-more" id="nav-more">
+      <button type="button" class="nav-more-btn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_more">More</span> <span class="nav-more-caret">▾</span></button>
+      <div class="nav-more-menu">
+        <a href="resources.html" data-i18n="nav_resources">Resources</a>
+        <a href="register.html" data-i18n="nav_register">Register</a>
+        <a href="leaderboard.html" data-i18n="nav_results">Results</a>
+        <a href="verify.html" data-i18n="nav_verify">Verify</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
+      </div>
+    </div>
+    <a href="forum.html" class="nav-forum-btn"><span>💬</span> <span data-i18n="nav_forum">Forum</span></a>
+    <a href="account.html" id="nav-account-link">Log In</a>
+    <a href="account.html#signup" id="nav-signup-link" class="nav-signup-btn">Sign Up</a>
+    <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
+      🌐 <span class="lang-toggle-label">বাং</span>
+    </button>
+  </nav>
+  <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
 
 <section class="section" style="padding-top:36px;">
   <div class="fp-container">
-    <a class="fp-back" href="forum.html">← Back to Forum</a>
+    <a class="fp-back" href="forum.html" data-i18n="fp_back">← Back to Forum</a>
 
     <div id="fp-loading" style="text-align:center;padding:50px;color:var(--muted);">⏳ Loading...</div>
 
@@ -74,13 +110,13 @@
         <div class="fp-ownbtns" id="fp-ownbtns" style="display:none;"></div>
       </div>
 
-      <div class="fp-section-title" id="fp-comment-count">Comments</div>
+      <div class="fp-section-title" id="fp-comment-count" data-i18n="fp_comments">Comments</div>
       <div id="fp-comments"></div>
 
       <div id="fp-comment-gate" class="fp-gate" style="display:none;margin-top:14px;"></div>
       <div id="fp-comment-box" style="display:none;margin-top:14px;">
-        <textarea class="fp-fi" id="fp-in-comment" placeholder="Write a comment..."></textarea>
-        <button class="fp-send-btn" id="fp-comment-btn" onclick="fpSubmitComment()">Comment</button>
+        <textarea class="fp-fi" id="fp-in-comment" placeholder="Write a comment..." data-i18n-ph="fp_ph_comment"></textarea>
+        <button class="fp-send-btn" id="fp-comment-btn" onclick="fpSubmitComment()" data-i18n="fp_comment">Comment</button>
       </div>
     </div>
   </div>
@@ -93,7 +129,7 @@
 </div>
 
 <script type="module" src="firebase-config.js"></script>
-<script src="data.js?v=7"></script>
+<script src="data.js?v=9"></script>
 
 <script>
 function toast(msg, isErr=false){
@@ -129,13 +165,13 @@ function fpWaitForFirebase(timeoutMs=6000){
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  if(!fpPostId){ document.getElementById('fp-loading').textContent = '❌ No post specified.'; return; }
+  if(!fpPostId){ document.getElementById('fp-loading').textContent = tr('fp_nopost','❌ No post specified.'); return; }
 
   // Load the post + comments right away — only needs Firestore, never waits on Auth.
   (async () => {
     fpPost = await getForumPost(fpPostId);
     if(!fpPost){
-      document.getElementById('fp-loading').textContent = '❌ This post was not found — it may have been removed.';
+      document.getElementById('fp-loading').textContent = tr('fp_notfound','❌ This post was not found — it may have been removed.');
       return;
     }
     document.getElementById('fp-loading').style.display='none';
@@ -145,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadForumComments(fpPostId);
     fpRenderComments();
   })().catch(() => {
-    document.getElementById('fp-loading').textContent = '⚠️ Something went wrong loading this post. Please refresh.';
+    document.getElementById('fp-loading').textContent = tr('fp_err','⚠️ Something went wrong loading this post. Please refresh.');
   });
 
   // Who's signed in — runs independently; times out to "not signed in" rather than hanging.
@@ -173,31 +209,31 @@ function fpRenderOwnBtns(){
   const wrap=document.getElementById('fp-ownbtns');
   if(fpUser && fpPost && fpUser.uid===fpPost.authorUid){
     wrap.style.display='flex';
-    wrap.innerHTML = `<button onclick="fpEditPost()">✏️ Edit</button><button class="danger" onclick="fpDeletePost()">🗑 Delete</button>`;
+    wrap.innerHTML = `<button onclick="fpEditPost()">${tr('fp_edit','✏️ Edit')}</button><button class="danger" onclick="fpDeletePost()">${tr('fp_delete','🗑 Delete')}</button>`;
   } else {
     wrap.style.display='none';
   }
 }
 
 async function fpEditPost(){
-  const newTitle = prompt("Edit title:", fpPost.title);
+  const newTitle = prompt(tr("fp_edit_title","Edit title:"), fpPost.title);
   if(newTitle===null) return;
-  const newBody = prompt("Edit body:", fpPost.body);
+  const newBody = prompt(tr("fp_edit_body","Edit body:"), fpPost.body);
   if(newBody===null) return;
-  if(!newTitle.trim() || !newBody.trim()) return toast("Title and body can't be empty.", true);
+  if(!newTitle.trim() || !newBody.trim()) return toast(tr("fp_empty_edit","Title and body can't be empty."), true);
   const ok = await updateForumPost(fpPostId, { title:newTitle.trim(), body:newBody.trim() });
   if(ok){
     fpPost.title=newTitle.trim(); fpPost.body=newBody.trim();
     fpRenderPost(); fpRenderOwnBtns();
-    toast("Post updated! ✅");
-  } else toast("Failed to update.", true);
+    toast(tr("fp_updated","Post updated! ✅"));
+  } else toast(tr("fp_updfail","Failed to update."), true);
 }
 
 async function fpDeletePost(){
-  if(!confirm("Delete this post and all its comments? This can't be undone.")) return;
+  if(!confirm(tr("fp_pdel_confirm","Delete this post and all its comments? This can't be undone."))) return;
   const ok = await deleteForumPost(fpPostId);
-  if(ok){ toast("Post deleted."); setTimeout(()=>window.location.href='forum.html', 800); }
-  else toast("Failed to delete.", true);
+  if(ok){ toast(tr("fp_pdeleted","Post deleted.")); setTimeout(()=>window.location.href='forum.html', 800); }
+  else toast(tr("fp_delfail","Failed to delete."), true);
 }
 
 function fpRenderGate(){
@@ -208,18 +244,18 @@ function fpRenderGate(){
   } else {
     box.style.display='none'; gate.style.display='block';
     if(window.firebaseAuth && window.firebaseAuth.currentUser && !window.firebaseAuth.currentUser.emailVerified){
-      gate.innerHTML = `Please verify your email to comment. Check your inbox, or resend from your <a href="dashboard.html">dashboard</a>.`;
+      gate.innerHTML = tr('fp_gate_verify', `Please verify your email to comment. Check your inbox, or resend from your <a href="dashboard.html">dashboard</a>.`);
     } else {
-      gate.innerHTML = `<a href="account.html">Sign in</a> to leave a comment.`;
+      gate.innerHTML = tr('fp_gate_signin', `<a href="account.html">Sign in</a> to leave a comment.`);
     }
   }
 }
 
 function fpRenderComments(){
   const list = getForumComments();
-  document.getElementById('fp-comment-count').textContent = `Comments (${list.length})`;
+  document.getElementById('fp-comment-count').textContent = `${tr('fp_comments','Comments')} (${list.length})`;
   const wrap = document.getElementById('fp-comments');
-  if(!list.length){ wrap.innerHTML = `<p style="color:var(--muted);font-size:.85rem;">No comments yet. Start the conversation!</p>`; return; }
+  if(!list.length){ wrap.innerHTML = `<p style="color:var(--muted);font-size:.85rem;">${tr('fp_nocomments','No comments yet. Start the conversation!')}</p>`; return; }
   wrap.innerHTML = list.map(c => {
     const initial = fpEsc((c.authorName||'?').charAt(0).toUpperCase());
     const canDel = fpUser && fpUser.uid===c.authorUid;
@@ -227,7 +263,7 @@ function fpRenderComments(){
       <div class="fp-comment-top">
         ${c.authorPhoto ? `<img class="fp-avatar" style="width:22px;height:22px;" src="${fpEsc(c.authorPhoto)}">` : `<span class="fp-avatar" style="width:22px;height:22px;font-size:.65rem;">${initial}</span>`}
         <span>${fpEsc(c.authorName)}</span><span>·</span><span>${fpTimeAgo(c.createdAt)}</span>
-        ${canDel ? `<button class="fp-comment-del" onclick="fpDeleteComment('${c.id}')">Delete</button>` : ''}
+        ${canDel ? `<button class="fp-comment-del" onclick="fpDeleteComment('${c.id}')">${tr('fp_del','Delete')}</button>` : ''}
       </div>
       <div class="fp-comment-body">${fpEsc(c.body)}</div>
     </div>`;
@@ -235,33 +271,35 @@ function fpRenderComments(){
 }
 
 async function fpSubmitComment(){
-  if(!fpUser) return toast("Please sign in first.", true);
+  if(!fpUser) return toast(tr("t_signin_first","Please sign in first."), true);
   const body = document.getElementById('fp-in-comment').value.trim();
-  if(!body) return toast("Write something first!", true);
+  if(!body) return toast(tr("fp_write","Write something first!"), true);
 
   const btn=document.getElementById('fp-comment-btn');
-  btn.disabled=true; btn.textContent='Posting...';
+  btn.disabled=true; btn.textContent=tr('fo_posting','Posting...');
 
   const authorName = [fpProfile?.firstName, fpProfile?.lastName].filter(Boolean).join(' ') || fpUser.email.split('@')[0];
   const result = await addForumComment({ postId:fpPostId, authorUid:fpUser.uid, authorName, authorPhoto:fpProfile?.photo||'', body });
 
-  btn.disabled=false; btn.textContent='Comment';
+  btn.disabled=false; btn.textContent=tr('fp_comment','Comment');
 
   if(result.success){
     document.getElementById('fp-in-comment').value='';
     fpPost.replyCount = (fpPost.replyCount||0)+1;
     await loadForumComments(fpPostId);
     fpRenderComments();
-    toast("Comment posted! ✅");
-  } else toast("Failed to post comment.", true);
+    toast(tr("fp_posted","Comment posted! ✅"));
+  } else toast(tr("fp_postfail","Failed to post comment."), true);
 }
 
 async function fpDeleteComment(id){
-  if(!confirm("Delete this comment?")) return;
+  if(!confirm(tr("fp_cdel_confirm","Delete this comment?"))) return;
   const ok = await deleteForumComment(id, fpPostId);
-  if(ok){ await loadForumComments(fpPostId); fpRenderComments(); toast("Deleted."); }
-  else toast("Failed to delete.", true);
+  if(ok){ await loadForumComments(fpPostId); fpRenderComments(); toast(tr("fp_deleted","Deleted.")); }
+  else toast(tr("fp_delfail","Failed to delete."), true);
 }
 </script>
+<script src="lang.js"></script>
+<script src="main.js"></script>
 </body>
 </html>

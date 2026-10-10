@@ -65,13 +65,21 @@
   </a>
   <nav class="h-nav" id="hnav">
     <a href="index.html" data-i18n="nav_home">Home</a>
-    <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
+    <a href="events.html" data-i18n="nav_olympiads">Events &amp; Quiz</a>
     <a href="team.html" data-i18n="nav_team">Team</a>
     <a href="news.html" data-i18n="nav_news">News</a>
-    <a href="register.html" data-i18n="nav_register">Register</a>
-    <a href="verify.html" data-i18n="nav_verify">Verify</a>
-    <a href="leaderboard.html" data-i18n="nav_results">Results</a>
     <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    <div class="nav-more" id="nav-more">
+      <button type="button" class="nav-more-btn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_more">More</span> <span class="nav-more-caret">▾</span></button>
+      <div class="nav-more-menu">
+        <a href="resources.html" data-i18n="nav_resources">Resources</a>
+        <a href="register.html" data-i18n="nav_register">Register</a>
+        <a href="leaderboard.html" data-i18n="nav_results">Results</a>
+        <a href="verify.html" data-i18n="nav_verify">Verify</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
+      </div>
+    </div>
+    <a href="forum.html" class="nav-forum-btn"><span>💬</span> <span data-i18n="nav_forum">Forum</span></a>
     <a href="account.html" id="nav-account-link">🔐 Account</a>
     <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
       🌐 <span class="lang-toggle-label">বাং</span>
@@ -103,11 +111,11 @@
     <div id="ac-login-view">
       <div class="cf-group">
         <label>Email Address</label>
-        <input class="cf-input" type="email" id="li-email" placeholder="you@email.com">
+        <input class="cf-input" type="email" id="li-email" autocomplete="email" inputmode="email" autocapitalize="none" placeholder="you@email.com">
       </div>
       <div class="cf-group">
         <label>Password</label>
-        <input class="cf-input" type="password" id="li-pass" placeholder="Your password">
+        <input class="cf-input" type="password" id="li-pass" autocomplete="current-password" placeholder="Your password">
       </div>
       <p id="ac-login-err" style="color:#f87171;font-size:.82rem;margin:-8px 0 14px;display:none;"></p>
       <button class="cf-btn" onclick="acLogin()" id="ac-login-btn">Log In 🔐</button>
@@ -126,10 +134,10 @@
         <input type="file" id="su-photo" accept="image/*" onchange="acPreviewPhoto(this)" style="font-size:.8rem;max-width:100%;">
       </div>
 
-      <div class="cf-group"><label>First Name <span style="color:#f87171;">*</span></label><input class="cf-input" type="text" id="su-fname"></div>
-      <div class="cf-group"><label>Last Name <span style="color:#f87171;">*</span></label><input class="cf-input" type="text" id="su-lname"></div>
-      <div class="cf-group"><label>Date of Birth <span style="color:#f87171;">*</span></label><input class="cf-input" type="date" id="su-dob"></div>
-      <div class="cf-group"><label>Phone Number <span style="color:#f87171;">*</span></label><input class="cf-input" type="tel" id="su-phone" placeholder="01XXXXXXXXX"></div>
+      <div class="cf-group"><label>First Name <span style="color:#f87171;">*</span></label><input class="cf-input" type="text" id="su-fname" autocomplete="given-name"></div>
+      <div class="cf-group"><label>Last Name <span style="color:#f87171;">*</span></label><input class="cf-input" type="text" id="su-lname" autocomplete="family-name"></div>
+      <div class="cf-group"><label>Date of Birth <span style="color:#f87171;">*</span></label><input class="cf-input" type="date" id="su-dob" autocomplete="bday"></div>
+      <div class="cf-group"><label>Phone Number <span style="color:#f87171;">*</span></label><input class="cf-input" type="tel" id="su-phone" autocomplete="tel" inputmode="tel" placeholder="01XXXXXXXXX"></div>
       <div class="cf-group">
         <label>Gender <span style="color:#f87171;">*</span></label>
         <select class="cf-input" id="su-gender">
@@ -150,21 +158,21 @@
           <option value="Other">Other</option>
         </select>
       </div>
-      <div class="cf-group"><label>University / Institution <span style="color:#f87171;">*</span></label><input class="cf-input" type="text" id="su-institution"></div>
+      <div class="cf-group"><label>University / Institution <span style="color:#f87171;">*</span></label><input class="cf-input" type="text" id="su-institution" autocomplete="organization"></div>
       <div class="cf-group"><label>Class / Level <span style="color:#f87171;">*</span></label><input class="cf-input" type="text" id="su-class" placeholder="e.g. Class 9, HSC 1st Year"></div>
       <div class="cf-group"><label>District <span style="color:#f87171;">*</span></label><input class="cf-input" type="text" id="su-district"></div>
 
       <div class="cf-group">
         <label>Email Address <span style="color:#f87171;">*</span></label>
-        <input class="cf-input" type="email" id="su-email" placeholder="Use the same email you registered with">
+        <input class="cf-input" type="email" id="su-email" autocomplete="email" inputmode="email" autocapitalize="none" placeholder="Use the same email you registered with">
       </div>
       <div class="cf-group">
         <label>Password <span style="color:#f87171;">*</span></label>
-        <input class="cf-input" type="password" id="su-pass" placeholder="At least 6 characters">
+        <input class="cf-input" type="password" id="su-pass" autocomplete="new-password" placeholder="At least 6 characters">
       </div>
       <div class="cf-group">
         <label>Confirm Password <span style="color:#f87171;">*</span></label>
-        <input class="cf-input" type="password" id="su-pass2" placeholder="Re-type your password">
+        <input class="cf-input" type="password" id="su-pass2" autocomplete="new-password" placeholder="Re-type your password">
       </div>
       <p style="font-size:.78rem;color:var(--muted);margin:-8px 0 14px;line-height:1.6;">
         💡 Use the exact same email you used for quizzes/registrations — that's how we match your results to your account.
@@ -209,6 +217,9 @@
       <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
       <a href="team.html" data-i18n="nav_team">Team</a>
       <a href="news.html" data-i18n="nav_news">News</a>
+      <a href="resources.html" data-i18n="nav_resources">Resources</a>
+      <a href="forum.html" data-i18n="nav_forum">Forum</a>
+      <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
       <a href="register.html" data-i18n="nav_register">Register</a>
       <a href="verify.html" data-i18n="nav_verify">Verify Certificate</a>
       <a href="contact.html" data-i18n="nav_contact">Contact</a>
@@ -235,7 +246,7 @@
 <script type="module" src="firebase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-<script src="data.js"></script>
+<script src="data.js?v=9"></script>
 <script src="render.js"></script>
 <script src="lang.js"></script>
 <script src="main.js"></script>

@@ -626,3 +626,9 @@ body.lang-bn .founder-card .founder-msg-text{line-height:2.05}
 }
 
 .founder-card .founder-quote-mark,.founder-quote-end{display:none}
+
+/* v44 mobile forms: 16px inputs stop iOS zoom, bigger tap targets */
+@media(max-width:600px){
+  .cf-input,select.cf-input{font-size:16px;min-height:46px;}
+  .cf-group{margin-bottom:12px;}
+}

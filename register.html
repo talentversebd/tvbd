@@ -87,13 +87,21 @@
   </a>
   <nav class="h-nav" id="hnav">
     <a href="index.html" data-i18n="nav_home">Home</a>
-    <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
+    <a href="events.html" data-i18n="nav_olympiads">Events &amp; Quiz</a>
     <a href="team.html" data-i18n="nav_team">Team</a>
     <a href="news.html" data-i18n="nav_news">News</a>
-    <a href="register.html" class="active" data-i18n="nav_register">Register</a>
-    <a href="verify.html" data-i18n="nav_verify">Verify</a>
-    <a href="leaderboard.html" data-i18n="nav_results">Results</a>
     <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    <div class="nav-more" id="nav-more">
+      <button type="button" class="nav-more-btn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_more">More</span> <span class="nav-more-caret">▾</span></button>
+      <div class="nav-more-menu">
+        <a href="resources.html" data-i18n="nav_resources">Resources</a>
+        <a href="register.html" data-i18n="nav_register">Register</a>
+        <a href="leaderboard.html" data-i18n="nav_results">Results</a>
+        <a href="verify.html" data-i18n="nav_verify">Verify</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
+      </div>
+    </div>
+    <a href="forum.html" class="nav-forum-btn"><span>💬</span> <span data-i18n="nav_forum">Forum</span></a>
     <a href="account.html" id="nav-account-link">🔐 Account</a>
     <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
       🌐 <span class="lang-toggle-label">বাং</span>
@@ -161,9 +169,18 @@
         </div>
         <div class="cf-group">
           <label>Which Olympiad / Event? *</label>
-          <select class="cf-input" id="rf-olympiad" required>
+          <select class="cf-input" id="rf-olympiad" required onchange="onOlympiadSelectChange()">
             <option value="">Loading events...</option>
           </select>
+        </div>
+        <div class="cf-group" id="rf-segment-wrap" style="display:none;">
+          <label>Segment *</label>
+          <select class="cf-input" id="rf-segment"></select>
+        </div>
+        <div id="rf-fee-note" style="display:none;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.88rem;line-height:1.6;"></div>
+        <div class="cf-group" id="rf-txn-wrap" style="display:none;">
+          <label>Transaction ID *</label>
+          <input class="cf-input" type="text" id="rf-txnid" placeholder="e.g. 8N7A6D5E4C">
         </div>
         <div class="cf-group">
           <label>Class / Grade</label>
@@ -248,7 +265,7 @@
 <script type="module" src="firebase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-<script src="data.js?v=7"></script>
+<script src="data.js?v=9"></script>
 <script src="render.js"></script>
 <script src="lang.js"></script>
 <script src="main.js"></script>

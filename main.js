@@ -592,24 +592,24 @@ function onOlympiadSelectChange() {
   const o = getOlympiads().find(x => x.title === select.value);
 
   // Segments
-  if(o && (o.segments || []).length > 0) {
+  if(o && (o.segments || []).length > 0 && segSelect) {
     segSelect.innerHTML = '<option value="">-- Select a segment --</option>' +
       o.segments.map(s => `<option value="${s}">${s}</option>`).join('');
-    segWrap.style.display = 'block';
+    if(segWrap) segWrap.style.display = 'block';
   } else {
-    segWrap.style.display = 'none';
-    segSelect.innerHTML = '';
+    if(segWrap) segWrap.style.display = 'none';
+    if(segSelect) segSelect.innerHTML = '';
   }
 
   // Paid event → show fee note + require Transaction ID
-  if(o && o.fee) {
+  if(o && o.fee && feeNote && txnWrap) {
     feeNote.style.display = 'block';
     feeNote.innerHTML = `💰 <strong>Registration Fee: ${o.fee}</strong><br><span style="font-size:.8rem;color:var(--muted);">পেমেন্ট সম্পন্ন করে নিচে Transaction ID দাও।</span>`;
     txnWrap.style.display = 'block';
   } else {
-    feeNote.style.display = 'none';
-    txnWrap.style.display = 'none';
-    document.getElementById('rf-txnid').value = '';
+    if(feeNote) feeNote.style.display = 'none';
+    if(txnWrap) txnWrap.style.display = 'none';
+    const tx = document.getElementById('rf-txnid'); if(tx) tx.value = '';
   }
 }
 

@@ -102,7 +102,7 @@ function renderOlympiads() {
     card.onclick = () => openModal(i);
     card.innerHTML = `
       ${o.img
-        ? `<img src="${o.img}" class="o-card-img" alt="${o.title}">`
+        ? `<img loading="lazy" decoding="async" src="${o.img}" class="o-card-img" alt="${o.title}">`
         : `<div class="o-card-noimg">🏆</div>`}
       <div class="o-card-badge">${o.status}</div>
       <div class="o-card-body">
@@ -148,7 +148,7 @@ function renderGallery() {
       ${g.type === 'video'
         ? `<video src="${g.url}"></video>
            <div class="g-vid-badge">VIDEO</div>`
-        : `<img src="${g.url}" alt="${g.cap}">`}
+        : `<img loading="lazy" decoding="async" src="${g.url}" alt="${g.cap}">`}
       <div class="g-caption">${g.cap}</div>`;
     grid.appendChild(item);
   });
@@ -406,7 +406,7 @@ function openLB(i) {
 
   const content = g.type === 'video'
     ? `<video src="${g.url}" controls autoplay></video>`
-    : `<img src="${g.url}" alt="${g.cap}">`;
+    : `<img loading="lazy" decoding="async" src="${g.url}" alt="${g.cap}">`;
 
   const lb = document.getElementById('lb');
   const lbContent = document.getElementById('lb-content');

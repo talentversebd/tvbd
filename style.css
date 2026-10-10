@@ -547,3 +547,7 @@ body.lang-bn .popup-title{font-family:'Noto Sans Bengali','Montserrat',sans-seri
 .explore-card p{font-size:.82rem;color:var(--muted);line-height:1.55}
 .explore-go{margin-top:auto;padding-top:8px;font-size:.78rem;font-weight:700;color:var(--blue-br)}
 @media(max-width:600px){.explore-grid{grid-template-columns:repeat(2,1fr);gap:12px}.explore-card{padding:16px 14px}.explore-card p{font-size:.76rem}.explore-card h3{font-size:.9rem}}
+
+.h-nav a.nav-forum-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bdr2);color:var(--lblue);font-weight:600;padding:6px 14px;border-radius:999px;margin-left:6px}
+.h-nav a.nav-forum-btn:hover,.h-nav a.nav-forum-btn.active{border-color:var(--blue-br);background:rgba(59,130,246,.12);color:var(--txt)}
+@media(max-width:700px){.h-nav a.nav-forum-btn{margin:4px 0;padding:13px 16px;border-radius:10px;justify-content:center}}

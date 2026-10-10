@@ -641,3 +641,14 @@ body.lang-bn .founder-card .founder-msg-text{line-height:2.05}
 .db-sum-lbl{font-size:.68rem;color:var(--muted);font-weight:600;margin-top:2px}
 @media(max-width:380px){.db-sum-lbl{font-size:.62rem}.db-sum-num{font-size:1.1rem}}
 @media(max-width:600px){#db-events-list>div{min-height:290px !important}}
+
+/* v51 compact mobile menu: "More" becomes a collapsible group so the list stays short */
+@media(max-width:700px){
+  .nav-more{display:block}
+  .nav-more-btn{display:flex;width:100%;justify-content:space-between;padding:11px 16px 11px 19px;font-size:.92rem;border-radius:10px;background:none}
+  .nav-more-btn .nav-more-caret{font-size:.7rem}
+  .nav-more-menu{display:none;position:static;min-width:0;box-shadow:none;border:none;background:rgba(255,255,255,.03);border-radius:10px;padding:4px 6px;margin:2px 0 4px 10px;opacity:1;visibility:visible;transform:none}
+  .nav-more.open .nav-more-menu{display:block}
+  .nav-more-menu a{padding:10px 14px;font-size:.88rem}
+  .h-nav a{padding-top:11px;padding-bottom:11px}
+}

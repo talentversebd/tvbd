@@ -2697,3 +2697,23 @@ function renderBellList() {
       <td><button class="fc-btn" onclick="deleteBellNotification('${a.id}')">🗑️ Delete</button></td>
     </tr>`).join('');
      }
+
+
+/*===== SIDEBAR MENU SEARCH =====
+   Hides menu items that don't match (uses its own class so the permission-based hiding stays untouched). */
+function filterAdminNav(q) {
+  const nav = document.querySelector('.adm-nav');
+  if(!nav) return;
+  q = String(q || '').trim().toLowerCase();
+  let heading = null, any = false;
+  const flush = () => { if(heading) heading.classList.toggle('sb-hide', !!q && !any); };
+  Array.from(nav.children).forEach(el => {
+    if(el.classList.contains('adm-ns')) { flush(); heading = el; any = false; }
+    else if(el.classList.contains('adm-nb')) {
+      const hit = !q || el.textContent.toLowerCase().includes(q);
+      el.classList.toggle('sb-hide', !hit);
+      if(hit && el.style.display !== 'none') any = true;
+    }
+  });
+  flush();
+}

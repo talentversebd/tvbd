@@ -123,7 +123,15 @@ select.fi{cursor:pointer}
 .qf-opt-row input[type="radio"]{accent-color:#22c55e;flex-shrink:0;width:16px;height:16px}
 .qf-opt-row input[type="text"]{flex:1}
 .qf-points{width:90px !important;flex-shrink:0}
+.adm-sb-search{padding:10px 10px 4px;flex-shrink:0}
+.adm-sb-search input{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);border-radius:8px;padding:8px 10px;font-size:.85rem;outline:none}
+.adm-sb-search input:focus{border-color:var(--blue-br)}
+.adm-nb.sb-hide,.adm-ns.sb-hide{display:none !important}
 @media(max-width:700px){
+  .adm-sb-search input{font-size:16px;padding:10px}
+  .adm-nb{padding:12px 10px;font-size:.92rem}
+  .tbl-wrap{-webkit-overflow-scrolling:touch}
+  .add-btn,.save-btn{padding:11px 16px}
   .adm-sb{position:fixed;left:0;top:0;bottom:0;z-index:4002;transform:translateX(-100%);width:220px}
   .adm-sb.open{transform:translateX(0)}
   .menu-toggle-btn{display:block}
@@ -164,6 +172,7 @@ select.fi{cursor:pointer}
         <img src="logo.jpg" alt="Logo">
         <span>TalentVerse</span>
       </div>
+      <div class="adm-sb-search"><input type="search" id="adm-sb-q" placeholder="🔍 Search menu…" autocomplete="off" oninput="filterAdminNav(this.value)"></div>
       <nav class="adm-nav">
         <div class="adm-ns">Overview</div>
         <button class="adm-nb active" data-sec="dash" onclick="goSec(this)"><span class="ico">📊</span>Dashboard</button>
@@ -915,10 +924,10 @@ select.fi{cursor:pointer}
     <div class="fg"><label>👤 Name *</label><input class="fi" id="tf-name" placeholder="e.g. Abdur Rahman"></div>
     <div class="fg"><label>💼 Role / Position *</label><input class="fi" id="tf-role" placeholder="e.g. President, CEO, Vice President"></div>
     <div class="fg">
-      <label>🎴 Card Design</label>
+      <label>🎴 Card Design <span style="font-weight:400;color:var(--muted);font-size:.72rem;">(only "Special" members appear on the Home page)</span></label>
       <select class="fi" id="tf-special">
         <option value="0">Normal</option>
-        <option value="1">Special (CEO / Department Head)</option>
+        <option value="1">Special (CEO / Department Head) — also shown on Home page</option>
       </select>
     </div>
     <div class="fg">

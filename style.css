@@ -632,3 +632,12 @@ body.lang-bn .founder-card .founder-msg-text{line-height:2.05}
   .cf-input,select.cf-input{font-size:16px;min-height:46px;}
   .cf-group{margin-bottom:12px;}
 }
+
+/* v46 dashboard summary strip */
+.db-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.db-sum-tile{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:12px 6px;text-align:center}
+.db-sum-ico{font-size:1.1rem;line-height:1}
+.db-sum-num{font-family:Montserrat,sans-serif;font-weight:800;font-size:1.3rem;color:var(--txt);margin-top:4px}
+.db-sum-lbl{font-size:.68rem;color:var(--muted);font-weight:600;margin-top:2px}
+@media(max-width:380px){.db-sum-lbl{font-size:.62rem}.db-sum-num{font-size:1.1rem}}
+@media(max-width:600px){#db-events-list>div{min-height:290px !important}}

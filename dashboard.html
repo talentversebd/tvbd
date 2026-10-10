@@ -686,6 +686,20 @@ async function dbLoadDashboard(user) {
     });
   }
 
+  // ---- SUMMARY STRIP: quick numbers at the top of "My Events" ----
+  try {
+    const regItems = items.filter(r => !r._certOnly);
+    const pendingN = regItems.filter(r => {
+      const o = olys.find(x => nrm(x.title) === nrm(r.olympiad));
+      return o && o.approvalRequired === true && r.approval !== 'approved' && r.approval !== 'rejected';
+    }).length;
+    const tiles = [['📅', regItems.length, 'Events'], ['⏳', pendingN, 'Pending'], ['🏆', (myCerts || []).length, 'Certificates'], ['📝', (results || []).length, 'Quizzes']];
+    let sum = document.getElementById('db-summary');
+    if(!sum) { sum = document.createElement('div'); sum.id = 'db-summary'; eventsList.parentNode.insertBefore(sum, eventsList); }
+    sum.className = 'db-summary';
+    sum.innerHTML = tiles.map(t => `<div class="db-sum-tile"><div class="db-sum-ico">${t[0]}</div><div class="db-sum-num">${t[1]}</div><div class="db-sum-lbl">${t[2]}</div></div>`).join('');
+  } catch(e) {}
+
   const list = document.getElementById('db-results-list');
 
   if(!results.length) {

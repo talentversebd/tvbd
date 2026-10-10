@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Discussion Forum — TalentVerse Bangladesh</title>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TalentVerse Bangladesh">
+<meta property="og:title" content="Discussion Forum — TalentVerse Bangladesh">
+<meta property="og:description" content="Ask questions, share updates and discuss with the TalentVerse Bangladesh community.">
+<meta property="og:url" content="https://talentversebd.github.io/tvbd/forum.html">
+<meta property="og:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Discussion Forum — TalentVerse Bangladesh">
+<meta name="twitter:description" content="Ask questions, share updates and discuss with the TalentVerse Bangladesh community.">
+<meta name="twitter:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
+<link rel="canonical" href="https://talentversebd.github.io/tvbd/forum.html">
 <meta name="description" content="Ask questions, share updates and discuss with the TalentVerse Bangladesh community.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,12 +66,47 @@ textarea.fo-fi{min-height:110px;resize:vertical;}
 </div>
 <script src="loader.js"></script>
 
+<header id="site-header">
+  <a class="h-logo" href="index.html">
+    <img class="h-logo-img" src="logo.jpg" alt="TalentVerse Logo">
+    <div class="h-logo-text">
+      <div class="name">Talent<span>Verse</span></div>
+      <div class="sub">Bangladesh</div>
+    </div>
+  </a>
+  <nav class="h-nav" id="hnav">
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <a href="events.html" data-i18n="nav_olympiads">Events &amp; Quiz</a>
+    <a href="team.html" data-i18n="nav_team">Team</a>
+    <a href="news.html" data-i18n="nav_news">News</a>
+    <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    <div class="nav-more" id="nav-more">
+      <button type="button" class="nav-more-btn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_more">More</span> <span class="nav-more-caret">▾</span></button>
+      <div class="nav-more-menu">
+        <a href="resources.html" data-i18n="nav_resources">Resources</a>
+        <a href="register.html" data-i18n="nav_register">Register</a>
+        <a href="leaderboard.html" data-i18n="nav_results">Results</a>
+        <a href="verify.html" data-i18n="nav_verify">Verify</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
+      </div>
+    </div>
+    <a href="forum.html" class="nav-forum-btn"><span>💬</span> <span data-i18n="nav_forum">Forum</span></a>
+    <a href="account.html" id="nav-account-link">Log In</a>
+    <a href="account.html#signup" id="nav-signup-link" class="nav-signup-btn">Sign Up</a>
+    <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
+      🌐 <span class="lang-toggle-label">বাং</span>
+    </button>
+  </nav>
+  <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
 
-<!-- Standalone forum page (not in main nav), shared site footer kept for branding/navigation. -->
+
 <div class="page-header">
-  <span class="eyebrow">💬 Community</span>
-  <h1>Discussion <span>Forum</span></h1>
-  <p>Ask questions, share updates, and talk with other members. Signed-in, verified accounts can post and comment.</p>
+  <span class="eyebrow" data-i18n="fo_eyebrow">💬 Community</span>
+  <h1><span data-i18n="fo_h1a" style="color:inherit">Discussion</span> <span data-i18n="fo_h1b">Forum</span></h1>
+  <p data-i18n="fo_sub">Ask questions, share updates, and talk with other members. Signed-in, verified accounts can post and comment.</p>
 </div>
 
 <section class="section">
@@ -68,16 +114,16 @@ textarea.fo-fi{min-height:110px;resize:vertical;}
 
     <div class="fo-bar">
       <div class="fo-tabs" id="fo-tabs"></div>
-      <button class="fo-newbtn" id="fo-new-toggle" onclick="foToggleNewPost()" style="display:none;">+ New Post</button>
+      <button class="fo-newbtn" id="fo-new-toggle" onclick="foToggleNewPost()" style="display:none;" data-i18n="fo_new">+ New Post</button>
     </div>
 
     <div class="fo-gate" id="fo-gate" style="display:none;"></div>
 
     <div class="fo-new-card" id="fo-new-card" style="display:none;">
       <select class="fo-fi" id="fo-in-category"></select>
-      <input class="fo-fi" id="fo-in-title" placeholder="Title">
-      <textarea class="fo-fi" id="fo-in-body" placeholder="What do you want to discuss?"></textarea>
-      <button class="fo-newbtn" id="fo-post-btn" onclick="foSubmitPost()" style="width:100%;">Post →</button>
+      <input class="fo-fi" id="fo-in-title" placeholder="Title" data-i18n-ph="fo_ph_title">
+      <textarea class="fo-fi" id="fo-in-body" placeholder="What do you want to discuss?" data-i18n-ph="fo_ph_body"></textarea>
+      <button class="fo-newbtn" id="fo-post-btn" onclick="foSubmitPost()" style="width:100%;" data-i18n="fo_post">Post →</button>
     </div>
 
     <div id="fo-list">
@@ -94,7 +140,7 @@ textarea.fo-fi{min-height:110px;resize:vertical;}
 </div>
 
 <script type="module" src="firebase-config.js"></script>
-<script src="data.js?v=7"></script>
+<script src="data.js?v=9"></script>
 
 <script>
 function toast(msg, isErr=false){
@@ -140,7 +186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load the posts right away — this only needs Firestore, so it must never
   // wait on (or be blocked by) Auth below.
   loadForumPosts().then(foRenderList).catch(() => {
-    document.getElementById('fo-list').innerHTML = `<div class="fo-empty">⚠️ Couldn't load posts. Please refresh the page.</div>`;
+    document.getElementById('fo-list').innerHTML = `<div class="fo-empty">${tr('fo_err_load',"⚠️ Couldn't load posts. Please refresh the page.")}</div>`;
   });
 
   // Who's signed in — runs independently; times out to "not signed in" rather than hanging.
@@ -164,9 +210,9 @@ function foRenderGate(){
     document.getElementById('fo-new-card').style.display='none';
     gate.style.display='block';
     if(window.firebaseAuth && window.firebaseAuth.currentUser && !window.firebaseAuth.currentUser.emailVerified){
-      gate.innerHTML = `Please verify your email to post. Check your inbox, or resend from your <a href="dashboard.html">dashboard</a>.`;
+      gate.innerHTML = tr('fo_gate_verify', `Please verify your email to post. Check your inbox, or resend from your <a href="dashboard.html">dashboard</a>.`);
     } else {
-      gate.innerHTML = `<a href="account.html">Sign in</a> to start a discussion or leave a comment. Browsing is open to everyone.`;
+      gate.innerHTML = tr('fo_gate_signin', `<a href="account.html">Sign in</a> to start a discussion or leave a comment. Browsing is open to everyone.`);
     }
   }
 }
@@ -184,31 +230,31 @@ function foToggleNewPost(){
 }
 
 async function foSubmitPost(){
-  if(!foUser) return toast("Please sign in first.", true);
+  if(!foUser) return toast(tr("t_signin_first","Please sign in first."), true);
   const category=document.getElementById('fo-in-category').value;
   const title=document.getElementById('fo-in-title').value.trim();
   const body=document.getElementById('fo-in-body').value.trim();
-  if(!title || !body) return toast("Title and body are required!", true);
+  if(!title || !body) return toast(tr("fo_req","Title and body are required!"), true);
 
   const btn=document.getElementById('fo-post-btn');
-  btn.disabled=true; btn.textContent='Posting...';
+  btn.disabled=true; btn.textContent=tr('fo_posting','Posting...');
 
   const authorName = [foProfile?.firstName, foProfile?.lastName].filter(Boolean).join(' ') || foUser.email.split('@')[0];
   const result = await addForumPost({ authorUid: foUser.uid, authorName, authorPhoto: foProfile?.photo || '', category, title, body });
 
-  btn.disabled=false; btn.textContent='Post →';
+  btn.disabled=false; btn.textContent=tr('fo_post','Post →');
 
   if(result.success){
     window.location.href = 'forum-post.html?id=' + result.id;
   } else {
-    toast("Failed to post. Please try again.", true);
+    toast(tr("fo_fail","Failed to post. Please try again."), true);
   }
 }
 
 function foRenderList(){
   const wrap=document.getElementById('fo-list');
   const data = getForumPosts().filter(p => !foActiveCat || p.category===foActiveCat);
-  if(!data.length){ wrap.innerHTML = `<div class="fo-empty">💬<br><br>No posts yet${foActiveCat?' in '+foEsc(foActiveCat):''}. Be the first to start a discussion!</div>`; return; }
+  if(!data.length){ wrap.innerHTML = `<div class="fo-empty">💬<br><br>${tr('fo_empty','No posts yet. Be the first to start a discussion!')}</div>`; return; }
   wrap.innerHTML = data.map(p => {
     const snippet = foEsc(String(p.body||'').slice(0,160));
     const initial = foEsc((p.authorName||'?').charAt(0).toUpperCase());
@@ -260,5 +306,6 @@ function foRenderList(){
   </div>
 </footer>
 <script src="lang.js"></script>
+<script src="main.js"></script>
 </body>
 </html>

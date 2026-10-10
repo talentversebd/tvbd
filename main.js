@@ -169,7 +169,25 @@ function setActiveNav() {
       a.classList.add('active');
     }
   });
+  const moreBtn = document.querySelector('.nav-more-btn');
+  if(moreBtn) moreBtn.classList.toggle('active', !!document.querySelector('.nav-more-menu a.active'));
 }
+
+/*===== NAV "MORE" DROPDOWN =====*/
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.nav-more');
+  if(!wrap) return;
+  const btn = e.target.closest('.nav-more-btn');
+  if(btn) {
+    const open = wrap.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  } else if(!e.target.closest('.nav-more-menu')) {
+    wrap.classList.remove('open');
+  }
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') { const w = document.querySelector('.nav-more'); if(w) w.classList.remove('open'); }
+});
 
 /*===== EMAIL VALIDATION =====*/
 function isValidEmail(email) {

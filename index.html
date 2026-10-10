@@ -88,14 +88,22 @@
     </div>
   </a>
   <nav class="h-nav" id="hnav">
-    <a href="index.html" class="active" data-i18n="nav_home">Home</a>
-    <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <a href="events.html" data-i18n="nav_olympiads">Events &amp; Quiz</a>
+    <a href="resources.html" data-i18n="nav_resources">Resources</a>
+    <a href="forum.html" data-i18n="nav_forum">Forum</a>
     <a href="team.html" data-i18n="nav_team">Team</a>
     <a href="news.html" data-i18n="nav_news">News</a>
-    <a href="register.html" data-i18n="nav_register">Register</a>
-    <a href="verify.html" data-i18n="nav_verify">Verify</a>
-    <a href="leaderboard.html" data-i18n="nav_results">Results</a>
     <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    <div class="nav-more" id="nav-more">
+      <button type="button" class="nav-more-btn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_more">More</span> <span class="nav-more-caret">▾</span></button>
+      <div class="nav-more-menu">
+        <a href="register.html" data-i18n="nav_register">Register</a>
+        <a href="leaderboard.html" data-i18n="nav_results">Results</a>
+        <a href="verify.html" data-i18n="nav_verify">Verify</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
+      </div>
+    </div>
     <a href="account.html" id="nav-account-link">Log In</a>
     <a href="account.html#signup" id="nav-signup-link" class="nav-signup-btn">Sign Up</a>
     <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
@@ -139,6 +147,23 @@
       <div class="h-stat"><span class="num" id="hs2n">10K+</span><span class="lbl" id="hs2l" data-i18n="hero_stat2_lbl">Students Reached</span></div>
       <div class="h-stat"><span class="num" id="hs3n">64</span><span class="lbl" id="hs3l" data-i18n="hero_stat3_lbl">Districts Covered</span></div>
     </div>
+  </div>
+</section>
+
+<!-- EXPLORE -->
+<section class="section" id="explore">
+  <div class="sec-hd">
+    <span class="eyebrow" data-i18n="explore_eyebrow">Everything in one place</span>
+    <h2 class="sec-title"><span data-i18n="explore_title_1">Explore</span> <span class="hl" data-i18n="explore_title_2">TalentVerse</span></h2>
+    <div class="divider"></div>
+  </div>
+  <div class="explore-grid">
+    <a class="explore-card" href="events.html"><div class="explore-ico">🏆</div><h3 data-i18n="explore_events">Events &amp; Quiz</h3><p data-i18n="explore_events_d">Join olympiads and competitions, and take exams online.</p><span class="explore-go">→</span></a>
+    <a class="explore-card" href="resources.html"><div class="explore-ico">📚</div><h3 data-i18n="explore_res">Resources</h3><p data-i18n="explore_res_d">Free notes, question banks and study guides.</p><span class="explore-go">→</span></a>
+    <a class="explore-card" href="forum.html"><div class="explore-ico">💬</div><h3 data-i18n="explore_forum">Forum</h3><p data-i18n="explore_forum_d">Ask questions and talk with other members.</p><span class="explore-go">→</span></a>
+    <a class="explore-card" href="leaderboard.html"><div class="explore-ico">🥇</div><h3 data-i18n="explore_results">Results</h3><p data-i18n="explore_results_d">See published results and the leaderboard.</p><span class="explore-go">→</span></a>
+    <a class="explore-card" href="verify.html"><div class="explore-ico">✅</div><h3 data-i18n="explore_verify">Verify Certificate</h3><p data-i18n="explore_verify_d">Check a certificate with its verification ID.</p><span class="explore-go">→</span></a>
+    <a class="explore-card" href="volunteer.html"><div class="explore-ico">🙋</div><h3 data-i18n="explore_vol">Volunteer</h3><p data-i18n="explore_vol_d">Apply to volunteer or intern with us.</p><span class="explore-go">→</span></a>
   </div>
 </section>
 
@@ -266,6 +291,9 @@
       <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
       <a href="team.html" data-i18n="nav_team">Team</a>
       <a href="news.html" data-i18n="nav_news">News</a>
+      <a href="resources.html" data-i18n="nav_resources">Resources</a>
+      <a href="forum.html" data-i18n="nav_forum">Forum</a>
+      <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
       <a href="register.html" data-i18n="nav_register">Register</a>
       <a href="verify.html" data-i18n="nav_verify">Verify Certificate</a>
       <a href="contact.html" data-i18n="nav_contact">Contact</a>
@@ -314,7 +342,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <!-- Site Scripts -->
-<script src="data.js"></script>
+<script src="data.js?v=8"></script>
 <script src="render.js"></script>
 <script src="lang.js"></script>
 <script src="main.js"></script>

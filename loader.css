@@ -36,7 +36,7 @@
   fill:none;stroke:var(--blue-br,#3b82f6);stroke-width:2.5;stroke-linecap:round;
   stroke-dasharray:452;stroke-dashoffset:452;
   filter:drop-shadow(0 0 6px rgba(59,130,246,.65));
-  animation:tvbd-draw 1s cubic-bezier(.65,0,.35,1) forwards;
+  animation:tvbd-draw .6s cubic-bezier(.65,0,.35,1) forwards;
 }
 @keyframes tvbd-draw{to{stroke-dashoffset:0;}}
 
@@ -44,8 +44,8 @@
   position:relative;width:92px;height:92px;border-radius:50%;object-fit:cover;
   background:#fff;box-shadow:0 0 28px rgba(37,99,235,.35);
   opacity:0;transform:scale(.6);
-  animation:tvbd-logo-in .7s cubic-bezier(.34,1.56,.64,1) forwards;
-  animation-delay:.75s;
+  animation:tvbd-logo-in .5s cubic-bezier(.34,1.56,.64,1) forwards;
+  animation-delay:.3s;
 }
 @keyframes tvbd-logo-in{
   to{opacity:1;transform:scale(1);}
@@ -58,7 +58,7 @@
   color:var(--txt,#eef2ff);margin:0;
   opacity:0;transform:translateY(10px);
   animation:tvbd-text-in .6s ease forwards;
-  animation-delay:1.35s;
+  animation-delay:.65s;
 }
 .tvbd-loader-text h1 span{color:var(--blue-br,#3b82f6);display:inline-block;}
 @keyframes tvbd-text-in{to{opacity:1;transform:translateY(0);}}
@@ -68,14 +68,14 @@
   color:var(--lblue,#93c5fd);text-transform:uppercase;
   opacity:0;
   animation:tvbd-fade-in .6s ease forwards;
-  animation-delay:1.85s;
+  animation-delay:.9s;
 }
 
 .tvbd-loader-progress{
   width:min(220px,60vw);display:flex;flex-direction:column;align-items:center;gap:8px;
   opacity:0;
   animation:tvbd-fade-in .5s ease forwards;
-  animation-delay:1.4s;
+  animation-delay:.4s;
 }
 .tvbd-loader-bar{width:100%;height:3px;border-radius:3px;background:rgba(59,130,246,.15);overflow:hidden;}
 .tvbd-loader-fill{
@@ -89,3 +89,78 @@
   .tvbd-loader-ring-wrap{width:120px;height:120px;}
   .tvbd-loader-logo{width:74px;height:74px;}
 }
+
+
+/* ===== v58 stylish redesign (visual overrides, same markup) ===== */
+#tvbd-loader{
+  background:
+    radial-gradient(60% 45% at 18% 12%, rgba(37,99,235,.28), transparent 70%),
+    radial-gradient(55% 40% at 85% 88%, rgba(124,58,237,.22), transparent 70%),
+    linear-gradient(180deg,#070a14 0%,#05060c 100%);
+  overflow:hidden;gap:26px;
+}
+/* soft drifting glow + faint grid */
+#tvbd-loader::before{
+  content:"";position:absolute;inset:-20%;pointer-events:none;
+  background-image:linear-gradient(rgba(96,165,250,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(96,165,250,.05) 1px,transparent 1px);
+  background-size:38px 38px;
+  -webkit-mask-image:radial-gradient(circle at 50% 45%,#000 0%,transparent 62%);mask-image:radial-gradient(circle at 50% 45%,#000 0%,transparent 62%);
+  animation:tvbd-grid 14s linear infinite;
+}
+@keyframes tvbd-grid{to{transform:translate(38px,38px);}}
+#tvbd-loader::after{
+  content:"";position:absolute;left:50%;top:44%;width:340px;height:340px;margin:-170px 0 0 -170px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,.22),transparent 65%);
+  animation:tvbd-breathe 3s ease-in-out infinite;pointer-events:none;
+}
+@keyframes tvbd-breathe{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.12);opacity:1}}
+#tvbd-loader>*{position:relative;z-index:1;}
+
+.tvbd-loader-ring-wrap{width:168px;height:168px;}
+.tvbd-loader-ring-wrap::before{
+  inset:-6px;filter:none;
+  background:conic-gradient(from 0deg,transparent 0deg,#60a5fa 80deg,#a78bfa 150deg,transparent 200deg,transparent 360deg);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+}
+.tvbd-ring-bg{stroke:rgba(148,163,184,.14);stroke-width:1.5;}
+.tvbd-ring-fg{stroke:#60a5fa;stroke-width:1.5;filter:drop-shadow(0 0 5px rgba(96,165,250,.8));}
+.tvbd-loader-logo{
+  width:112px;height:112px;
+  border:3px solid rgba(255,255,255,.9);
+  box-shadow:0 0 0 8px rgba(255,255,255,.05),0 10px 40px rgba(37,99,235,.55),0 0 70px rgba(124,58,237,.25);
+  animation:tvbd-logo-in .5s cubic-bezier(.34,1.56,.64,1) .3s forwards, tvbd-float 3.2s ease-in-out 1s infinite;
+}
+@keyframes tvbd-float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.03)}}
+
+.tvbd-loader-text h1{
+  font-weight:800;letter-spacing:.2em;font-size:clamp(.95rem,4vw,1.3rem);
+  background:linear-gradient(90deg,#e2e8f0 0%,#fff 40%,#93c5fd 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;
+}
+.tvbd-loader-text h1 span{background:linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.tvbd-loader-estd{
+  display:flex;align-items:center;justify-content:center;gap:12px;color:#94a3b8;letter-spacing:.38em;font-size:.62rem;
+}
+.tvbd-loader-estd::before,.tvbd-loader-estd::after{content:"";width:34px;height:1px;background:linear-gradient(90deg,transparent,rgba(148,163,184,.6));}
+.tvbd-loader-estd::after{transform:scaleX(-1);}
+
+.tvbd-loader-progress{width:min(240px,64vw);gap:10px;}
+.tvbd-loader-bar{height:4px;background:rgba(148,163,184,.16);border-radius:4px;}
+.tvbd-loader-fill{
+  position:relative;background:linear-gradient(90deg,#2563eb,#60a5fa,#a78bfa);
+  box-shadow:0 0 12px rgba(96,165,250,.7);
+}
+.tvbd-loader-fill::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:translateX(-100%);animation:tvbd-shimmer 1.1s ease-in-out infinite;
+}
+@keyframes tvbd-shimmer{to{transform:translateX(100%)}}
+.tvbd-loader-pct{font-size:.7rem;color:#94a3b8;letter-spacing:.14em;text-transform:uppercase;}
+@media(max-width:420px){.tvbd-loader-ring-wrap{width:140px;height:140px}.tvbd-loader-logo{width:94px;height:94px}}
+
+/* v56: repeat visits in the same session -> instant, no replay of the intro */
+#tvbd-loader.tvbd-quick{transition:opacity .25s ease, visibility .25s ease;}
+#tvbd-loader.tvbd-quick *{animation-duration:.01s !important;animation-delay:0s !important;}
+#tvbd-loader.tvbd-quick .tvbd-loader-estd,#tvbd-loader.tvbd-quick .tvbd-loader-pct{display:none;}
+@media(prefers-reduced-motion:reduce){#tvbd-loader *{animation-duration:.01s !important;animation-delay:0s !important;}}

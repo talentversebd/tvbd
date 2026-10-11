@@ -2759,7 +2759,11 @@ function vfEsc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({
 const VOL_FIELD_TYPES = { text:'Short answer', textarea:'Paragraph', number:'Number', date:'Date', url:'Link / URL', select:'Dropdown (choose one)' };
 const VOL_FIELD_FOR = { all:'Volunteer + Internship', volunteer:'Volunteer only', internship:'Internship only' };
 async function loadVolFieldsDraft() {
-  try { const s = await getVolunteerSettings(); volFieldsDraft = (s.fields || []).map(f => ({ ...f })); } catch(e) { volFieldsDraft = []; }
+  try {
+    const s = await getVolunteerSettings(); volFieldsDraft = (s.fields || []).map(f => ({ ...f }));
+    const m=document.getElementById('vc-msg'), l=document.getElementById('vc-label'), u=document.getElementById('vc-url');
+    if(m) m.value = s.confirmMsg || ''; if(l) l.value = s.confirmLinkLabel || ''; if(u) u.value = s.confirmLinkUrl || '';
+  } catch(e) { volFieldsDraft = []; }
   renderVolFieldsUI();
 }
 function renderVolFieldsUI() {
@@ -2796,6 +2800,14 @@ function updateVolField(i, key, val) {
   volFieldsDraft[i][key] = key === 'options' ? String(val).split(',').map(x => x.trim()).filter(Boolean) : val;
 }
 function removeVolFieldRow(i) { volFieldsDraft.splice(i, 1); renderVolFieldsUI(); }
+async function saveVolConfirm() {
+  const confirmMsg = document.getElementById('vc-msg').value.trim().slice(0, 600);
+  const confirmLinkLabel = document.getElementById('vc-label').value.trim().slice(0, 60);
+  const confirmLinkUrl = document.getElementById('vc-url').value.trim().slice(0, 500);
+  if(confirmLinkUrl && !/^https?:\/\//i.test(confirmLinkUrl)) return toast("Link must start with https://", true);
+  const ok = await updateVolunteerSettings({ confirmMsg, confirmLinkLabel, confirmLinkUrl });
+  toast(ok ? "Confirmation saved! ✅" : "Failed to save — check permissions.", !ok);
+}
 async function saveVolFields() {
   const fields = volFieldsDraft.filter(f => (f.label || '').trim()).map(f => ({
     id: f.id, label: f.label.trim().slice(0, 150), type: f.type || 'text', required: !!f.required, for: f.for || 'all',

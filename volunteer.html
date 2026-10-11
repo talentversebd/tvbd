@@ -49,6 +49,21 @@ textarea.vl-fi{min-height:100px;resize:vertical;}
 .vl-btn:disabled{opacity:.5;cursor:not-allowed;}
 .vl-hidden{display:none;}
 .vl-result{text-align:center;padding:20px;}
+.vl-tick{width:76px;height:76px;margin:0 auto 14px}
+.vl-tick svg{width:100%;height:100%;fill:none;stroke:#22c55e;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.vl-tick circle{stroke-dasharray:151;stroke-dashoffset:151;animation:vlDraw .6s ease forwards}
+.vl-tick path{stroke-dasharray:40;stroke-dashoffset:40;animation:vlDraw .4s ease .5s forwards}
+@keyframes vlDraw{to{stroke-dashoffset:0}}
+.vl-ref{display:inline-block;margin:6px 0 12px;padding:6px 14px;border-radius:999px;background:rgba(37,99,235,.14);border:1px solid rgba(96,165,250,.35);font-size:.82rem;color:var(--lblue,#93c5fd)}
+.vl-ref b{letter-spacing:.12em;color:#fff}
+.vl-sum{text-align:left;margin:4px auto 12px;max-width:380px;border:1px solid var(--border,rgba(148,163,184,.2));border-radius:12px;padding:6px 14px}
+.vl-sum-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:.85rem;border-bottom:1px solid rgba(148,163,184,.12)}
+.vl-sum-row:last-child{border-bottom:0}.vl-sum-row span{color:var(--muted)}.vl-sum-row b{text-align:right;word-break:break-word}
+.vl-cmsg{font-size:.88rem;max-width:380px;margin:4px auto 10px;line-height:1.6}
+.vl-green-link{color:#22c55e;font-weight:700;text-decoration:underline;word-break:break-all}
+.vl-green-btn{display:block;max-width:380px;margin:6px auto 12px;padding:13px 18px;border-radius:10px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:800;font-size:.95rem;text-decoration:none;box-shadow:0 0 28px rgba(34,197,94,.35)}
+.vl-green-btn:hover{transform:translateY(-2px)}
+.vl-next{font-size:.85rem;color:var(--muted);max-width:380px;margin:0 auto 10px}
 .vl-result .ri{font-size:4rem;margin-bottom:16px;}
 .vl-result h2{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;}
 </style>
@@ -174,6 +189,7 @@ textarea.vl-fi{min-height:100px;resize:vertical;}
   <span class="toast-msg" id="t-msg"></span>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script type="module" src="firebase-config.js"></script>
 <script src="data.js?v=9"></script>
 
@@ -193,7 +209,7 @@ function vlSetType(t){
 }
 
 // ---- extra questions added by the admin (settings/volunteer) ----
-let vlFields=[];
+let vlFields=[]; let vlConfirm={msg:'',label:'',url:''};
 function vlEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function vlFieldsForType(){ return vlFields.filter(f => !f.for || f.for==='all' || f.for===vlType); }
 function vlRenderExtra(){
@@ -211,7 +227,7 @@ function vlRenderExtra(){
   wrap.innerHTML=vlFieldsForType().map(f=>`<div class="vl-fg"><label>${vlEsc(f.label)}${f.required?' *':''}</label>${(inp[f.type]||inp.text)(f)}</div>`).join('');
   Object.keys(keep).forEach(id=>{const el=document.getElementById('vl-extra-'+id); if(el) el.value=keep[id];});
 }
-(async()=>{ try{ const s=await getVolunteerSettings(); vlFields=s.fields||[]; vlRenderExtra(); }catch(e){} })();
+(async()=>{ try{ const s=await getVolunteerSettings(); vlFields=s.fields||[]; vlConfirm={msg:s.confirmMsg||'',label:s.confirmLinkLabel||'',url:s.confirmLinkUrl||''}; vlRenderExtra(); }catch(e){} })();
 
 async function submitVolunteer(){
   const name=document.getElementById('vl-in-name').value.trim();
@@ -243,9 +259,37 @@ async function submitVolunteer(){
     return;
   }
 
+  // confirmation: admin notification (best-effort) + on-screen message
+  const refId = (result.id || '').slice(0,8).toUpperCase();
+  try{
+    if(typeof emailjs !== 'undefined' && window.EMAILJS_CONFIG && window.EMAILJS_CONFIG.serviceId){
+      emailjs.send(window.EMAILJS_CONFIG.serviceId, window.EMAILJS_CONFIG.templateId, {
+        from_name:name, from_email:email, subject:'New Volunteer Application: '+role,
+        message:`New volunteer application!\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nType: ${vlType}\nRole: ${role}\nAvailability: ${availability||'N/A'}\nSkills: ${skills||'N/A'}\nRef: ${refId}`
+      }, window.EMAILJS_CONFIG.publicKey).catch(()=>{});
+    }
+  }catch(e){}
+  const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const bn=getLang()==='bn';
+  toast(bn?'আবেদন সফলভাবে জমা হয়েছে!':'Application submitted successfully!');
   document.getElementById('vl-view-form').classList.add('vl-hidden');
   document.getElementById('vl-view-result').classList.remove('vl-hidden');
-  document.getElementById('vl-result-content').innerHTML = `<div class="ri">🎉</div><h2>${tr('vl_done_h','Application Submitted!')}</h2><p style="color:var(--muted);">${getLang()==='bn' ? 'ধন্যবাদ, ' : 'Thanks, '}${name.split(' ')[0].replace(/[&<>"']/g,'')}! ${tr('vl_done_p',"We'll review your application and reach out using the email/phone you provided.")}</p>`;
+  const okUrl=u=>/^https?:\/\//i.test(u||'');
+  const linkify=t=>esc(t).replace(/(https?:\/\/[^\s<]+)/g,'<a class="vl-green-link" href="$1" target="_blank" rel="noopener">$1</a>').replace(/\n/g,'<br>');
+  const confirmHtml=(vlConfirm.msg?`<p class="vl-cmsg">${linkify(vlConfirm.msg)}</p>`:'')+(okUrl(vlConfirm.url)?`<a class="vl-green-btn" href="${esc(vlConfirm.url)}" target="_blank" rel="noopener">${esc(vlConfirm.label||(bn?'লিংকে যাও':'Open Link'))} →</a>`:'');
+  const row=(k,val)=>val?`<div class="vl-sum-row"><span>${k}</span><b>${esc(val)}</b></div>`:'';
+  document.getElementById('vl-result-content').innerHTML = `
+    <div class="vl-tick"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l8 8 14-16"/></svg></div>
+    <h2>${tr('vl_done_h','Application Submitted!')}</h2>
+    <p style="color:var(--muted);">${bn?'ধন্যবাদ, ':'Thanks, '}${esc(name.split(' ')[0])}! ${tr('vl_done_p',"We'll review your application and reach out using the email/phone you provided.")}</p>
+    ${refId?`<div class="vl-ref">${bn?'রেফারেন্স আইডি':'Reference ID'}: <b>${refId}</b></div>`:''}
+    <div class="vl-sum">
+      ${row(bn?'নাম':'Name',name)}${row(bn?'পদ/রোল':'Role',role)}${row(bn?'ইমেইল':'Email',email)}${row(bn?'ফোন':'Phone',phone)}
+    </div>
+    <p class="vl-next">${bn?'আমাদের টিম আবেদন দেখে খুব শীঘ্রই যোগাযোগ করবে। তোমার ইমেইল ও ফোন চালু রেখো।':'Our team will review your application and contact you soon. Please keep your email and phone available.'}</p>
+    ${confirmHtml}
+    <a class="btn-pri" href="index.html" style="display:inline-block;margin-top:6px;">${bn?'হোমে ফিরে যাও':'Back to Home'}</a>`;
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 </script>
 <footer>

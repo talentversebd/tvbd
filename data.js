@@ -1913,14 +1913,14 @@ async function submitVolunteerApplication(a) {
   const { collection, addDoc } = window.firebaseFunctions;
   const db = window.firebaseDB;
   try {
-    await addDoc(collection(db, "volunteer_applications"), {
+    const ref = await addDoc(collection(db, "volunteer_applications"), {
       name: a.name, email: a.email, phone: a.phone,
       type: a.type, role: a.role, skills: a.skills || '',
       message: a.message || '', availability: a.availability || '', resumeLink: a.resumeLink || '',
       extra: a.extra || {},
       status: 'pending', createdAt: Date.now()
     });
-    return { success:true };
+    return { success:true, id: ref.id };
   } catch(err) {
     console.error("Submit volunteer application error:", err);
     return { success:false, error: err.message };
@@ -1934,15 +1934,15 @@ async function getVolunteerSettings() {
   const { doc, getDoc } = window.firebaseFunctions;
   try {
     const snap = await getDoc(doc(window.firebaseDB, "settings", "volunteer"));
-    if(snap.exists()) { const d = snap.data(); return { fields: Array.isArray(d.fields) ? d.fields : [] }; }
+    if(snap.exists()) { const d = snap.data(); return { fields: Array.isArray(d.fields) ? d.fields : [], confirmMsg: d.confirmMsg || '', confirmLinkLabel: d.confirmLinkLabel || '', confirmLinkUrl: d.confirmLinkUrl || '' }; }
   } catch(err) { console.error("Get volunteer settings error:", err); }
-  return { fields: [] };
+  return { fields: [], confirmMsg:'', confirmLinkLabel:'', confirmLinkUrl:'' };
 }
 async function updateVolunteerSettings(data) {
   await waitForFirebase();
   const { doc, setDoc } = window.firebaseFunctions;
   try {
-    await setDoc(doc(window.firebaseDB, "settings", "volunteer"), data);
+    await setDoc(doc(window.firebaseDB, "settings", "volunteer"), data, { merge: true });
     return true;
   } catch(err) {
     console.error("Update volunteer settings error:", err);

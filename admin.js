@@ -2818,6 +2818,6 @@ async function saveVolFields() {
   if(fields.some(f => f.type === 'select' && f.options.length < 2)) return toast("A dropdown needs at least 2 choices (comma separated).", true);
   const hidden = [...document.querySelectorAll('.vh-chk')].filter(c => !c.checked).map(c => c.dataset.k);
   const ok = await updateVolunteerSettings({ fields, hidden });
-  if(ok) { volFieldsDraft = fields; toast("Form fields saved! ✅"); renderVolFieldsUI(); }
+  if(ok) { volFieldsDraft = fields; toast(hidden.length ? ("Saved! Hidden from form: " + hidden.join(", ")) : "Form fields saved! ✅"); renderVolFieldsUI(); }
   else toast("Failed to save — publish the latest Firestore rules first.", true);
 }

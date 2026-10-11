@@ -12,11 +12,6 @@
     }, {once:true});
   }
 
-  // repeat page in same session -> quick mode (no full intro)
-  var quick = false;
-  try{ if(sessionStorage.getItem('tvbd_seen')) quick = true; else sessionStorage.setItem('tvbd_seen','1'); }catch(e){}
-  if(quick) loader.classList.add('tvbd-quick');
-
   var progress = 0;
   var pageReady = false;
   var minShown = false;
@@ -27,10 +22,10 @@
     if(pct) pct.textContent = 'Loading... ' + Math.round(p) + '%';
   }
 
-  // Ease toward 92% over ~1.3s while real assets load; never claims 100% until actually ready
+  // Ease toward 92% over ~2.2s while real assets load; never claims 100% until actually ready
   var start = Date.now();
   var target = 92;
-  var duration = quick ? 800 : 2800;
+  var duration = 2200;
   var tick = setInterval(function(){
     var elapsed = Date.now() - start;
     var t = Math.min(elapsed / duration, 1);
@@ -48,8 +43,8 @@
       setProgress(100);
       setTimeout(function(){
         loader.classList.add('tvbd-hide');
-        setTimeout(function(){ loader.remove(); }, 450);
-      }, quick ? 0 : 120);
+        setTimeout(function(){ loader.remove(); }, 650);
+      }, 200);
     }
   }
 
@@ -58,11 +53,11 @@
     finishIfReady();
   }
 
-  // ready as soon as the page structure is ready (don't wait for every image/font)
-  if(document.readyState !== 'loading'){
+  if(document.readyState === 'complete'){
     onPageReady();
   } else {
-    document.addEventListener('DOMContentLoaded', onPageReady);
-    setTimeout(onPageReady, 4000); // safety net
+    window.addEventListener('load', onPageReady);
+    // safety net: never block the site for more than 5s even if something never fires 'load'
+    setTimeout(onPageReady, 5000);
   }
 })();

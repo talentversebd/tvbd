@@ -3,13 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TalentVerse">
 <title>Election Panel — TalentVerse Bangladesh</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=55">
 <style>
 #adm-wrap{position:fixed;inset:0;z-index:4000;display:flex;flex-direction:column;background:var(--bg)}
 .adm-login{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(37,99,235,.12) 0%,transparent 70%),var(--bg)}
@@ -333,7 +339,7 @@ textarea.fi{min-height:80px;resize:vertical}
 <script type="module" src="firebase-config.js"></script>
 <script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
-<script src="data.js?v=5"></script>
+<script src="data.js?v=9"></script>
 
 <script>
 /*===== EC LOGIN (real Firebase Auth — no password stored here) ===== */
@@ -802,5 +808,6 @@ function renderResults(){
 
 document.addEventListener('DOMContentLoaded', checkAuth);
 </script>
+<script src="pwa.js"></script>
 </body>
 </html>

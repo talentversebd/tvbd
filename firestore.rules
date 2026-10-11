@@ -73,7 +73,8 @@ service cloud.firestore {
                    || (id == 'founder'  && hasPerm('founder'))
                    || (id == 'popup'    && hasPerm('popup'))
                    || ((id == 'certTemplate' || id.matches('certTpl_.*')) && hasPerm('certificates'))
-                   || (id == 'election' && isEC());
+                   || (id == 'election' && isEC())
+                   || (id == 'volunteer' && hasPerm('volunteers'));
     }
 
     // ---- Published results / leaderboard (public top list; written when an admin publishes) ----
@@ -144,7 +145,7 @@ service cloud.firestore {
 
     // ---- Volunteer / internship applications ----
     match /volunteer_applications/{id} {
-      allow create: if request.resource.data.keys().hasOnly(['name','email','phone','type','role','skills','message','availability','resumeLink','status','createdAt'])
+      allow create: if request.resource.data.keys().hasOnly(['name','email','phone','type','role','skills','message','availability','resumeLink','extra','status','createdAt'])
                     && request.resource.data.status == 'pending'
                     && request.resource.data.type in ['volunteer','internship']
                     && request.resource.data.name is string && request.resource.data.name.size() <= 120
@@ -154,7 +155,9 @@ service cloud.firestore {
                     && request.resource.data.skills is string && request.resource.data.skills.size() <= 2000
                     && request.resource.data.message is string && request.resource.data.message.size() <= 3000
                     && request.resource.data.availability is string && request.resource.data.availability.size() <= 300
-                    && request.resource.data.resumeLink is string && request.resource.data.resumeLink.size() <= 500;
+                    && request.resource.data.resumeLink is string && request.resource.data.resumeLink.size() <= 500
+                    && request.resource.data.get('extra', {}) is map
+                    && request.resource.data.get('extra', {}).size() <= 20;
       allow read, update, delete: if isMain() || hasPerm('volunteers');
     }
 
@@ -162,14 +165,16 @@ service cloud.firestore {
     // an author can edit/delete their own post or comment, admin can moderate any ----
     match /forum_posts/{id} {
       allow read: if true;
+      // every new post starts 'pending' — the client can never set itself live
       allow create: if verified() && request.resource.data.authorUid == request.auth.uid
-                    && request.resource.data.keys().hasOnly(['authorUid','authorName','authorPhoto','category','title','body','replyCount','createdAt','lastActivityAt'])
+                    && request.resource.data.keys().hasOnly(['authorUid','authorName','authorPhoto','category','title','body','status','replyCount','createdAt','lastActivityAt'])
                     && request.resource.data.category in ['General','Events','Quiz Help','Announcements']
                     && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 200
                     && request.resource.data.body is string && request.resource.data.body.size() > 0 && request.resource.data.body.size() <= 5000
                     && request.resource.data.authorName is string && request.resource.data.authorName.size() <= 120
+                    && request.resource.data.status == 'pending'
                     && request.resource.data.replyCount == 0;
-      // admin: anything. author: only title/body. any verified member: only reply counter + activity time (when commenting)
+      // admin: anything (including approve/reject). author: only title/body. any verified member: only reply counter + activity time (when commenting)
       allow update: if isMain() || hasPerm('forum')
                     || (signedIn() && resource.data.authorUid == request.auth.uid
                         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title','body'])
@@ -184,11 +189,14 @@ service cloud.firestore {
     }
     match /forum_comments/{id} {
       allow read: if true;
+      // replyTo/replyToAuthor are optional — present only when replying to another comment
       allow create: if verified() && request.resource.data.authorUid == request.auth.uid
-                    && request.resource.data.keys().hasOnly(['postId','authorUid','authorName','authorPhoto','body','createdAt'])
+                    && request.resource.data.keys().hasOnly(['postId','authorUid','authorName','authorPhoto','body','replyTo','replyToAuthor','createdAt'])
                     && request.resource.data.postId is string
                     && request.resource.data.body is string && request.resource.data.body.size() > 0 && request.resource.data.body.size() <= 2000
-                    && request.resource.data.authorName is string && request.resource.data.authorName.size() <= 120;
+                    && request.resource.data.authorName is string && request.resource.data.authorName.size() <= 120
+                    && (!('replyTo' in request.resource.data) || (request.resource.data.replyTo is string && request.resource.data.replyTo.size() <= 200))
+                    && (!('replyToAuthor' in request.resource.data) || (request.resource.data.replyToAuthor is string && request.resource.data.replyToAuthor.size() <= 120));
       allow update: if isMain() || hasPerm('forum');
       // the comment's author, or the owner of the post (so deleting your own post can remove its comments)
       allow delete: if isMain() || hasPerm('forum') || (signedIn() && resource.data.authorUid == request.auth.uid)

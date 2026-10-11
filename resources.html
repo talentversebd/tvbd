@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TalentVerse">
 <title>Resource Hub — TalentVerse Bangladesh</title>
 <meta name="description" content="বিনামূল্যে নোট, প্রশ্নব্যাংক ও স্টাডি গাইড ডাউনলোড করুন — TalentVerse Bangladesh Resource Hub।">
 <link rel="canonical" href="https://talentversebd.github.io/tvbd/resources.html">
@@ -11,7 +17,7 @@
 <meta property="og:url" content="https://talentversebd.github.io/tvbd/resources.html">
 <meta property="og:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=55">
 <style>
   .rh-wrap { max-width: 1200px; margin: 0 auto; padding: 110px 20px 60px; }
   .rh-head { text-align: center; margin-bottom: 36px; }
@@ -131,7 +137,7 @@
         <a href="register.html" data-i18n="nav_register">Register</a>
         <a href="leaderboard.html" data-i18n="nav_results">Results</a>
         <a href="verify.html" data-i18n="nav_verify">Verify</a>
-        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
       </div>
     </div>
   </nav>
@@ -208,7 +214,7 @@
       <a href="news.html" data-i18n="nav_news">News</a>
       <a href="resources.html" data-i18n="nav_resources">Resources</a>
       <a href="forum.html" data-i18n="nav_forum">Forum</a>
-      <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
+      <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
       <a href="register.html" data-i18n="nav_register">Register</a>
       <a href="verify.html" data-i18n="nav_verify">Verify Certificate</a>
       <a href="contact.html" data-i18n="nav_contact">Contact</a>
@@ -360,5 +366,6 @@ async function trackDownload(id) {
 }
 </script>
 
+<script src="pwa.js"></script>
 </body>
       </html>

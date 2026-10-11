@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TalentVerse">
 <title>Exclusive Members — TalentVerse Bangladesh</title>
 <meta name="description" content="Meet the team behind TalentVerse Bangladesh.">
 <link rel="canonical" href="https://talentversebd.github.io/tvbd/team.html">
@@ -20,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=55">
 <style>
 .dept-group{margin-bottom:44px;}
 .dept-group:last-child{margin-bottom:0;}
@@ -249,10 +255,10 @@
         <a href="register.html" data-i18n="nav_register">Register</a>
         <a href="leaderboard.html" data-i18n="nav_results">Results</a>
         <a href="verify.html" data-i18n="nav_verify">Verify</a>
-        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
       </div>
     </div>
-    <a href="forum.html" class="nav-forum-btn"><span>💬</span> <span data-i18n="nav_forum">Forum</span></a>
+    <a href="forum.html" class="nav-forum-btn"><svg class="nav-forum-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg> <span data-i18n="nav_forum">Forum</span></a>
     <a href="account.html" id="nav-account-link">🔐 Account</a>
     <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
       🌐 <span class="lang-toggle-label">বাং</span>
@@ -324,7 +330,7 @@
       <a href="news.html" data-i18n="nav_news">News</a>
       <a href="resources.html" data-i18n="nav_resources">Resources</a>
       <a href="forum.html" data-i18n="nav_forum">Forum</a>
-      <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
+      <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
       <a href="register.html" data-i18n="nav_register">Register</a>
       <a href="verify.html" data-i18n="nav_verify">Verify Certificate</a>
       <a href="contact.html" data-i18n="nav_contact">Contact</a>
@@ -512,5 +518,6 @@ function closeMemberModal() {
   document.getElementById('tm-modal-ov').classList.remove('open');
 }
 </script>
+<script src="pwa.js"></script>
 </body>
 </html>

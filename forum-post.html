@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TalentVerse">
 <title>Discussion — TalentVerse Bangladesh</title>
 <meta name="description" content="Join the discussion on the TalentVerse Bangladesh community forum.">
 <meta property="og:type" content="website">
@@ -20,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=55">
 <style>
 .fp-container{max-width:740px;margin:0 auto;padding:0 16px;}
 .fp-back{display:inline-block;color:var(--blue-br);font-size:.84rem;font-weight:600;margin-bottom:16px;text-decoration:none;}
@@ -99,10 +105,10 @@
         <a href="register.html" data-i18n="nav_register">Register</a>
         <a href="leaderboard.html" data-i18n="nav_results">Results</a>
         <a href="verify.html" data-i18n="nav_verify">Verify</a>
-        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
       </div>
     </div>
-    <a href="forum.html" class="nav-forum-btn"><span>💬</span> <span data-i18n="nav_forum">Forum</span></a>
+    <a href="forum.html" class="nav-forum-btn"><svg class="nav-forum-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg> <span data-i18n="nav_forum">Forum</span></a>
     <a href="account.html" id="nav-account-link">Log In</a>
     <a href="account.html#signup" id="nav-signup-link" class="nav-signup-btn">Sign Up</a>
     <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
@@ -225,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // design — forum_posts allows public read — this is a UI-level gate, not a
 // security boundary, since the EC needs to review it via admin.html anyway).
 function fpApplyStatusGate(){
-  const status = fpPost.status || 'pending';
+  const status = fpPost.status || 'approved';
   const note = document.getElementById('fp-status-note');
   const isOwner = fpUser && fpUser.uid === fpPost.authorUid;
   if(status === 'approved'){ note.style.display='none'; return; }
@@ -237,6 +243,7 @@ function fpApplyStatusGate(){
       : tr('fp_status_rejected', '❌ This post was rejected by the admin and is not visible to others.');
   } else {
     document.getElementById('fp-body').textContent = '';
+    ['fp-title','fp-meta','fp-cat','fp-comments','fp-comment-count','fp-comment-gate','fp-comment-box'].forEach(i=>{const e=document.getElementById(i); if(e) e.style.display='none';});
     note.className = 'fp-status-note pending';
     note.style.display = 'block';
     note.textContent = tr('fp_status_unavailable', 'This post is not available.');
@@ -376,5 +383,6 @@ async function fpDeleteComment(id){
 </script>
 <script src="lang.js"></script>
 <script src="main.js"></script>
+<script src="pwa.js"></script>
 </body>
 </html>

@@ -30,7 +30,7 @@
   // Ease toward 92% over ~1.3s while real assets load; never claims 100% until actually ready
   var start = Date.now();
   var target = 92;
-  var duration = quick ? 250 : 1300;
+  var duration = quick ? 800 : 2800;
   var tick = setInterval(function(){
     var elapsed = Date.now() - start;
     var t = Math.min(elapsed / duration, 1);
@@ -63,6 +63,6 @@
     onPageReady();
   } else {
     document.addEventListener('DOMContentLoaded', onPageReady);
-    setTimeout(onPageReady, 3000); // safety net
+    setTimeout(onPageReady, 4000); // safety net
   }
 })();

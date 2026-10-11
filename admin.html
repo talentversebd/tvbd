@@ -125,6 +125,13 @@ select.fi{cursor:pointer}
 .qf-qrow-head .qf-qnum{font-size:.75rem;font-weight:700;color:var(--muted);flex-shrink:0}
 .qf-qrow-head .qf-qdel{margin-left:auto;background:none;border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:6px;padding:5px 10px;font-size:.72rem;cursor:pointer;flex-shrink:0}
 .qf-qrow-head .qf-qdel:hover{background:rgba(239,68,68,.1)}
+.qf-addopt{background:transparent;color:var(--lblue,#93c5fd);border:1.5px dashed rgba(96,165,250,.5);border-radius:8px;padding:10px 16px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit}
+.qf-addopt:hover{background:rgba(59,130,246,.1)}
+#vf-fields .qf-qrow-head{flex-wrap:wrap}
+#vf-fields .qf-qrow-head>input.fi{flex:1 1 100%;width:100%;min-width:0;font-size:.95rem;padding:12px 14px}
+#vf-fields .qf-qrow-head>select.fi{flex:1 1 150px;width:auto;min-width:0}
+#vf-fields .qf-qrow-head .qf-qdel{margin-left:0}
+#vf-fields .qf-qrow select.fi,#vf-fields .qf-qrow input.fi{min-width:0;max-width:100%}
 .qf-opt-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
 .qf-opt-row input[type="radio"]{accent-color:#22c55e;flex-shrink:0;width:16px;height:16px}
 .qf-opt-row input[type="text"]{flex:1}

@@ -626,14 +626,11 @@ document.addEventListener('keydown', e => {
 /*===== FOOTER DYNAMIC DATA =====*/
 function renderFooter() {
   const h = getHome();
-  const femail = document.getElementById('f-email');
-  const fphone = document.getElementById('f-phone');
-  const faddr = document.getElementById('f-addr');
   const fdesc = document.getElementById('f-desc');
-
-  if(femail) { femail.textContent = h.femail; femail.href = 'mailto:' + h.femail; }
-  if(fphone) { fphone.textContent = h.fphone; fphone.href = 'tel:' + h.fphone; }
-  if(faddr) faddr.textContent = h.faddr;
+  // contact.html has these ids twice (contact card + footer) – update every match
+  document.querySelectorAll('[id="f-email"]').forEach(e => { e.textContent = h.femail; e.href = 'mailto:' + h.femail; });
+  document.querySelectorAll('[id="f-phone"]').forEach(e => { e.textContent = h.fphone; e.href = 'tel:' + h.fphone; });
+  document.querySelectorAll('[id="f-addr"]').forEach(e => { e.textContent = h.faddr; });
   if(fdesc) fdesc.textContent = h.fdesc;
 }
 

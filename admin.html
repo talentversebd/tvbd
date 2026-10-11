@@ -484,7 +484,16 @@ select.fi{cursor:pointer}
         </details>
         <details style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
           <summary style="cursor:pointer;font-weight:700;font-size:.9rem;">🧩 Application Form Fields (add your own questions)</summary>
-          <p style="font-size:.74rem;color:var(--muted);margin:10px 0;">The form already asks Name, Email, Phone, Role, Skills, Availability, Why join, Resume link. Add extra questions below — they appear on the public form and in each application.</p>
+          <div style="margin:10px 0 4px;padding:12px;border:1px solid var(--bdr2);border-radius:10px;">
+            <div style="font-weight:700;font-size:.82rem;margin-bottom:4px;">Built-in fields — untick to hide from the form</div>
+            <p style="font-size:.72rem;color:var(--muted);margin-bottom:8px;">Name, Email and Phone always stay (needed to contact the applicant).</p>
+            <label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:.85rem;"><input type="checkbox" class="vh-chk" data-k="role" checked> Area / Role</label>
+            <label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:.85rem;"><input type="checkbox" class="vh-chk" data-k="skills" checked> Skills</label>
+            <label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:.85rem;"><input type="checkbox" class="vh-chk" data-k="availability" checked> Availability</label>
+            <label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:.85rem;"><input type="checkbox" class="vh-chk" data-k="message" checked> Why join (message)</label>
+            <label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:.85rem;"><input type="checkbox" class="vh-chk" data-k="resume" checked> Resume / portfolio link</label>
+          </div>
+          <p style="font-size:.74rem;color:var(--muted);margin:10px 0;">Add extra questions below — they appear on the public form and in each application.</p>
           <div id="vf-fields"></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
             <button type="button" class="qf-addopt" onclick="addVolFieldRow()">+ Add Field</button>

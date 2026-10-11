@@ -2762,6 +2762,7 @@ async function loadVolFieldsDraft() {
   try {
     const s = await getVolunteerSettings(); volFieldsDraft = (s.fields || []).map(f => ({ ...f }));
     const m=document.getElementById('vc-msg'), l=document.getElementById('vc-label'), u=document.getElementById('vc-url');
+    document.querySelectorAll('.vh-chk').forEach(c => { c.checked = !(s.hidden || []).includes(c.dataset.k); });
     if(m) m.value = s.confirmMsg || ''; if(l) l.value = s.confirmLinkLabel || ''; if(u) u.value = s.confirmLinkUrl || '';
   } catch(e) { volFieldsDraft = []; }
   renderVolFieldsUI();
@@ -2815,7 +2816,8 @@ async function saveVolFields() {
   }));
   if(fields.length > 20) return toast("Maximum 20 extra fields.", true);
   if(fields.some(f => f.type === 'select' && f.options.length < 2)) return toast("A dropdown needs at least 2 choices (comma separated).", true);
-  const ok = await updateVolunteerSettings({ fields });
+  const hidden = [...document.querySelectorAll('.vh-chk')].filter(c => !c.checked).map(c => c.dataset.k);
+  const ok = await updateVolunteerSettings({ fields, hidden });
   if(ok) { volFieldsDraft = fields; toast("Form fields saved! ✅"); renderVolFieldsUI(); }
   else toast("Failed to save — publish the latest Firestore rules first.", true);
 }

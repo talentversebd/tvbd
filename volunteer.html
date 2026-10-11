@@ -209,6 +209,11 @@ function vlSetType(t){
 }
 
 // ---- extra questions added by the admin (settings/volunteer) ----
+let vlHidden=[];
+const VL_BUILTIN={role:'vl-in-role',skills:'vl-in-skills',availability:'vl-in-availability',message:'vl-in-message',resume:'vl-in-resume'};
+function vlApplyHidden(){
+  Object.keys(VL_BUILTIN).forEach(k=>{const el=document.getElementById(VL_BUILTIN[k]); const g=el&&el.closest('.vl-fg'); if(g) g.style.display=vlHidden.includes(k)?'none':'';});
+}
 let vlFields=[]; let vlConfirm={msg:'',label:'',url:''};
 function vlEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function vlFieldsForType(){ return vlFields.filter(f => !f.for || f.for==='all' || f.for===vlType); }
@@ -227,18 +232,18 @@ function vlRenderExtra(){
   wrap.innerHTML=vlFieldsForType().map(f=>`<div class="vl-fg"><label>${vlEsc(f.label)}${f.required?' *':''}</label>${(inp[f.type]||inp.text)(f)}</div>`).join('');
   Object.keys(keep).forEach(id=>{const el=document.getElementById('vl-extra-'+id); if(el) el.value=keep[id];});
 }
-(async()=>{ try{ const s=await getVolunteerSettings(); vlFields=s.fields||[]; vlConfirm={msg:s.confirmMsg||'',label:s.confirmLinkLabel||'',url:s.confirmLinkUrl||''}; vlRenderExtra(); }catch(e){} })();
+(async()=>{ try{ const s=await getVolunteerSettings(); vlFields=s.fields||[]; vlHidden=s.hidden||[]; vlApplyHidden(); vlConfirm={msg:s.confirmMsg||'',label:s.confirmLinkLabel||'',url:s.confirmLinkUrl||''}; vlRenderExtra(); }catch(e){} })();
 
 async function submitVolunteer(){
   const name=document.getElementById('vl-in-name').value.trim();
   const email=document.getElementById('vl-in-email').value.trim();
   const phone=document.getElementById('vl-in-phone').value.trim();
-  const role=document.getElementById('vl-in-role').value.trim();
-  const skills=document.getElementById('vl-in-skills').value.trim();
-  const availability=document.getElementById('vl-in-availability').value.trim();
-  const message=document.getElementById('vl-in-message').value.trim();
-  const resumeLink=document.getElementById('vl-in-resume').value.trim();
-  if(!name || !email || !phone || !role) return toast(tr("vl_req","Name, email, phone and role are required!"), true);
+  const role=vlHidden.includes('role')?'':document.getElementById('vl-in-role').value.trim();
+  const skills=vlHidden.includes('skills')?'':document.getElementById('vl-in-skills').value.trim();
+  const availability=vlHidden.includes('availability')?'':document.getElementById('vl-in-availability').value.trim();
+  const message=vlHidden.includes('message')?'':document.getElementById('vl-in-message').value.trim();
+  const resumeLink=vlHidden.includes('resume')?'':document.getElementById('vl-in-resume').value.trim();
+  if(!name || !email || !phone || (!vlHidden.includes('role') && !role)) return toast(tr("vl_req","Name, email, phone and role are required!"), true);
   const extra={};
   for(const f of vlFieldsForType()){
     const el=document.getElementById('vl-extra-'+f.id);

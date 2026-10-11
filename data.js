@@ -1934,9 +1934,9 @@ async function getVolunteerSettings() {
   const { doc, getDoc } = window.firebaseFunctions;
   try {
     const snap = await getDoc(doc(window.firebaseDB, "settings", "volunteer"));
-    if(snap.exists()) { const d = snap.data(); return { fields: Array.isArray(d.fields) ? d.fields : [], confirmMsg: d.confirmMsg || '', confirmLinkLabel: d.confirmLinkLabel || '', confirmLinkUrl: d.confirmLinkUrl || '' }; }
+    if(snap.exists()) { const d = snap.data(); return { fields: Array.isArray(d.fields) ? d.fields : [], confirmMsg: d.confirmMsg || '', confirmLinkLabel: d.confirmLinkLabel || '', confirmLinkUrl: d.confirmLinkUrl || '', hidden: Array.isArray(d.hidden) ? d.hidden : [] }; }
   } catch(err) { console.error("Get volunteer settings error:", err); }
-  return { fields: [], confirmMsg:'', confirmLinkLabel:'', confirmLinkUrl:'' };
+  return { fields: [], confirmMsg:'', confirmLinkLabel:'', confirmLinkUrl:'', hidden: [] };
 }
 async function updateVolunteerSettings(data) {
   await waitForFirebase();

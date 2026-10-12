@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#05060b">
+<title>Room – TalentVerse Meet</title>
+<link rel="icon" href="../logo.jpg">
+<link rel="stylesheet" href="meet.css?v=1">
+</head>
+<body>
+
+<!-- state: loading / error -->
+<main class="wrap hidden" id="v-msg" style="text-align:center;margin-top:12vh"><div class="card"><h1 id="msg-h"></h1><p class="sub" id="msg-p" style="margin-top:8px"></p><a class="btn" href="./" style="margin-top:6px">Back to rooms</a></div></main>
+
+<!-- pre-join -->
+<main class="prejoin hidden" id="v-pre">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><img src="../logo.jpg" alt="" style="width:40px;height:40px;border-radius:50%;border:2px solid #fff"><div><b id="pre-title" style="font-size:1.05rem"></b><div style="font-size:.74rem;color:var(--muted)" id="pre-sub"></div></div></div>
+  <div class="pv" id="pv"><div class="ph" id="pv-ph">?</div><video id="pv-vid" autoplay muted playsinline class="hidden"></video></div>
+  <div class="tg" id="pre-toggles">
+    <button class="cb" id="pre-mic" title="Microphone">🎤</button>
+    <button class="cb" id="pre-cam" title="Camera">📷</button>
+  </div>
+  <div class="fg"><label>Your name</label><input id="pre-name" maxlength="40"></div>
+  <p class="sub" id="pre-note" style="font-size:.8rem"></p>
+  <button class="btn" style="width:100%" id="join-btn">Join</button>
+  <div class="err" id="join-err"></div>
+</main>
+
+<!-- call -->
+<div class="call hidden" id="v-call">
+  <div class="ctop"><div><b id="c-title"></b> <span class="tag live" id="c-live">● Live</span></div><div id="c-count" style="color:var(--muted)"></div></div>
+  <div class="cmain">
+    <div class="stage" id="stage">
+      <div class="screen hidden" id="screen"></div>
+      <div class="grid" id="grid"></div>
+    </div>
+    <aside class="side hidden" id="side">
+      <div class="tabs"><button id="tab-chat" class="on">Chat</button><button id="tab-ppl">People</button></div>
+      <div class="pane" id="pane-chat"><div class="msgs" id="msgs"></div></div>
+      <div class="cin" id="cin"><input id="chat-in" maxlength="400" placeholder="Write a message…"><button class="btn sm" id="chat-send">Send</button></div>
+      <div class="pane hidden" id="pane-ppl"></div>
+    </aside>
+  </div>
+  <div class="bar">
+    <button class="cb" id="b-mic" title="Microphone">🎤</button>
+    <button class="cb" id="b-cam" title="Camera">📷</button>
+    <button class="cb" id="b-scr" title="Share screen">🖥️</button>
+    <button class="cb" id="b-hand" title="Raise hand">✋</button>
+    <button class="cb" id="b-chat" title="Chat">💬<span class="dot hidden" id="chat-dot">0</span></button>
+    <button class="cb" id="b-ppl" title="People">👥<span class="dot hidden" id="hand-dot">0</span></button>
+    <button class="cb leave" id="b-leave">Leave</button>
+  </div>
+</div>
+<div class="notice hidden" id="perm-note"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.5.7/dist/livekit-client.umd.min.js"></script>
+<script type="module" src="../firebase-config.js"></script>
+<script src="config.js"></script>
+<script src="common.js?v=1"></script>
+<script src="room.js?v=1"></script>
+</body>
+</html>

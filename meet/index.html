@@ -1,1 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#07080f">
+<title>TalentVerse Meet</title>
+<link rel="icon" href="../logo.jpg">
+<link rel="stylesheet" href="meet.css?v=1">
+</head>
+<body>
+<header class="mh">
+  <a class="mh-brand" href="./"><img src="../logo.jpg" alt=""><div><b>Talent<span>Verse</span> Meet</b><small>Meetings &amp; Seminars</small></div></a>
+  <div class="mh-user hidden" id="userbox"><span id="uname"></span><button class="btn ghost sm" onclick="mSignOut()">Sign out</button></div>
+</header>
 
+<!-- sign in -->
+<main class="wrap login card hidden" id="v-login" style="margin-top:8vh">
+  <h1>Sign in</h1>
+  <p class="sub">Use your TalentVerse account to join meetings and seminars.</p>
+  <div class="fg"><label>Email</label><input id="li-email" type="email" autocomplete="username"></div>
+  <div class="fg"><label>Password</label><input id="li-pass" type="password" autocomplete="current-password"></div>
+  <button class="btn" style="width:100%" id="li-btn" onclick="doLogin()">Sign in</button>
+  <div class="err" id="li-err"></div>
+  <p class="sub" style="margin:10px 0 0">No account yet? <a href="../account.html">Create one on TalentVerse</a></p>
+</main>
+
+<!-- lobby -->
+<main class="wrap hidden" id="v-lobby">
+  <h1>Meetings &amp; Seminars</h1>
+  <p class="sub">Live and upcoming rooms. Tap <b>Join</b> to enter.</p>
+
+  <div id="admin-box" class="hidden">
+    <button class="btn" onclick="toggleCreate()">＋ Create room</button>
+    <div class="card hidden" id="create-card" style="margin-top:12px">
+      <div class="fg"><label>Title</label><input id="rm-title" maxlength="120" placeholder="e.g. Orientation Seminar"></div>
+      <div class="row2">
+        <div class="fg"><label>Type</label>
+          <select id="rm-mode"><option value="meeting">Meeting — everyone can talk</option><option value="seminar">Seminar — speakers on stage, audience watches</option></select></div>
+        <div class="fg"><label>Start time</label><input id="rm-start" type="datetime-local"></div>
+      </div>
+      <div class="fg"><label>Description (optional)</label><textarea id="rm-desc" rows="2" maxlength="400"></textarea></div>
+      <div class="fg" id="rm-sp-wrap"><label>Speakers' emails (seminar) — comma separated</label><input id="rm-speakers" placeholder="a@gmail.com, b@gmail.com"></div>
+      <button class="btn" onclick="createRoom()">Create</button>
+    </div>
+  </div>
+
+  <div class="rooms" id="rooms"><div class="empty">Loading…</div></div>
+</main>
+<script type="module" src="../firebase-config.js"></script>
+<script src="common.js?v=1"></script>
+<script>
+let ME = null, ADMIN = false, unsub = null;
+const $ = id => document.getElementById(id);
+
+async function doLogin() {
+  $('li-err').textContent = ''; $('li-btn').disabled = true;
+  try { await mSignIn($('li-email').value.trim(), $('li-pass').value); }
+  catch (e) { $('li-err').textContent = mLoginError(e); }
+  $('li-btn').disabled = false;
+}
+['li-email', 'li-pass'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); }));
+function toggleCreate() { $('create-card').classList.toggle('hidden'); }
+$('rm-mode').addEventListener('change', () => { $('rm-sp-wrap').classList.toggle('hidden', $('rm-mode').value !== 'seminar'); });
+$('rm-sp-wrap').classList.add('hidden');
+
+mWatchAuth(async user => {
+  ME = user;
+  if (unsub) { unsub(); unsub = null; }
+  if (!user) {
+    $('v-lobby').classList.add('hidden'); $('userbox').classList.add('hidden'); $('v-login').classList.remove('hidden'); return;
+  }
+  $('v-login').classList.add('hidden'); $('v-lobby').classList.remove('hidden');
+  $('userbox').classList.remove('hidden'); $('uname').textContent = user.displayName || user.email;
+  ADMIN = await mIsAdmin(user);
+  $('admin-box').classList.toggle('hidden', !ADMIN);
+  const { collection, query, orderBy, onSnapshot } = window.firebaseFunctions;
+  unsub = onSnapshot(query(collection(window.firebaseDB, 'meet_rooms'), orderBy('startAt', 'desc')), snap => {
+    renderRooms(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  }, err => { console.error(err); $('rooms').innerHTML = '<div class="empty">Could not load rooms. Please sign in again.</div>'; });
+});
+
+function renderRooms(list) {
+  const el = $('rooms');
+  if (!list.length) { el.innerHTML = '<div class="empty">No rooms yet.</div>'; return; }
+  const order = { live: 0, scheduled: 1, ended: 2 };
+  list.sort((a, b) => (order[a.status || 'scheduled'] - order[b.status || 'scheduled']) || ((a.startAt || 0) - (b.startAt || 0)));
+  el.innerHTML = list.map(r => {
+    const st = r.status || 'scheduled';
+    const tag = st === 'live' ? '<span class="tag live">● Live</span>' : st === 'ended' ? '<span class="tag end">Ended</span>' : '<span class="tag sch">Scheduled</span>';
+    const mode = r.mode === 'seminar' ? '<span class="tag sem">Seminar</span>' : '<span class="tag meet">Meeting</span>';
+    const join = st === 'ended' ? '' : `<a class="btn sm" href="room.html?r=${encodeURIComponent(r.id)}">${st === 'live' ? 'Join now' : 'Join'}</a>`;
+    const adm = ADMIN ? `
+      ${st !== 'live' && st !== 'ended' ? `<button class="btn sm green" onclick="setStatus('${r.id}','live')">Start</button>` : ''}
+      ${st === 'live' ? `<button class="btn sm ghost" onclick="setStatus('${r.id}','ended')">End</button>` : ''}
+      <button class="btn sm ghost" onclick="copyLink('${r.id}')">Copy link</button>
+      <button class="btn sm red" onclick="delRoom('${r.id}')">Delete</button>` : '';
+    return `<div class="room"><div><h3>${tag}${mode}${mEsc(r.title)}</h3><p>${mFmtTime(r.startAt)}${r.desc ? ' · ' + mEsc(r.desc) : ''}</p></div><div class="act">${join}${adm}</div></div>`;
+  }).join('');
+}
+async function createRoom() {
+  const title = $('rm-title').value.trim();
+  if (!title) return mToast('Please write a title.', true);
+  const mode = $('rm-mode').value;
+  const st = $('rm-start').value ? new Date($('rm-start').value).getTime() : Date.now();
+  const speakers = mode === 'seminar' ? $('rm-speakers').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean).slice(0, 30) : [];
+  const { collection, addDoc } = window.firebaseFunctions;
+  try {
+    await addDoc(collection(window.firebaseDB, 'meet_rooms'), {
+      title: title.slice(0, 120), mode, startAt: st, desc: $('rm-desc').value.trim().slice(0, 400),
+      speakers, hostEmail: (ME.email || '').toLowerCase(), status: 'scheduled', createdAt: Date.now()
+    });
+    $('rm-title').value = ''; $('rm-desc').value = ''; $('rm-speakers').value = ''; $('create-card').classList.add('hidden');
+    mToast('Room created.');
+  } catch (e) { console.error(e); mToast('Could not create — publish the latest Firestore rules first.', true); }
+}
+async function setStatus(id, status) {
+  const { doc, updateDoc } = window.firebaseFunctions;
+  try { await updateDoc(doc(window.firebaseDB, 'meet_rooms', id), { status }); } catch (e) { mToast('Failed.', true); }
+}
+async function delRoom(id) {
+  if (!confirm('Delete this room?')) return;
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  try { await deleteDoc(doc(window.firebaseDB, 'meet_rooms', id)); } catch (e) { mToast('Failed.', true); }
+}
+function copyLink(id) {
+  const url = new URL('room.html?r=' + encodeURIComponent(id), location.href).href;
+  (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => mToast('Link copied.'), () => prompt('Copy this link:', url));
+}
+</script>
+</body>
+</html>

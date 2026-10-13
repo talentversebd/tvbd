@@ -113,7 +113,7 @@
     } catch (e) {
       console.error(e);
       const map = { 'not-live': 'The host has not started this session yet.', 'ended': 'This session has ended.', unauthorized: 'Please sign in again.', 'not-configured': 'The meeting server is not set up yet.' };
-      $('join-err').textContent = map[e.message] || 'Could not join. Please try again.';
+      $('join-err').textContent = map[e.message] || ('Could not join. Details: ' + (e && e.message ? e.message : String(e)).slice(0, 160));
       btn.disabled = false; updateJoinBtn();
       if (lk) { try { lk.disconnect(); } catch (x) {} lk = null; }
     }

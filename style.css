@@ -694,3 +694,48 @@ body.lang-bn .founder-card .founder-msg-text{line-height:2.05}
   .nav-more-menu a[href="volunteer.html"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z'/%3E%3C/svg%3E")}
   .nav-more-menu a[href="blog.html"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4'/%3E%3C/svg%3E")}
 }
+
+/* ===== v56 premium polish (motion & hover only) ===== */
+.fx-ready .fx-rv{opacity:0;translate:0 24px;transition:opacity .65s cubic-bezier(.2,.7,.2,1),translate .65s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--fx-i,0)*70ms);will-change:opacity,translate}
+.fx-ready .fx-rv.fx-in{opacity:1;translate:0 0}
+#fx-progress{position:fixed;top:0;left:0;height:3px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:linear-gradient(90deg,#2563eb,#60a5fa,#a78bfa);z-index:10000;pointer-events:none}
+#site-header.scrolled{backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4)}
+/* hero */
+.hero-bg::before,.hero-bg::after{content:"";position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none}
+.hero-bg::before{width:340px;height:340px;left:8%;top:12%;background:rgba(37,99,235,.28);animation:fxFloat 14s ease-in-out infinite}
+.hero-bg::after{width:300px;height:300px;right:6%;bottom:8%;background:rgba(124,58,237,.2);animation:fxFloat 17s ease-in-out infinite reverse}
+@keyframes fxFloat{0%,100%{transform:translate(0,0)}50%{transform:translate(28px,-24px)}}
+.hero-title .hl{background:linear-gradient(100deg,#60a5fa,#3b82f6 40%,#a78bfa,#60a5fa);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:fxShine 6s linear infinite}
+@keyframes fxShine{to{background-position:220% center}}
+.hero-badge{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 0 24px rgba(37,99,235,.18)}
+.hero-stats{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:18px;padding:16px 6px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.h-stat .num{background:linear-gradient(180deg,#93c5fd,#3b82f6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+/* buttons */
+.btn-pri,.btn-out{position:relative;overflow:hidden;transition:transform .2s,box-shadow .25s,background .2s,border-color .2s}
+.btn-pri::after{content:"";position:absolute;top:0;left:-70%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);transition:left .6s}
+.btn-pri:hover::after{left:130%}
+.btn-pri:active,.btn-out:active{transform:scale(.97)}
+.btn-out:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(37,99,235,.18)}
+/* cards */
+.explore-card,.o-card{position:relative}
+.explore-card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 0 0,rgba(59,130,246,.16),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
+.explore-card:hover::before{opacity:1}
+.explore-card:hover{transform:translateY(-5px)}
+.explore-ico{transition:transform .3s}
+.explore-card:hover .explore-ico{transform:scale(1.15) rotate(-6deg)}
+.explore-go{transition:transform .25s}
+.explore-card:hover .explore-go{transform:translateX(6px)}
+.o-card-img{transition:transform .6s}
+.o-card:hover .o-card-img{transform:scale(1.05)}
+.o-card{overflow:hidden}
+.stat-card,.team-card,.news-card,.reg-card,.vt-card,.verify-card,.pf-card,.res-card,.f-post,.post-card{transition:transform .25s,box-shadow .25s,border-color .25s}
+.stat-card:hover,.team-card:hover,.news-card:hover,.res-card:hover,.post-card:hover{transform:translateY(-4px);box-shadow:0 12px 34px rgba(37,99,235,.2);border-color:var(--bdr2)}
+a{transition:color .2s}
+img{image-rendering:auto}
+@media(hover:none){.explore-card:hover,.o-card:hover,.stat-card:hover,.team-card:hover,.news-card:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ .fx-ready .fx-rv{opacity:1!important;translate:none!important;transition:none!important}
+ .hero-bg::before,.hero-bg::after,.hero-title .hl,.btn-pri::after{animation:none!important}
+ #fx-progress{display:none}
+}

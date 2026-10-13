@@ -94,3 +94,9 @@ body.inroom{overflow:hidden}
   .cb{width:46px;height:46px}
   .stage.hasscreen .grid{height:96px;grid-auto-columns:130px}
 }
+
+.hostctl{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.lobby{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.35);border-radius:12px;padding:8px 10px;margin-bottom:10px}
+.lobby-h{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:.8rem;color:#fcd34d;gap:8px}
+.chk{display:flex;gap:8px;align-items:center;font-size:.84rem;margin:4px 0 12px;color:var(--muted)}
+.chk input{width:auto}

@@ -5,6 +5,7 @@
   const ROOM_ID = (params.get('r') || '').trim();
   let USER = null, ROOM = null, hintRole = 'audience', lk = null, joined = false;
   let pre = { mic: true, cam: true, stream: null };
+  let LOBBY = [], lobbyUnsub = null, lobbyUnsubSelf = null, seenWaiting = new Set();
   let hands = new Set(), unreadChat = 0, sideTab = 'chat', sideOpen = false, hbTimer = null, roomUnsub = null;
   const tiles = new Map();           // identity -> tile element
   const L = () => window.LivekitClient;
@@ -58,7 +59,7 @@
     if (cp) { refreshPreBtns(); startPreview(); }
     $('pre-mic').onclick = () => { pre.mic = !pre.mic; refreshPreBtns(); };
     $('pre-cam').onclick = () => { pre.cam = !pre.cam; refreshPreBtns(); pre.cam ? startPreview() : stopPreview(); };
-    $('join-btn').onclick = join;
+    $('join-btn').onclick = onJoinClick;
     updateJoinBtn();
     show('v-pre');
   }
@@ -82,6 +83,49 @@
     const waiting = ROOM.status !== 'live' && hintRole !== 'host';
     b.disabled = waiting;
     b.textContent = waiting ? 'Waiting for the host to start…' : (hintRole === 'host' && ROOM.status !== 'live' ? 'Start & join' : 'Join');
+  }
+
+  /* ---------- waiting room ---------- */
+  function needLobby() { return !!ROOM.waitingRoom && hintRole === 'audience'; }
+  async function onJoinClick() {
+    if (!needLobby()) return join();
+    const btn = $('join-btn'); $('join-err').textContent = '';
+    const { doc, getDoc, setDoc, onSnapshot } = window.firebaseFunctions;
+    const ref = doc(window.firebaseDB, 'meet_rooms', ROOM_ID, 'lobby', USER.uid);
+    const name = ($('pre-name').value || '').trim().slice(0, 40) || 'Guest';
+    btn.disabled = true; btn.textContent = 'Asking to join…';
+    try {
+      const cur = await getDoc(ref);
+      if (!(cur.exists() && cur.data().status === 'admitted')) {
+        await setDoc(ref, { uid: USER.uid, name, email: (USER.email || '').toLowerCase(), status: 'waiting', ts: Date.now() });
+      }
+    } catch (e) { $('join-err').textContent = 'Could not ask to join. Please publish the latest Firestore rules.'; btn.disabled = false; updateJoinBtn(); return; }
+    btn.textContent = 'Waiting for the host to let you in…';
+    $('pre-note').textContent = 'The host will admit you shortly. Keep this page open.';
+    if (lobbyUnsubSelf) lobbyUnsubSelf();
+    lobbyUnsubSelf = onSnapshot(ref, s => {
+      const st = s.exists() ? s.data().status : '';
+      if (st === 'admitted') { lobbyUnsubSelf && lobbyUnsubSelf(); lobbyUnsubSelf = null; join(); }
+      else if (st === 'denied') {
+        lobbyUnsubSelf && lobbyUnsubSelf(); lobbyUnsubSelf = null;
+        $('join-err').textContent = 'The host did not admit you.'; $('pre-note').textContent = ''; btn.disabled = false; updateJoinBtn();
+      }
+    });
+  }
+  function watchLobby() {
+    if (lobbyUnsub || myRole() !== 'host') return;
+    const { collection, onSnapshot } = window.firebaseFunctions;
+    lobbyUnsub = onSnapshot(collection(window.firebaseDB, 'meet_rooms', ROOM_ID, 'lobby'), snap => {
+      LOBBY = snap.docs.map(d => d.data()).filter(x => x.status === 'waiting').sort((a, b) => (a.ts || 0) - (b.ts || 0));
+      const fresh = LOBBY.filter(x => !seenWaiting.has(x.uid));
+      fresh.forEach(x => seenWaiting.add(x.uid));
+      if (fresh.length) mToast((fresh[0].name || 'Someone') + (fresh.length > 1 ? ' and ' + (fresh.length - 1) + ' more are' : ' is') + ' waiting to join.');
+      if (lk) renderAll();
+    }, () => {});
+  }
+  async function setLobby(uid, status) {
+    const { doc, updateDoc } = window.firebaseFunctions;
+    await updateDoc(doc(window.firebaseDB, 'meet_rooms', ROOM_ID, 'lobby', uid), { status });
   }
 
   /* ---------- join ---------- */
@@ -109,10 +153,11 @@
       }
       try { await lk.startAudio(); } catch (e) {}
       renderAll();
+      watchLobby();
       startAttendance(name);
     } catch (e) {
       console.error(e);
-      const map = { 'not-live': 'The host has not started this session yet.', 'ended': 'This session has ended.', unauthorized: 'Please sign in again.', 'not-configured': 'The meeting server is not set up yet.' };
+      const map = { 'not-live': 'The host has not started this session yet.', 'not-admitted': 'The host has not admitted you yet.', 'ended': 'This session has ended.', unauthorized: 'Please sign in again.', 'not-configured': 'The meeting server is not set up yet.' };
       $('join-err').textContent = map[e.message] || ('Could not join. Details: ' + (e && e.message ? e.message : String(e)).slice(0, 160));
       btn.disabled = false; updateJoinBtn();
       if (lk) { try { lk.disconnect(); } catch (x) {} lk = null; }
@@ -202,7 +247,8 @@
     tiles.forEach((el, id) => { if (!keep.has(id)) { el.remove(); tiles.delete(id); } });
     grid.classList.toggle('one', tiles.size === 1);
     renderPeople();
-    $('hand-dot').textContent = hands.size; $('hand-dot').classList.toggle('hidden', !hands.size);
+    const badge = hands.size + (myRole() === 'host' ? LOBBY.length : 0);
+    $('hand-dot').textContent = badge; $('hand-dot').classList.toggle('hidden', !badge);
     $('b-ppl').title = 'People';
   }
   function renderPeople() {
@@ -217,14 +263,39 @@
       }
       return `<div class="pl"><div>${mEsc(p.name || p.identity)}${self ? ' (You)' : ''} ${hands.has(p.identity) ? '✋' : ''}<small>${role === 'host' ? 'Host' : stage && ROOM.mode === 'seminar' ? 'Speaker' : ROOM.mode === 'seminar' ? 'Audience' : 'Participant'}</small></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${acts}</div></div>`;
     });
-    $('pane-ppl').innerHTML = rows.join('');
+    let top = '';
+    if (iAmHost) {
+      top += `<div class="hostctl"><button class="btn sm ghost" data-m="mic">🔇 Mute all</button><button class="btn sm ghost" data-m="cam">🚫 Cameras off</button></div>`;
+      if (LOBBY.length) {
+        top += `<div class="lobby"><div class="lobby-h">Waiting to join (${LOBBY.length}) <button class="btn sm green" data-l="all">Admit all</button></div>` +
+          LOBBY.map(x => `<div class="pl"><div>${mEsc(x.name || 'Guest')}<small>${mEsc(x.email || '')}</small></div><div style="display:flex;gap:6px"><button class="btn sm green" data-l="ok" data-u="${mEsc(x.uid)}">Admit</button><button class="btn sm red" data-l="no" data-u="${mEsc(x.uid)}">Deny</button></div></div>`).join('') + '</div>';
+      }
+    }
+    $('pane-ppl').innerHTML = top + rows.join('');
   }
   $('pane-ppl').addEventListener('click', async e => {
+    const mb = e.target.closest('button[data-m]');
+    if (mb) {
+      const kind = mb.dataset.m;
+      sendData('hostmute', { kind });
+      mToast(kind === 'mic' ? 'Everyone has been muted.' : 'Everyone\'s camera has been turned off.');
+      api({ action: 'muteall', room: ROOM_ID, kind }).catch(() => {});
+      return;
+    }
+    const lb = e.target.closest('button[data-l]');
+    if (lb) {
+      lb.disabled = true;
+      try {
+        if (lb.dataset.l === 'all') await Promise.all(LOBBY.map(x => setLobby(x.uid, 'admitted')));
+        else await setLobby(lb.dataset.u, lb.dataset.l === 'ok' ? 'admitted' : 'denied');
+      } catch (err) { mToast('Could not update (' + (err.code || err.message) + ').', true); lb.disabled = false; }
+      return;
+    }
     const b = e.target.closest('button[data-a]'); if (!b) return;
     const a = b.dataset.a, id = b.dataset.i;
     if (a === 'remove' && !confirm('Remove this person from the room?')) return;
     b.disabled = true;
-    try { await api({ action: a, room: ROOM_ID, identity: id }); if (a === 'promote') hands.delete(id); renderAll(); }
+    try { await api({ action: a, room: ROOM_ID, identity: id }); if (a === 'promote') hands.delete(id); if (a === 'remove') setLobby(id, 'denied').catch(() => {}); renderAll(); }
     catch (err) { mToast('Could not do that (' + err.message + ').', true); b.disabled = false; }
   });
 
@@ -281,6 +352,11 @@
     if (topic === 'chat' && d.t) {
       addMsg((participant && (participant.name || participant.identity)) || 'Guest', String(d.t).slice(0, 400), false);
       if (!(sideOpen && sideTab === 'chat')) { unreadChat++; $('chat-dot').textContent = unreadChat > 9 ? '9+' : unreadChat; $('chat-dot').classList.remove('hidden'); }
+    } else if (topic === 'hostmute' && participant && roleOf(participant) === 'host') {
+      const lp = lk.localParticipant;
+      if (d.kind === 'mic' && lp.isMicrophoneEnabled) { lp.setMicrophoneEnabled(false).catch(() => {}); mToast('The host muted everyone. Tap the mic to unmute.'); }
+      if (d.kind === 'cam' && lp.isCameraEnabled) { lp.setCameraEnabled(false).catch(() => {}); mToast('The host turned off cameras. Tap the camera to turn yours on.'); }
+      setTimeout(() => { syncBtns(); renderAll(); }, 300);
     } else if (topic === 'hand' && id) {
       if (d.on) hands.add(id); else hands.delete(id);
       renderAll();
@@ -304,6 +380,8 @@
     lk = null; tiles.clear(); stopPreview();
     document.querySelectorAll('audio').forEach(a => a.remove());
     if (roomUnsub) { roomUnsub(); roomUnsub = null; }
+    if (lobbyUnsub) { lobbyUnsub(); lobbyUnsub = null; }
+    if (lobbyUnsubSelf) { lobbyUnsubSelf(); lobbyUnsubSelf = null; }
     if (was || message) { msg(message || 'You left the room', ROOM && ROOM.title || ''); }
   }
   window.addEventListener('beforeunload', () => { try { if (lk) lk.disconnect(); } catch (e) {} });

@@ -2038,7 +2038,7 @@ async function addForumPost(p) {
     const ref = await addDoc(collection(db, "forum_posts"), {
       authorUid: p.authorUid, authorName: p.authorName, authorPhoto: p.authorPhoto || '',
       category: p.category, title: p.title, body: p.body,
-      status: 'pending', replyCount: 0, createdAt: now, lastActivityAt: now
+      status: 'pending', replyCount: 0, likeCount: 0, heartCount: 0, createdAt: now, lastActivityAt: now
     });
     return { success:true, id: ref.id };
   } catch(err) {
@@ -2139,6 +2139,49 @@ async function deleteForumComment(id, postId) {
   } catch(err) {
     console.error("Delete forum comment error:", err);
     return false;
+  }
+}
+
+/*----- Forum post reactions (👍/❤️) — one reaction per person per post -----*/
+// What the signed-in user has already reacted with, or null.
+async function getMyForumReaction(postId, uid) {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try {
+    const snap = await getDoc(doc(window.firebaseDB, "forum_reactions", postId + '_' + uid));
+    return snap.exists() ? snap.data().type : null;
+  } catch(err) {
+    return null; // e.g. offline — just render as "not reacted" rather than failing the page
+  }
+}
+
+// Clicking the same reaction again removes it; clicking a different one
+// switches (old count -1, new count +1, in the same post update).
+async function toggleForumReaction(postId, uid, type) {
+  await waitForFirebase();
+  const { doc, getDoc, setDoc, deleteDoc, updateDoc, increment } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  const reactionRef = doc(db, "forum_reactions", postId + '_' + uid);
+  const postRef = doc(db, "forum_posts", postId);
+  let oldType = null;
+  try {
+    const existing = await getDoc(reactionRef);
+    oldType = existing.exists() ? existing.data().type : null;
+
+    if(oldType === type) {
+      await deleteDoc(reactionRef);
+      await updateDoc(postRef, { [type + 'Count']: increment(-1) });
+      return { success:true, type:null };
+    }
+
+    const bump = { [type + 'Count']: increment(1) };
+    if(oldType) bump[oldType + 'Count'] = increment(-1);
+    await setDoc(reactionRef, { postId, uid, type, createdAt: Date.now() });
+    await updateDoc(postRef, bump);
+    return { success:true, type };
+  } catch(err) {
+    console.error("Toggle forum reaction error:", err);
+    return { success:false, type: oldType, error: err.message };
   }
 }
 
@@ -2594,4 +2637,32 @@ async function incrementResourceDownload(id) {
     console.error("Increment download error:", err);
     return false;
   }
+}
+
+/*===== INVITE / REFERRAL SYSTEM =====*/
+// A friend who signs up through someone's invite link keeps `referredBy` (the inviter's Member ID) on their profile.
+// Once their e-mail is verified, one "join" record is written under the inviter so the inviter can see the count.
+async function registerReferralIfAny(user, profile) {
+  try {
+    if(!user || !user.emailVerified || !profile) return false;
+    const code = String(profile.referredBy || '').toUpperCase();
+    if(!/^TV-[A-Z0-9]{6}$/.test(code) || profile.refCounted) return false;
+    if(code === profile.memberCode) return false;
+    await waitForFirebase();
+    try { await user.getIdToken(true); } catch(e) {}
+    const { doc, setDoc } = window.firebaseFunctions;
+    const name = ((profile.firstName || '') + ' ' + (profile.lastName || '')).trim().slice(0, 60) || 'Member';
+    await setDoc(doc(window.firebaseDB, 'referrals', code, 'joins', user.uid), { uid: user.uid, name, at: Date.now() });
+    await saveRegisteredUser(user.uid, { refCounted: true });
+    profile.refCounted = true;
+    return true;
+  } catch(err) { console.error('Referral register error:', err); return false; }
+}
+async function getMyReferrals(code) {
+  try {
+    await waitForFirebase();
+    const { collection, getDocs } = window.firebaseFunctions;
+    const snap = await getDocs(collection(window.firebaseDB, 'referrals', code, 'joins'));
+    return snap.docs.map(d => d.data()).sort((a, b) => (b.at || 0) - (a.at || 0));
+  } catch(err) { console.error('Get referrals error:', err); return []; }
 }

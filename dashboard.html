@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=57">
+<link rel="stylesheet" href="style.css?v=58">
 <link rel="stylesheet" href="loader.css">
 </head>
 <body>
@@ -156,6 +156,8 @@
           </div>
         </div>
       </div>
+
+      <div id="db-invite"></div>
 
       <!-- INCOMPLETE PROFILE PROMPT -->
       <div id="db-incomplete-prompt" style="display:none;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:12px;padding:16px 18px;margin-bottom:20px;text-align:center;">
@@ -591,6 +593,38 @@ function dbToggleBell() {
   }
 }
 
+/*===== INVITE FRIENDS =====*/
+const DB_TIERS = [[1, 'Connector 🤝'], [5, 'Ambassador 🌟'], [10, 'Champion 🏆'], [25, 'Legend 👑']];
+async function dbRenderInvite() {
+  const box = document.getElementById('db-invite');
+  const code = dbProfile && dbProfile.memberCode;
+  if(!box || !code) return;
+  const url = new URL('account.html?ref=' + encodeURIComponent(code) + '#signup', location.href).href;
+  box.innerHTML = `<div class="inv-card">
+    <h3>🎁 বন্ধুদের invite করো</h3>
+    <div class="sub">তোমার লিংক দিয়ে বন্ধু Sign Up করে email verify করলে তোমার সংখ্যায় যোগ হবে। বেশি জনকে আনলে নতুন badge পাবে।</div>
+    <div class="inv-link"><input id="inv-url" readonly value="${url}"><button class="inv-btn" onclick="dbCopyInvite()">Copy</button><button class="inv-btn" style="background:#16a34a" onclick="tvShare({title:'TalentVerse Bangladesh',text:'আমার সাথে TalentVerse Bangladesh-এ যোগ দাও — অলিম্পিয়াড, কুইজ আর ইভেন্টের জন্য!',url:document.getElementById('inv-url').value})">Share</button></div>
+    <div class="inv-stats"><div><div class="inv-count" id="inv-count">…</div><div style="font-size:.74rem;color:var(--muted)">বন্ধু যোগ দিয়েছে</div></div><span class="inv-badge" id="inv-badge" style="display:none"></span></div>
+    <div class="inv-bar"><i id="inv-bar" style="width:0%"></i></div>
+    <div class="inv-list" id="inv-list"></div>
+  </div>`;
+  const list = typeof getMyReferrals === 'function' ? await getMyReferrals(code) : [];
+  const n = list.length;
+  document.getElementById('inv-count').textContent = n;
+  let cur = null, next = null;
+  DB_TIERS.forEach(t => { if(n >= t[0]) cur = t; });
+  next = DB_TIERS.find(t => n < t[0]);
+  if(cur) { const b = document.getElementById('inv-badge'); b.textContent = cur[1]; b.style.display = 'inline-block'; }
+  const prev = cur ? cur[0] : 0;
+  document.getElementById('inv-bar').style.width = (next ? Math.round(((n - prev) / (next[0] - prev)) * 100) : 100) + '%';
+  document.getElementById('inv-list').innerHTML = (next ? `আরও ${next[0] - n} জন আনলে <b>${dbEsc(next[1])}</b> badge পাবে।<br>` : 'তুমি সর্বোচ্চ badge পেয়েছো! 🎉<br>') +
+    list.slice(0, 5).map(x => '• ' + dbEsc(x.name || 'Member')).join('<br>');
+}
+function dbCopyInvite() {
+  const el = document.getElementById('inv-url');
+  (navigator.clipboard ? navigator.clipboard.writeText(el.value) : Promise.reject()).then(() => toast('Invite link copied! ✅'), () => { el.select(); document.execCommand && document.execCommand('copy'); });
+}
+
 async function dbLoadDashboard(user) {
   dbUser = user;
   document.getElementById('db-welcome').textContent = `স্বাগতম, ${user.email}`;
@@ -611,6 +645,8 @@ async function dbLoadDashboard(user) {
     try { const mc = await ensureMemberCode(user.uid, dbProfile); if(mc) dbProfile.memberCode = mc; } catch(e) {}
   }
   dbRenderProfile();
+  if(typeof registerReferralIfAny === 'function') { try { await registerReferralIfAny(user, dbProfile); } catch(e) {} }
+  dbRenderInvite();
   dbLoadBell();
   // Official members with admin access get a shortcut to the panel
   if(typeof getMyAccess === 'function') {

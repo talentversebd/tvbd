@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc, query, orderBy, where, onSnapshot, writeBatch, limit, deleteField, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA1VAUyNGYE7XpgLRN6-xeAI5QMjN-Q_Lk",
@@ -30,7 +30,7 @@ try {
   window.firebaseAuth = auth;
   window.firebaseAuthFunctions = {
     createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-    onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail
+    onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup
   };
 } catch(err) {
   console.error("Firebase Auth init failed (Firestore still works):", err);

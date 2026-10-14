@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=55">
+<link rel="stylesheet" href="style.css?v=58">
 <style>
 .fo-container{max-width:800px;margin:0 auto;padding:0 16px;}
 .fo-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:18px;}
@@ -285,7 +285,7 @@ function foRenderList(){
       <div class="fo-snippet">${snippet}</div>
       <div class="fo-meta">
         ${p.authorPhoto ? `<img class="fo-avatar" src="${foEsc(p.authorPhoto)}">` : `<span class="fo-avatar">${initial}</span>`}
-        <span>${foEsc(p.authorName)}</span><span>·</span><span>${foTimeAgo(p.createdAt)}</span><span>·</span><span>💬 ${p.replyCount||0}</span>
+        <span>${foEsc(p.authorName)}</span><span>·</span><span>${foTimeAgo(p.createdAt)}</span><span>·</span><span>💬 ${p.replyCount||0}</span><span>·</span><span>👍 ${p.likeCount||0} ❤️ ${p.heartCount||0}</span>
       </div>
     </a>`;
   }).join('');
@@ -328,6 +328,8 @@ function foRenderList(){
 </footer>
 <script src="lang.js"></script>
 <script src="main.js"></script>
+<script src="bnav.js"></script>
+<script src="fx.js"></script>
 <script src="pwa.js"></script>
 </body>
 </html>

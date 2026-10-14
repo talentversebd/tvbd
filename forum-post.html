@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=55">
+<link rel="stylesheet" href="style.css?v=58">
 <style>
 .fp-container{max-width:740px;margin:0 auto;padding:0 16px;}
 .fp-back{display:inline-block;color:var(--blue-br);font-size:.84rem;font-weight:600;margin-bottom:16px;text-decoration:none;}
@@ -37,6 +37,10 @@
 .fp-meta{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--bdr);}
 .fp-avatar{width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:var(--blue-br);}
 .fp-body{font-size:.95rem;line-height:1.8;white-space:pre-wrap;}
+.fp-reactions{margin-top:16px;display:flex;gap:8px;}
+.fp-react-btn{background:var(--card2);border:1px solid var(--bdr);color:var(--muted);border-radius:20px;padding:7px 16px;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:600;transition:border-color .15s,color .15s;}
+.fp-react-btn:hover{border-color:var(--blue-br);}
+.fp-react-btn.active{border-color:var(--blue-br);background:rgba(59,130,246,.1);color:var(--blue-br);}
 .fp-ownbtns{margin-top:16px;display:flex;gap:8px;}
 .fp-ownbtns button{background:none;border:1px solid var(--bdr2);color:var(--muted);border-radius:6px;padding:6px 14px;font-size:.78rem;cursor:pointer;}
 .fp-ownbtns button:hover{color:var(--blue-br);border-color:var(--blue-br);}
@@ -134,6 +138,7 @@
         <div class="fp-title" id="fp-title"></div>
         <div class="fp-meta" id="fp-meta"></div>
         <div class="fp-body" id="fp-body"></div>
+        <div class="fp-reactions" id="fp-reactions"></div>
         <div class="fp-ownbtns" id="fp-ownbtns" style="display:none;"></div>
       </div>
 
@@ -222,7 +227,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     fpRenderGate();
     fpRenderOwnBtns();
     // re-check now that we know who's viewing — a pending/rejected post only shows to its author
-    if(fpPost){ fpRenderPost(); fpApplyStatusGate(); }
+    if(fpPost){
+      fpMyReaction = fpUser ? await getMyForumReaction(fpPostId, fpUser.uid) : null;
+      fpRenderPost();
+      fpApplyStatusGate();
+    }
   });
 });
 
@@ -243,7 +252,7 @@ function fpApplyStatusGate(){
       : tr('fp_status_rejected', '❌ This post was rejected by the admin and is not visible to others.');
   } else {
     document.getElementById('fp-body').textContent = '';
-    ['fp-title','fp-meta','fp-cat','fp-comments','fp-comment-count','fp-comment-gate','fp-comment-box'].forEach(i=>{const e=document.getElementById(i); if(e) e.style.display='none';});
+    ['fp-title','fp-meta','fp-cat','fp-reactions','fp-comments','fp-comment-count','fp-comment-gate','fp-comment-box'].forEach(i=>{const e=document.getElementById(i); if(e) e.style.display='none';});
     note.className = 'fp-status-note pending';
     note.style.display = 'block';
     note.textContent = tr('fp_status_unavailable', 'This post is not available.');
@@ -258,6 +267,43 @@ function fpRenderPost(){
     ${fpPost.authorPhoto ? `<img class="fp-avatar" src="${fpEsc(fpPost.authorPhoto)}">` : `<span class="fp-avatar">${initial}</span>`}
     <span>${fpEsc(fpPost.authorName)}</span><span>·</span><span>${fpTimeAgo(fpPost.createdAt)}</span>`;
   document.getElementById('fp-body').textContent = fpPost.body;
+  fpRenderReactions();
+}
+
+let fpMyReaction = null;
+
+function fpRenderReactions(){
+  const wrap = document.getElementById('fp-reactions');
+  const likeActive = fpMyReaction === 'like' ? 'active' : '';
+  const heartActive = fpMyReaction === 'heart' ? 'active' : '';
+  wrap.innerHTML = `
+    <button class="fp-react-btn ${likeActive}" onclick="fpReact('like')">👍 <span>${fpPost.likeCount||0}</span></button>
+    <button class="fp-react-btn ${heartActive}" onclick="fpReact('heart')">❤️ <span>${fpPost.heartCount||0}</span></button>`;
+}
+
+async function fpReact(type){
+  if(!fpUser) return toast(tr("t_signin_first","Please sign in first."), true);
+  const wrap = document.getElementById('fp-reactions');
+  wrap.querySelectorAll('button').forEach(b => b.disabled = true);
+
+  // optimistic update — feels instant, corrected below if the write failed
+  const prev = fpMyReaction;
+  if(prev === type){ fpPost[type+'Count'] = Math.max(0,(fpPost[type+'Count']||0)-1); fpMyReaction = null; }
+  else {
+    if(prev){ fpPost[prev+'Count'] = Math.max(0,(fpPost[prev+'Count']||0)-1); }
+    fpPost[type+'Count'] = (fpPost[type+'Count']||0)+1;
+    fpMyReaction = type;
+  }
+  fpRenderReactions();
+
+  const result = await toggleForumReaction(fpPostId, fpUser.uid, type);
+  if(!result.success){
+    // roll back on failure
+    fpMyReaction = prev;
+    fpPost = await getForumPost(fpPostId) || fpPost;
+    fpRenderReactions();
+    toast(tr("fp_react_fail","Couldn't save your reaction."), true);
+  }
 }
 
 function fpRenderOwnBtns(){
@@ -383,6 +429,8 @@ async function fpDeleteComment(id){
 </script>
 <script src="lang.js"></script>
 <script src="main.js"></script>
+<script src="bnav.js"></script>
+<script src="fx.js"></script>
 <script src="pwa.js"></script>
 </body>
 </html>

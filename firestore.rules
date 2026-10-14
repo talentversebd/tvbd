@@ -16,6 +16,15 @@ service cloud.firestore {
       return signedIn() && request.auth.token.email_verified == true;
     }
 
+    // A counter field moved by exactly +1 or -1 from its old value (missing
+    // old value treated as 0, so this works on docs created before the field
+    // existed). Used for forum_posts' replyCount/likeCount/heartCount.
+    function validCounterBump(field) {
+      return request.resource.data[field] is int && request.resource.data[field] >= 0
+        && (request.resource.data[field] - resource.data.get(field, 0) == 1
+            || request.resource.data[field] - resource.data.get(field, 0) == -1);
+    }
+
     // Official members: the main admin gives each person a list of pages in
     // member_access/{their uid}. Only the main admin can write that document.
     function hasPerm(p) {
@@ -185,25 +194,37 @@ service cloud.firestore {
       allow read: if true;
       // every new post starts 'pending' — the client can never set itself live
       allow create: if verified() && request.resource.data.authorUid == request.auth.uid
-                    && request.resource.data.keys().hasOnly(['authorUid','authorName','authorPhoto','category','title','body','status','replyCount','createdAt','lastActivityAt'])
+                    && request.resource.data.keys().hasOnly(['authorUid','authorName','authorPhoto','category','title','body','status','replyCount','likeCount','heartCount','createdAt','lastActivityAt'])
                     && request.resource.data.category in ['General','Events','Quiz Help','Announcements']
                     && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 200
                     && request.resource.data.body is string && request.resource.data.body.size() > 0 && request.resource.data.body.size() <= 5000
                     && request.resource.data.authorName is string && request.resource.data.authorName.size() <= 120
                     && request.resource.data.status == 'pending'
-                    && request.resource.data.replyCount == 0;
-      // admin: anything (including approve/reject). author: only title/body. any verified member: only reply counter + activity time (when commenting)
+                    && request.resource.data.replyCount == 0
+                    && (!('likeCount' in request.resource.data) || request.resource.data.likeCount == 0)
+                    && (!('heartCount' in request.resource.data) || request.resource.data.heartCount == 0);
+      // admin: anything (including approve/reject). author: only title/body. any verified member: reply/like/heart counters + activity time
       allow update: if isMain() || hasPerm('forum')
                     || (signedIn() && resource.data.authorUid == request.auth.uid
                         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title','body'])
                         && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 200
                         && request.resource.data.body is string && request.resource.data.body.size() > 0 && request.resource.data.body.size() <= 5000)
                     || (verified()
-                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActivityAt','replyCount'])
-                        && request.resource.data.replyCount is int
-                        && request.resource.data.replyCount >= 0
-                        && (request.resource.data.replyCount - resource.data.replyCount == 1 || request.resource.data.replyCount - resource.data.replyCount == -1));
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActivityAt','replyCount','likeCount','heartCount'])
+                        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['replyCount']) || validCounterBump('replyCount'))
+                        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['likeCount']) || validCounterBump('likeCount'))
+                        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['heartCount']) || validCounterBump('heartCount')));
       allow delete: if isMain() || hasPerm('forum') || (signedIn() && resource.data.authorUid == request.auth.uid);
+    }
+    // one reaction doc per (post, person) — overwritten in place to switch type, deleted to un-react
+    match /forum_reactions/{id} {
+      allow read: if true;
+      allow create, update: if verified() && request.resource.data.uid == request.auth.uid
+                    && id == (request.resource.data.postId + '_' + request.auth.uid)
+                    && request.resource.data.keys().hasOnly(['postId','uid','type','createdAt'])
+                    && request.resource.data.postId is string
+                    && request.resource.data.type in ['like','heart'];
+      allow delete: if isMain() || hasPerm('forum') || (signedIn() && resource.data.uid == request.auth.uid);
     }
     match /forum_comments/{id} {
       allow read: if true;
@@ -263,6 +284,19 @@ service cloud.firestore {
                         || request.resource.data.get('memberCode', null) == resource.data.memberCode);
       allow read: if isMain() || (signedIn() && request.auth.uid == uid);
       allow delete: if isMain();
+    }
+
+    // ---- Invite system: a verified new member adds ONE join record under the inviter's Member ID; the inviter (and main admin) can read the list ----
+    match /referrals/{code}/joins/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid
+                    && request.auth.token.email_verified == true
+                    && request.resource.data.keys().hasOnly(['uid','name','at'])
+                    && request.resource.data.uid == uid
+                    && get(/databases/$(database)/documents/registered_users/$(request.auth.uid)).data.get('referredBy', '') == code
+                    && get(/databases/$(database)/documents/registered_users/$(request.auth.uid)).data.get('memberCode', '') != code;
+      allow read: if isMain()
+                  || (signedIn() && get(/databases/$(database)/documents/registered_users/$(request.auth.uid)).data.get('memberCode', '') == code);
+      allow update, delete: if isMain();
     }
 
     // ---- Member ID registry: create-only (a code can never be reused or changed) ----

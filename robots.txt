@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 Disallow: /quiz.html
+Disallow: /tvbd/meet/
 
 Sitemap: https://talentversebd.github.io/tvbd/sitemap.xml

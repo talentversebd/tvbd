@@ -173,19 +173,19 @@
       <div class="cf-group"><label>Class / Level <span style="color:#f87171;">*</span></label><input class="cf-input" type="text" id="su-class" placeholder="e.g. Class 9, HSC 1st Year"></div>
       <div class="cf-group"><label>District <span style="color:#f87171;">*</span></label><input class="cf-input" type="text" id="su-district"></div>
 
-      <div class="cf-group">
+      <div class="cf-group" id="su-grp-email">
         <label>Email Address <span style="color:#f87171;">*</span></label>
         <input class="cf-input" type="email" id="su-email" autocomplete="email" inputmode="email" autocapitalize="none" placeholder="Use the same email you registered with">
       </div>
-      <div class="cf-group">
+      <div class="cf-group" id="su-grp-pass">
         <label>Password <span style="color:#f87171;">*</span></label>
         <input class="cf-input" type="password" id="su-pass" autocomplete="new-password" placeholder="At least 6 characters">
       </div>
-      <div class="cf-group">
+      <div class="cf-group" id="su-grp-pass2">
         <label>Confirm Password <span style="color:#f87171;">*</span></label>
         <input class="cf-input" type="password" id="su-pass2" autocomplete="new-password" placeholder="Re-type your password">
       </div>
-      <p style="font-size:.78rem;color:var(--muted);margin:-8px 0 14px;line-height:1.6;">
+      <p id="su-email-hint" style="font-size:.78rem;color:var(--muted);margin:-8px 0 14px;line-height:1.6;">
         💡 Use the exact same email you used for quizzes/registrations — that's how we match your results to your account.
       </p>
       <p id="ac-signup-err" style="color:#f87171;font-size:.82rem;margin:-8px 0 14px;display:none;"></p>
@@ -702,7 +702,9 @@ async function acGoogle() {
       try { const mc = await claimMemberCode(u.uid); if(mc) patch.memberCode = mc; } catch(e) {}
     }
     if(typeof saveRegisteredUser === 'function') await saveRegisteredUser(u.uid, patch).catch(() => {});
-    window.location.href = acRedirectTarget();
+    const merged = Object.assign({}, prof || {}, patch);
+    if(acProfileComplete(merged)) { window.location.href = acRedirectTarget(); return; }
+    acShowCompleteView(u, merged);   // the rest of the details are required, same as a normal sign-up
   } catch(err) {
     acJustSignedUp = false;
     const code = (err && err.code) || '';
@@ -711,6 +713,64 @@ async function acGoogle() {
     if(code.includes('operation-not-allowed')) return acShowErr(errId, 'Google login এখনো চালু করা হয়নি — অ্যাডমিনকে জানান।');
     if(code.includes('popup-blocked')) return acShowErr(errId, 'ব্রাউজার popup আটকে দিয়েছে — popup অনুমতি দিয়ে আবার চাপুন।');
     acShowErr(errId, acFriendlyError(err));
+  }
+}
+
+function acProfileComplete(p) {
+  return !!(p && p.firstName && p.lastName && p.dob && p.phone && p.gender && p.religion && p.institution && p.classLevel && p.district);
+}
+let acGoogleUser = null;
+// Google users must fill in the same details as everybody else before they continue.
+function acShowCompleteView(u, p) {
+  acGoogleUser = u;
+  document.getElementById('ac-login-view').style.display = 'none';
+  document.getElementById('ac-verify-view').style.display = 'none';
+  const sv = document.getElementById('ac-signup-view');
+  sv.style.display = 'block';
+  Array.from(sv.querySelectorAll('.ac-gbtn,.ac-or,#ac-ref-note,#su-grp-email,#su-grp-pass,#su-grp-pass2,#su-email-hint')).forEach(el => el.style.display = 'none');
+  const tabs = document.getElementById('tab-login-btn').parentNode; if(tabs) tabs.style.display = 'none';
+  const intro = sv.querySelector('p:not(#ac-ref-note)');
+  if(intro) intro.innerHTML = '✅ Google দিয়ে ঢোকা হয়েছে (<b>' + (u.email || '') + '</b>)। এখন বাকি তথ্যগুলো দিন — সব ঘর বাধ্যতামূলক (<span style="color:#f87171;">*</span>)।';
+  const set = (id, v) => { const el = document.getElementById(id); if(el && v && !el.value) el.value = v; };
+  set('su-fname', p.firstName); set('su-lname', p.lastName); set('su-dob', p.dob); set('su-phone', p.phone);
+  set('su-gender', p.gender); set('su-religion', p.religion); set('su-institution', p.institution);
+  set('su-class', p.classLevel); set('su-district', p.district);
+  if(p.photo) document.getElementById('su-photo-prev').innerHTML = '<img src="' + p.photo + '" style="width:100%;height:100%;object-fit:cover;">';
+  const btn = document.getElementById('ac-signup-btn');
+  btn.textContent = 'Save & Continue →';
+  btn.setAttribute('onclick', 'acCompleteProfile()');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+async function acCompleteProfile() {
+  const v = id => document.getElementById(id).value.trim();
+  const required = [
+    ['su-fname', 'First Name'], ['su-lname', 'Last Name'], ['su-dob', 'Date of Birth'],
+    ['su-phone', 'Phone Number'], ['su-gender', 'Gender'], ['su-religion', 'Religion'],
+    ['su-institution', 'University / Institution'], ['su-class', 'Class / Level'], ['su-district', 'District']
+  ];
+  for(const [id, label] of required) { if(!v(id)) return acShowErr('ac-signup-err', label + ' দিতে হবে — সব তথ্য বাধ্যতামূলক।'); }
+  if(!/^01[3-9]\d{8}$/.test(v('su-phone').replace(/[\s-]/g, ''))) return acShowErr('ac-signup-err', 'সঠিক ফোন নম্বর দিন (যেমন 01XXXXXXXXX)।');
+  const u = acGoogleUser || window.firebaseAuth.currentUser;
+  if(!u) return acShowErr('ac-signup-err', 'আবার Google দিয়ে Log In করুন।');
+  const btn = document.getElementById('ac-signup-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    const data = {
+      firstName: v('su-fname'), lastName: v('su-lname'), dob: document.getElementById('su-dob').value,
+      phone: v('su-phone').replace(/[\s-]/g, ''), gender: document.getElementById('su-gender').value,
+      religion: document.getElementById('su-religion').value, institution: v('su-institution'),
+      classLevel: v('su-class'), district: v('su-district')
+    };
+    const file = document.getElementById('su-photo').files[0];
+    if(file && typeof uploadToImgBB === 'function') {
+      try { const up = await uploadToImgBB(file); if(up && up.success) data.photo = up.url; } catch(e) { console.error('Photo upload failed', e); }
+    }
+    const ok = await saveRegisteredUser(u.uid, data);
+    if(ok === false) throw new Error('save-failed');
+    window.location.href = acRedirectTarget();
+  } catch(err) {
+    acShowErr('ac-signup-err', 'সেভ করা যায়নি — আবার চেষ্টা করুন।');
+    btn.disabled = false; btn.textContent = 'Save & Continue →';
   }
 }
 

@@ -67,6 +67,24 @@ service cloud.firestore {
     // email-notification campaign history: only the main admin uses this panel
     match /notification_campaigns/{id} { allow read, write: if isMain() || hasPerm('emailnotify'); }
 
+    // ---- TalentVerse Meet (meet/ pages): rooms are readable by signed-in users; only the main admin
+    //      (or members given the "meetings" permission) can create/change/delete rooms. Each person writes only their own attendance row.
+    match /meet_rooms/{roomId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isMain() || hasPerm('meetings');
+      match /lobby/{uid} {
+        allow create, update: if signedIn() && request.auth.uid == uid && request.resource.data.status == 'waiting';
+        allow read, delete: if signedIn() && request.auth.uid == uid;
+        allow read, update, delete: if isMain() || hasPerm('meetings')
+          || (signedIn() && get(/databases/$(database)/documents/meet_rooms/$(roomId)).data.hostEmail == request.auth.token.email.lower());
+      }
+      match /attendance/{uid} {
+        allow create, update: if signedIn() && request.auth.uid == uid;
+        allow read: if (signedIn() && request.auth.uid == uid) || isMain() || hasPerm('meetings');
+        allow delete: if isMain() || hasPerm('meetings');
+      }
+    }
+
     match /settings/{id} {
       allow read: if true;
       allow write: if isMain()

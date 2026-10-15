@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="bn"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TalentVerse App — Install</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0a0a12">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#0a0a12;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.c{max-width:420px;width:100%;text-align:center;background:#12121c;border:1px solid #23233a;border-radius:20px;padding:28px 22px}
+img{width:84px;height:84px;border-radius:20px;margin-bottom:12px}h1{margin:0 0 6px;font-size:1.4rem}p{color:#9a9ab5;font-size:.92rem;line-height:1.5;margin:6px 0}
+button,.b{display:block;width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:#2563eb;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;text-decoration:none}
+.s{display:none;text-align:left;background:#0d0d16;border-radius:12px;padding:12px 14px;margin-top:14px;font-size:.88rem;color:#c8c8dc;line-height:1.6}
+.ok{display:none;color:#4ade80;font-weight:700;margin-top:14px}.safe{font-size:.78rem;margin-top:14px}
+</style></head><body><div class="c">
+<img src="icon-192.png" alt="TalentVerse"><h1>TalentVerse Bangladesh</h1>
+<p>অ্যাপ হিসেবে ইনস্টল করুন — ফোনের হোম স্ক্রিনে আলাদা আইকন, ফুল-স্ক্রিন, কোনো "Unsafe" সতর্কতা ছাড়াই।</p>
+<button id="ib">📲 অ্যাপ ইনস্টল করুন</button>
+<div class="ok" id="ok">✅ অ্যাপ ইনস্টল হয়েছে! হোম স্ক্রিন থেকে খুলুন।</div>
+<div class="s" id="ios"><b>iPhone/iPad:</b> Safari-তে এই পেজ খুলে নিচের <b>Share</b> বাটন → <b>Add to Home Screen</b> চাপুন।</div>
+<div class="s" id="man"><b>Install বাটন কাজ না করলে:</b> Chrome-এর ⋮ মেনু → <b>Install app</b> (বা <b>Add to Home screen</b>) চাপুন।</div>
+<a class="b" href="index.html" style="background:#1c1c2e;margin-top:10px">সরাসরি ওয়েবসাইট খুলুন</a>
+<p class="safe">🔒 এটি ওয়েবসাইটের নিরাপদ ইনস্টল — APK ফাইল নয়, তাই "unknown source" সতর্কতা আসে না।</p>
+</div>
+<script>
+var dp=null,ib=document.getElementById('ib');
+var standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+var ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+if(standalone){ib.style.display='none';document.getElementById('ok').style.display='block';document.getElementById('ok').textContent='✅ আপনি ইতিমধ্যে অ্যাপ ব্যবহার করছেন।';}
+else if(ios){ib.style.display='none';document.getElementById('ios').style.display='block';}
+addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;});
+addEventListener('appinstalled',function(){ib.style.display='none';document.getElementById('ok').style.display='block';});
+ib.onclick=function(){if(dp){dp.prompt();dp.userChoice.then(function(){dp=null;});}else{document.getElementById('man').style.display='block';}};
+</script>
+<script src="pwa.js"></script>
+</body></html>

@@ -17,6 +17,7 @@ function toast(msg, isErr = false) {
 }
 
 /*===== LOGIN / LOGOUT =====*/
+let faUser = null, faFull = false, faSharedOnly = false;
 let faBusy = false, faWatching = false, faBooted = false, faFresh = false;
 
 async function doFormAdminLogin() {
@@ -45,12 +46,15 @@ function checkFormAdminAuth() {
   const login = document.getElementById('fadm-login');
   const shell = document.getElementById('fadm-shell');
   tvbdAdminAuth.watch(FORM_ALLOWED,
-    () => {
+    (user, access) => {
       login.style.display = 'none';
       shell.style.display = 'flex';
+      faUser = user; faFull = !!(access && access.all); faSharedOnly = !!(access && access.sharedOnly);
+      const nb = document.querySelector('.fadm-top .add-btn');
+      if(nb) nb.style.display = faSharedOnly ? 'none' : '';
       if(!faBooted) {
         faBooted = true;
-        loadCustomForms().then(() => renderFormsTable());
+        (faFull ? loadCustomForms() : loadMyCustomForms(user.uid)).then(() => renderFormsTable());
         if(faFresh) toast("Welcome back! 👋");
       }
     },
@@ -340,6 +344,7 @@ async function saveCustomForm() {
   }
 
   const formData = { title, description, status, isQuiz, duration, startAt, endAt, closedMessage, thankYouTitle, thankYouMessage, fields: ffFields };
+  if(!eid) { formData.ownerUid = faUser ? faUser.uid : ''; formData.ownerEmail = faUser ? (faUser.email || '') : ''; formData.editors = []; formData.editorCodes = []; }
   const result = eid ? await updateCustomForm(eid, formData) : await addCustomForm(formData);
 
   if(result.success) {
@@ -374,7 +379,7 @@ function renderFormsTable() {
   const tbody = document.getElementById('fadm-tbl');
   const forms = getCustomForms();
   if(!forms.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No forms yet. Click "+ New Form" to create one.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">${faFull || !faSharedOnly ? 'No forms yet. Click "+ New Form" to create one.' : 'No forms shared with you yet.'}</td></tr>`;
     return;
   }
   tbody.innerHTML = forms.map(f => {
@@ -387,7 +392,7 @@ function renderFormsTable() {
     }[avail.state];
     return `
     <tr>
-      <td><strong>${f.title}</strong></td>
+      <td><strong>${f.title}</strong>${f.ownerUid && faUser && f.ownerUid !== faUser.uid ? `<div style="font-size:.7rem;color:var(--muted);">👥 Shared with you${f.ownerEmail ? ' by ' + f.ownerEmail : ''}</div>` : (f.editorCodes && f.editorCodes.length ? `<div style="font-size:.7rem;color:var(--muted);">👥 Shared: ${f.editorCodes.join(', ')}</div>` : '')}</td>
       <td>${(f.fields || []).filter(fl => fl.type !== 'section').length}</td>
       <td>${(f.fields || []).filter(fl => fl.type === 'section').length || '—'}</td>
       <td><span class="bs ${f.status === 'published' ? 'bs-active' : 'bs-past'}" style="cursor:pointer;" onclick="toggleFormStatus('${f.id}')" title="Click to toggle">${f.status === 'published' ? 'Published' : 'Draft'}</span></td>
@@ -396,7 +401,8 @@ function renderFormsTable() {
       <td class="tbl-acts">
         <button class="e-btn" onclick="editCustomForm('${f.id}')">Edit</button>
         <button class="r-btn" onclick="viewFormResponses('${f.id}')">Responses</button>
-        <button class="d-btn" onclick="deleteFormAction('${f.id}')">Delete</button>
+        ${canManageForm(f) ? `<button class="e-btn" onclick="openShareForm('${f.id}')">👥 Share</button>` : ''}
+        ${canManageForm(f) ? `<button class="d-btn" onclick="deleteFormAction('${f.id}')">Delete</button>` : ''}
       </td>
     </tr>`;
   }).join('');
@@ -545,4 +551,53 @@ function downloadFormResponsesCSV() {
   a.download = `${f.title.replace(/[^a-z0-9]+/gi, '_')}_responses.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+
+/*===== SHARE ONE FORM WITH A MEMBER ID (Google-Docs style) =====
+   Owner (or a full admin) adds a Member ID -> that member can edit THIS form
+   and see ITS responses only. Nothing else. */
+function canManageForm(f) { return faFull || (faUser && f.ownerUid === faUser.uid); }
+let shareFormId = null;
+
+function openShareForm(id) {
+  shareFormId = id;
+  document.getElementById('sh-code').value = '';
+  renderShareList();
+  openFM('shm');
+}
+function renderShareList() {
+  const f = getCustomForms().find(x => x.id === shareFormId);
+  const box = document.getElementById('sh-list');
+  if(!f) { box.innerHTML = ''; return; }
+  document.getElementById('sh-title').textContent = f.title || '';
+  const codes = f.editorCodes || [];
+  box.innerHTML = codes.length ? codes.map((c, i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border:1px solid var(--border,#e5e7eb);border-radius:8px;margin-bottom:6px;">
+      <span style="font-family:monospace;font-weight:700;">${c}</span>
+      <button class="d-btn" onclick="removeShareEditor(${i})">Remove</button>
+    </div>`).join('') : '<p style="color:var(--muted);font-size:.85rem;">Not shared with anyone yet.</p>';
+}
+async function addShareEditor() {
+  const f = getCustomForms().find(x => x.id === shareFormId);
+  if(!f) return;
+  const code = document.getElementById('sh-code').value.trim().toUpperCase();
+  if(!code) return toast("Enter a Member ID!", true);
+  const m = await lookupMemberByCode(code);
+  if(!m) return toast("No member found with this Member ID.", true);
+  if(m.uid === f.ownerUid) return toast("This member already owns the form.", true);
+  const editors = f.editors || [], codes = f.editorCodes || [];
+  if(editors.includes(m.uid)) return toast("Already shared with this member.", true);
+  const r = await updateCustomForm(f.id, { editors: [...editors, m.uid], editorCodes: [...codes, m.code] });
+  if(r.success) { toast("Shared with " + m.code); document.getElementById('sh-code').value = ''; renderShareList(); renderFormsTable(); }
+  else toast("Couldn't share. Try again.", true);
+}
+async function removeShareEditor(i) {
+  const f = getCustomForms().find(x => x.id === shareFormId);
+  if(!f) return;
+  const editors = [...(f.editors || [])], codes = [...(f.editorCodes || [])];
+  editors.splice(i, 1); codes.splice(i, 1);
+  const r = await updateCustomForm(f.id, { editors, editorCodes: codes });
+  if(r.success) { toast("Access removed."); renderShareList(); renderFormsTable(); }
+  else toast("Couldn't remove. Try again.", true);
 }

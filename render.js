@@ -303,6 +303,7 @@ function renderInlineRegistration(o, prefixHtml) {
           <div class="modal-reg-section">
             ${sectionHead}
             ${renderCustomRegFields(customForm.fields)}
+            ${caFieldHtml('im-ca')}
             <button class="modal-reg-btn im-submit-btn" style="width:100%;border:none;cursor:pointer;" onclick="submitInlineCustomRegistration('${o.id}', '${customForm.id}')">Submit Registration ✅</button>
           </div>`;
         return;
@@ -334,6 +335,7 @@ function renderInlineRegistration(o, prefixHtml) {
           <label>Message (optional)</label>
           <textarea class="cf-input" id="im-message" placeholder="Anything else you'd like to add"></textarea>
         </div>
+        ${caFieldHtml('im-ca')}
         <button class="modal-reg-btn im-submit-btn" style="width:100%;border:none;cursor:pointer;" onclick="submitInlineRegistration('${o.id}')">Submit Registration ✅</button>
       </div>`;
   })();

@@ -29,6 +29,14 @@
         if (perm ? perms.includes(perm) : perms.length > 0) return { all: false, perms };
       }
     } catch (e) { console.error('Access check failed', e); }
+    // form-admin only: a member who was given ONE specific form may also enter
+    if (perm === 'forms') {
+      try {
+        const { collection, getDocs, query, where, limit } = window.firebaseFunctions;
+        const s = await getDocs(query(collection(window.firebaseDB, 'custom_forms'), where('editors', 'array-contains', user.uid), limit(1)));
+        if (!s.empty) return { all: false, perms: [], sharedOnly: true };
+      } catch (e) { console.error('Shared form check failed', e); }
+    }
     return null;
   }
 

@@ -33,6 +33,18 @@ service cloud.firestore {
         && (p in get(/databases/$(database)/documents/member_access/$(request.auth.uid)).data.get('permissions', []));
     }
 
+    // Campus Ambassador (CA) counter bump: the +1 must come together (same batch) with a brand-new registration
+    // that carries this CA's code, and the code must belong to an active CA.
+    function caBumpOk(code) {
+      let id = request.resource.data.lastReg;
+      return id is string && id.size() > 0
+        && request.resource.data.keys().hasOnly(['count','lastReg','lastAt','byEvent'])
+        && get(/databases/$(database)/documents/ca_codes/$(code)).data.get('active', false) == true
+        && !exists(/databases/$(database)/documents/registrations/$(id))
+        && existsAfter(/databases/$(database)/documents/registrations/$(id))
+        && getAfter(/databases/$(database)/documents/registrations/$(id)).data.get('refCode', '') == code;
+    }
+
     function nominationsOpen() {
       let s = get(/databases/$(database)/documents/settings/election).data;
       return s.get('nominationsActive', false) == true
@@ -133,10 +145,34 @@ service cloud.firestore {
     }
 
     // ---- Forms ----
-    match /custom_forms/{id}  { allow read: if true; allow write: if isFormAdmin(); }
+    // Full form admins = main admin + the fixed form-admin email. Members with the
+    // 'forms' permission can only CREATE forms; they then own those forms, and the
+    // owner (or a full admin) can share ONE form with a Member ID (editors list).
+    function fullForms() {
+      return isMain() || (signedIn() && request.auth.token.email == 'talentversebd5@gmail.com');
+    }
+    function canEditForm(f) {
+      return signedIn() && (f.get('ownerUid', '') == request.auth.uid
+                            || request.auth.uid in f.get('editors', []));
+    }
+    match /custom_forms/{id} {
+      allow read: if true;
+      allow create: if fullForms()
+                    || (hasPerm('forms') && request.resource.data.get('ownerUid', '') == request.auth.uid
+                        && request.resource.data.get('editors', []).size() == 0);
+      allow update: if fullForms()
+                    || (signedIn() && resource.data.get('ownerUid', '') == request.auth.uid
+                        && request.resource.data.get('ownerUid', '') == request.auth.uid)
+                    || (canEditForm(resource.data)
+                        && request.resource.data.get('ownerUid', '') == resource.data.get('ownerUid', '')
+                        && request.resource.data.get('editors', []) == resource.data.get('editors', []));
+      allow delete: if fullForms()
+                    || (signedIn() && resource.data.get('ownerUid', '') == request.auth.uid);
+    }
     match /form_responses/{id} {
       allow create: if true;
-      allow read, update, delete: if isFormAdmin();
+      allow read, update, delete: if fullForms()
+        || (signedIn() && canEditForm(get(/databases/$(database)/documents/custom_forms/$(resource.data.formId)).data));
     }
 
     // ---- Election ----
@@ -299,10 +335,38 @@ service cloud.firestore {
       allow update, delete: if isMain();
     }
 
+    // ---- Share counter: each member has one row, bumped by exactly 1 per share; the main admin reads them all ----
+    match /share_stats/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid
+                    && request.resource.data.keys().hasOnly(['uid','name','email','code','count','lastAt','byKind'])
+                    && request.resource.data.uid == uid
+                    && request.resource.data.count == 1;
+      allow update: if signedIn() && request.auth.uid == uid
+                    && request.resource.data.keys().hasOnly(['uid','name','email','code','count','lastAt','byKind'])
+                    && request.resource.data.uid == uid
+                    && request.resource.data.count - resource.data.count == 1;
+      allow read: if isMain() || (signedIn() && request.auth.uid == uid);
+      allow delete: if isMain();
+    }
+
+    // ---- Campus Ambassadors: the main admin turns a member into a CA (public: code -> name, so a registration form can check it) ----
+    match /ca_codes/{code} {
+      allow read: if true;
+      allow write: if isMain();
+    }
+    // per-CA registration count: readable by signed-in members (CAs see their own and the highest), bumped only together with a real registration
+    match /ca_counts/{code} {
+      allow read: if signedIn();
+      allow create: if request.resource.data.count == 1 && caBumpOk(code);
+      allow update: if request.resource.data.count - resource.data.count == 1 && caBumpOk(code);
+      allow delete: if isMain();
+    }
+
     // ---- Member ID registry: create-only (a code can never be reused or changed) ----
     match /member_codes/{code} {
       allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
-      allow get, list, update, delete: if isMain();
+      allow get: if signedIn();          // look up one Member ID -> uid (for sharing a form)
+      allow list, update, delete: if isMain();
     }
 
     // ---- Member access (page permissions): only the main admin writes ----

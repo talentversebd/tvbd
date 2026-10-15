@@ -187,6 +187,7 @@ function goSec(btn) {
     'network-adm': 'Our Network',
     'founder-adm': "Founder's Message",
     'users-adm': "Registered Users",
+    'ca-adm': 'Campus Ambassadors',
     'log-adm': 'Activity Log',
     'msg-adm': 'Contact Messages',
     'reg-adm': 'Registrations',
@@ -230,6 +231,7 @@ function goSec(btn) {
   if(secId === 'set-adm' && typeof loadRegistrationSettings === 'function') loadRegistrationSettings();
   if(secId === 'founder-adm' && typeof loadFounderSettingsUI === 'function') loadFounderSettingsUI();
   if(secId === 'users-adm' && typeof loadRegisteredUsersUI === 'function') loadRegisteredUsersUI();
+  if(secId === 'ca-adm') loadCaAdminUI();
   if(secId === 'log-adm') loadActivityLogUI();
   if(secId === 'popup-adm' && typeof loadPopupSettings === 'function') loadPopupSettings();
   if(secId === 'notify-adm' && typeof initNotifyPanel === 'function') initNotifyPanel();
@@ -406,14 +408,14 @@ function renderRegistrationsTable() {
     ? `দেখানো হচ্ছে <strong>${data.length}</strong> জন · ⏳ Pending <strong>${count('pending')}</strong> · ✅ Approved <strong>${count('approved')}</strong> · ❌ Rejected <strong>${count('rejected')}</strong>`
     : '';
 
-  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="9">${all.length ? 'এই ফিল্টারে কোনো রেজিস্ট্রেশন নেই।' : 'No registrations yet.'}</td></tr>`; return; }
+  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="10">${all.length ? 'এই ফিল্টারে কোনো রেজিস্ট্রেশন নেই।' : 'No registrations yet.'}</td></tr>`; return; }
   const badge = st => st === 'approved' ? '<span class="bs bs-active">✅ Approved</span>'
                     : st === 'rejected' ? '<span class="bs bs-past">❌ Rejected</span>'
                     : '<span class="bs bs-upcoming">⏳ Pending</span>';
   tbody.innerHTML = data.map(r => {
     const date = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'N/A';
     const st = regStatus(r);
-    return `<tr><td>${bcEsc(r.name)}</td><td>${bcEsc(r.email)}</td><td>${bcEsc(r.phone)}</td><td>${bcEsc(r.olympiad)}</td><td>${bcEsc(r.segment || '—')}</td><td>${bcEsc(r.transactionId || '—')}</td><td>${badge(st)}</td><td>${date}</td>
+    return `<tr><td>${bcEsc(r.name)}</td><td>${bcEsc(r.email)}</td><td>${bcEsc(r.phone)}</td><td>${bcEsc(r.olympiad)}</td><td>${bcEsc(r.segment || '—')}</td><td>${bcEsc(r.transactionId || '—')}</td><td style="font-family:monospace;">${bcEsc(r.refCode || '—')}</td><td>${badge(st)}</td><td>${date}</td>
       <td class="tbl-acts">
         ${st !== 'approved' ? `<button class="e-btn" onclick="setRegApproval('${r.id}','approved')">✅ Approve</button>` : ''}
         ${st !== 'rejected' ? `<button class="d-btn" onclick="setRegApproval('${r.id}','rejected')">❌ Reject</button>` : ''}
@@ -439,7 +441,7 @@ async function approveAllShown() {
 }
 function viewRegistration(id) {
   const r = getRegistrations().find(x => x.id === id);
-  if(r) alert(`Name: ${r.name}\nEmail: ${r.email}\nPhone: ${r.phone}\nOlympiad: ${r.olympiad}\nSegment: ${r.segment||'N/A'}\nTransaction ID: ${r.transactionId||'N/A'}\nClass: ${r.class||'N/A'}\nSchool: ${r.school||'N/A'}\nAddress: ${r.address||'N/A'}\nMessage: ${r.message||'N/A'}`);
+  if(r) alert(`Name: ${r.name}\nEmail: ${r.email}\nPhone: ${r.phone}\nOlympiad: ${r.olympiad}\nSegment: ${r.segment||'N/A'}\nTransaction ID: ${r.transactionId||'N/A'}\nClass: ${r.class||'N/A'}\nSchool: ${r.school||'N/A'}\nAddress: ${r.address||'N/A'}\nMessage: ${r.message||'N/A'}\nCA Code: ${r.refCode||'N/A'}`);
 }
 async function deleteRegistrationAction(id) {
   if(!confirm("Delete?")) return;
@@ -449,9 +451,9 @@ async function deleteRegistrationAction(id) {
 function downloadRegistrationsCSV() {
   const regs = getRegistrations();
   if(!regs.length) return toast("No data!", true);
-  let csv = "Name,Email,Phone,Olympiad,Segment,Transaction ID,Status,Class,School,Date\n";
+  let csv = "Name,Email,Phone,Olympiad,Segment,Transaction ID,Status,Class,School,Date,CA Code\n";
   regs.forEach(r => {
-    csv += [r.name,r.email,r.phone,r.olympiad,r.segment,r.transactionId,regStatus(r),r.class,r.school,r.createdAt?new Date(r.createdAt).toLocaleString():''].map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')+"\n";
+    csv += [r.name,r.email,r.phone,r.olympiad,r.segment,r.transactionId,regStatus(r),r.class,r.school,r.createdAt?new Date(r.createdAt).toLocaleString():'',r.refCode].map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')+"\n";
   });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
@@ -1024,15 +1026,32 @@ function userAvatar(u, size) {
 async function loadRegisteredUsersUI() {
   const tbody = document.getElementById('userstbl');
   if(!tbody) return;
-  tbody.innerHTML = `<tr class="empty-row"><td colspan="10">Loading…</td></tr>`;
-  const [users, accessMap] = await Promise.all([
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="12">Loading…</td></tr>`;
+  const [users, accessMap, shareMap] = await Promise.all([
     typeof loadRegisteredUsers === 'function' ? loadRegisteredUsers() : [],
-    typeof loadAllMemberAccess === 'function' ? loadAllMemberAccess() : {}
+    typeof loadAllMemberAccess === 'function' ? loadAllMemberAccess() : {},
+    typeof loadShareStats === 'function' ? loadShareStats() : {}
   ]);
   if(!users.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">No one has signed up yet.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="12">No one has signed up yet.</td></tr>`;
     return;
   }
+  // who invited how many (people who signed up through someone's Member ID link) and how many times each member shared
+  const invited = {}, verifiedInv = {};
+  users.forEach(x => {
+    const c = String(x.referredBy || '').toUpperCase();
+    if(!c) return;
+    invited[c] = (invited[c] || 0) + 1;
+    if(x.refCounted) verifiedInv[c] = (verifiedInv[c] || 0) + 1;
+  });
+  const rank = users.map(u => ({ u, shares: (shareMap[u.id] && shareMap[u.id].count) || 0, inv: invited[u.memberCode] || 0, ver: verifiedInv[u.memberCode] || 0 }))
+    .filter(r => r.shares || r.inv).sort((a, b) => (b.ver - a.ver) || (b.shares - a.shares)).slice(0, 10);
+  const topBox = document.getElementById('user-top');
+  if(topBox) topBox.innerHTML = rank.length ? `<div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px 16px;">
+      <div style="font-weight:800;font-size:.9rem;margin-bottom:8px;">🏆 Top sharers & inviters</div>` +
+      rank.map((r, i) => `<div style="display:flex;justify-content:space-between;gap:10px;font-size:.84rem;padding:5px 0;border-top:1px solid var(--bdr);">
+        <span>${i + 1}. ${escUser([r.u.firstName, r.u.lastName].filter(Boolean).join(' ') || r.u.email)} <span style="color:var(--muted);font-family:monospace;">${escUser(r.u.memberCode)}</span></span>
+        <span style="white-space:nowrap;">🔗 ${r.shares} share · 👥 ${r.ver} joined${r.inv > r.ver ? ' (+' + (r.inv - r.ver) + ' pending)' : ''}</span></div>`).join('') + '</div>' : '';
   tbody.innerHTML = users.map(u => {
     const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
     const acc = accessMap[u.id];
@@ -1047,6 +1066,8 @@ async function loadRegisteredUsersUI() {
       <td>${escUser(u.institution)}</td>
       <td><span class="bs ${u.emailVerified ? 'bs-active' : 'bs-past'}">${u.emailVerified ? '✅ Verified' : '⏳ Not verified'}</span></td>
       <td>${fmtUserDate(u.createdAt)}</td>
+      <td>${(shareMap[u.id] && shareMap[u.id].count) || 0}</td>
+      <td>${invited[u.memberCode] ? (verifiedInv[u.memberCode] || 0) + '/' + invited[u.memberCode] : 0}</td>
       <td>${n ? `<span class="bs bs-active">🔑 ${n} page${n > 1 ? 's' : ''}</span>` : '—'}</td>
       <td class="tbl-acts"><button class="e-btn" onclick="viewRegisteredUser('${escUser(u.id)}')">View</button></td>
     </tr>`;
@@ -2820,4 +2841,70 @@ async function saveVolFields() {
   const ok = await updateVolunteerSettings({ fields, hidden });
   if(ok) { volFieldsDraft = fields; toast(hidden.length ? ("Saved! Hidden from form: " + hidden.join(", ")) : "Form fields saved! ✅"); renderVolFieldsUI(); }
   else toast("Failed to save — publish the latest Firestore rules first.", true);
+}
+
+
+/*===== CAMPUS AMBASSADORS (main admin) =====*/
+let caAdminState = { regs: [], cas: [] };
+async function loadCaAdminUI() {
+  const tbody = document.getElementById('catbl');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Loading…</td></tr>';
+  const [cas, regs] = await Promise.all([
+    typeof loadCaCodes === 'function' ? loadCaCodes() : [],
+    typeof loadRegistrations === 'function' ? loadRegistrations() : []
+  ]);
+  caAdminState = { regs, cas };
+  const stat = {};
+  regs.forEach(r => {
+    const c = String(r.refCode || '').toUpperCase();
+    if(!c) return;
+    stat[c] = stat[c] || { n: 0, ok: 0 };
+    stat[c].n++;
+    if(typeof regStatus === 'function' && regStatus(r) === 'approved') stat[c].ok++;
+  });
+  const rows = cas.map(c => Object.assign({}, c, { n: (stat[c.code] || {}).n || 0, ok: (stat[c.code] || {}).ok || 0 })).sort((a, b) => b.n - a.n);
+  const total = rows.reduce((s, r) => s + r.n, 0);
+  const sum = document.getElementById('ca-summary');
+  if(sum) sum.innerHTML = rows.length ? `মোট Ambassador <strong>${rows.length}</strong> · তাদের মাধ্যমে মোট রেজিস্ট্রেশন <strong>${total}</strong> · সর্বোচ্চ: <strong>${bcEsc(rows[0].name || rows[0].code)}</strong> (${rows[0].n})` : '';
+  if(!rows.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">এখনো কোনো Campus Ambassador নেই — উপরে Member ID দিয়ে বানান।</td></tr>'; return; }
+  tbody.innerHTML = rows.map((r, i) => `<tr>
+    <td>${i === 0 && r.n ? '🥇' : i + 1}</td><td>${bcEsc(r.name)}</td><td style="font-family:monospace;">${bcEsc(r.code)}</td><td>${bcEsc(r.institution || '—')}</td>
+    <td><strong>${r.n}</strong></td><td>${r.ok}</td>
+    <td class="tbl-acts"><button class="e-btn" onclick="viewCa('${bcEsc(r.code)}')">View</button><button class="d-btn" onclick="removeCa('${bcEsc(r.code)}')">Remove</button></td></tr>`).join('');
+}
+async function makeCa() {
+  const el = document.getElementById('ca-new-code');
+  const code = (el.value || '').trim().toUpperCase();
+  if(!/^TV-[A-Z0-9]{6}$/.test(code)) return toast('সঠিক Member ID দিন (যেমন TV-7K3M9Q)।', true);
+  const users = typeof loadRegisteredUsers === 'function' ? await loadRegisteredUsers() : [];
+  const u = users.find(x => String(x.memberCode || '').toUpperCase() === code);
+  if(!u) return toast('এই Member ID-র কোনো সদস্য পাওয়া যায়নি।', true);
+  const name = [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || code;
+  const ok = await setCaStatus(code, { uid: u.id, name, institution: u.institution || '', active: true, createdAt: Date.now() });
+  if(!ok) return toast('ব্যর্থ! Firestore Rules Publish করা আছে কি না দেখুন।', true);
+  el.value = '';
+  toast(name + ' এখন Campus Ambassador ✅');
+  loadCaAdminUI();
+}
+async function removeCa(code) {
+  const c = caAdminState.cas.find(x => x.code === code);
+  if(!confirm((c ? c.name : code) + ' কে Ambassador থেকে সরাবেন? (আগের গণনা থাকবে, নতুন রেজিস্ট্রেশনে এই কোড আর চলবে না)')) return;
+  const ok = await setCaStatus(code, null);
+  if(!ok) return toast('ব্যর্থ!', true);
+  toast('সরানো হয়েছে।');
+  loadCaAdminUI();
+}
+function viewCa(code) {
+  const c = caAdminState.cas.find(x => x.code === code) || { name: code };
+  const list = caAdminState.regs.filter(r => String(r.refCode || '').toUpperCase() === code);
+  const byEv = {};
+  list.forEach(r => { byEv[r.olympiad || '—'] = (byEv[r.olympiad || '—'] || 0) + 1; });
+  const evHtml = Object.keys(byEv).map(k => `<span class="bs bs-active" style="margin:2px;">${bcEsc(k)}: ${byEv[k]}</span>`).join(' ');
+  const rowsHtml = list.length ? list.map(r => `<tr><td>${bcEsc(r.name)}</td><td>${bcEsc(r.olympiad)}</td><td>${bcEsc(r.school || '—')}</td><td>${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''}</td></tr>`).join('')
+    : '<tr><td colspan="4" style="color:var(--muted);">এখনো কেউ নেই।</td></tr>';
+  openUserOverlay('ca-overlay', `<div style="background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:22px;max-width:640px;width:100%;max-height:86vh;overflow:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h3 style="font-family:Montserrat;">🎓 ${bcEsc(c.name)} <small style="font-family:monospace;color:var(--muted);">${bcEsc(code)}</small></h3><button class="d-btn" onclick="closeUserOverlay('ca-overlay')">✕</button></div>
+    <div style="margin-bottom:12px;font-size:.85rem;">মোট রেজিস্ট্রেশন: <strong>${list.length}</strong></div><div style="margin-bottom:12px;">${evHtml}</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Event</th><th>School</th><th>Date</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></div>`);
 }

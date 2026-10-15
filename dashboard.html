@@ -157,6 +157,7 @@
         </div>
       </div>
 
+      <div id="db-ca"></div>
       <div id="db-invite"></div>
 
       <!-- INCOMPLETE PROFILE PROMPT -->
@@ -292,7 +293,7 @@
 <script type="module" src="firebase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-<script src="data.js?v=9"></script>
+<script src="data.js?v=10"></script>
 <script src="render.js"></script>
 <script src="certificate-render.js"></script>
 <script src="lang.js"></script>
@@ -593,17 +594,49 @@ function dbToggleBell() {
   }
 }
 
+/*===== CAMPUS AMBASSADOR (only for members the admin has made a CA) =====*/
+async function dbRenderCa() {
+  const box = document.getElementById('db-ca');
+  const code = dbProfile && dbProfile.memberCode;
+  if(!box || !code || typeof caLookup !== 'function') return;
+  const me = await caLookup(code);
+  if(!me.ok) { box.innerHTML = ''; return; }
+  const [counts, cas] = await Promise.all([loadCaCounts(), loadCaCodes()]);
+  const nameOf = c => ((cas.find(x => x.code === c) || {}).name) || c;
+  const rows = cas.map(x => ({ code: x.code, name: x.name || x.code, n: (counts[x.code] && counts[x.code].count) || 0 })).sort((a, b) => b.n - a.n);
+  const mine = (counts[code] && counts[code].count) || 0;
+  const highest = rows.length ? rows[0].n : 0;
+  const rank = rows.findIndex(r => r.code === code) + 1;
+  const byEv = (counts[code] && counts[code].byEvent) || {};
+  const evRows = Object.keys(byEv).map(k => [k, byEv[k]]).sort((a, b) => b[1] - a[1]);
+  const link = new URL('events.html?ref=' + encodeURIComponent(code), location.href).href;
+  box.innerHTML = `<div class="inv-card" style="background:linear-gradient(135deg,rgba(16,185,129,.16),rgba(37,99,235,.12));">
+    <h3>🎓 Campus Ambassador</h3>
+    <div class="sub">তুমি TalentVerse-এর Campus Ambassador। কেউ ইভেন্টে রেজিস্ট্রেশনের সময় তোমার কোড <b style="font-family:monospace">${dbEsc(code)}</b> দিলে (অথবা নিচের লিংক দিয়ে ঢুকলে কোড নিজে থেকে বসে যাবে) তোমার সংখ্যায় যোগ হবে।</div>
+    <div class="inv-link"><input id="ca-link" readonly value="${link}"><button class="inv-btn" onclick="(navigator.clipboard?navigator.clipboard.writeText(document.getElementById('ca-link').value):Promise.reject()).then(()=>toast('Link copied! ✅'),()=>{})">Copy</button><button class="inv-btn" style="background:#16a34a" onclick="tvShare({kind:'invite',title:'TalentVerse Bangladesh',text:'TalentVerse-এর ইভেন্টে রেজিস্ট্রেশন করো — আমার Campus Ambassador কোড: ${dbEsc(code)}',url:document.getElementById('ca-link').value})">Share</button></div>
+    <div class="inv-stats">
+      <div><div class="inv-count">${mine}</div><div style="font-size:.74rem;color:var(--muted)">তোমার মাধ্যমে রেজিস্ট্রেশন</div></div>
+      <div><div class="inv-count" style="color:#fcd34d">${highest}</div><div style="font-size:.74rem;color:var(--muted)">সর্বোচ্চ (${dbEsc(rows.length ? rows[0].name : '—')})</div></div>
+      ${rank ? `<span class="inv-badge">তোমার র‍্যাংক #${rank} / ${rows.length}</span>` : ''}
+    </div>
+    <div class="inv-bar"><i style="width:${highest ? Math.round(mine / highest * 100) : 0}%"></i></div>
+    <div class="inv-list">${evRows.length ? '<b>ইভেন্ট অনুযায়ী:</b><br>' + evRows.map(r => '• ' + dbEsc(r[0]) + ' — ' + r[1] + ' জন').join('<br>') : 'এখনো কেউ তোমার কোড দিয়ে রেজিস্ট্রেশন করেনি।'}
+      ${rows.length > 1 ? '<br><br><b>🏆 Top Ambassadors:</b><br>' + rows.slice(0, 5).map((r, i) => (i + 1) + '. ' + dbEsc(r.name) + ' — ' + r.n).join('<br>') : ''}</div>
+  </div>`;
+}
+
 /*===== INVITE FRIENDS =====*/
 const DB_TIERS = [[1, 'Connector 🤝'], [5, 'Ambassador 🌟'], [10, 'Champion 🏆'], [25, 'Legend 👑']];
 async function dbRenderInvite() {
   const box = document.getElementById('db-invite');
   const code = dbProfile && dbProfile.memberCode;
   if(!box || !code) return;
+  try { localStorage.setItem('tvbd_mycode', JSON.stringify({ uid: dbUser.uid, code })); } catch(e) {}
   const url = new URL('account.html?ref=' + encodeURIComponent(code) + '#signup', location.href).href;
   box.innerHTML = `<div class="inv-card">
     <h3>🎁 বন্ধুদের invite করো</h3>
     <div class="sub">তোমার লিংক দিয়ে বন্ধু Sign Up করে email verify করলে তোমার সংখ্যায় যোগ হবে। বেশি জনকে আনলে নতুন badge পাবে।</div>
-    <div class="inv-link"><input id="inv-url" readonly value="${url}"><button class="inv-btn" onclick="dbCopyInvite()">Copy</button><button class="inv-btn" style="background:#16a34a" onclick="tvShare({title:'TalentVerse Bangladesh',text:'আমার সাথে TalentVerse Bangladesh-এ যোগ দাও — অলিম্পিয়াড, কুইজ আর ইভেন্টের জন্য!',url:document.getElementById('inv-url').value})">Share</button></div>
+    <div class="inv-link"><input id="inv-url" readonly value="${url}"><button class="inv-btn" onclick="dbCopyInvite()">Copy</button><button class="inv-btn" style="background:#16a34a" onclick="tvShare({kind:'invite',title:'TalentVerse Bangladesh',text:'আমার সাথে TalentVerse Bangladesh-এ যোগ দাও — অলিম্পিয়াড, কুইজ আর ইভেন্টের জন্য!',url:document.getElementById('inv-url').value})">Share</button></div>
     <div class="inv-stats"><div><div class="inv-count" id="inv-count">…</div><div style="font-size:.74rem;color:var(--muted)">বন্ধু যোগ দিয়েছে</div></div><span class="inv-badge" id="inv-badge" style="display:none"></span></div>
     <div class="inv-bar"><i id="inv-bar" style="width:0%"></i></div>
     <div class="inv-list" id="inv-list"></div>
@@ -646,6 +679,7 @@ async function dbLoadDashboard(user) {
   }
   dbRenderProfile();
   if(typeof registerReferralIfAny === 'function') { try { await registerReferralIfAny(user, dbProfile); } catch(e) {} }
+  dbRenderCa();
   dbRenderInvite();
   try {
     const p = dbProfile || {};

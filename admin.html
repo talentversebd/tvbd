@@ -212,6 +212,7 @@ select.fi{cursor:pointer}
 
         <div class="adm-ns">Accounts</div>
         <button class="adm-nb" data-sec="users-adm" onclick="goSec(this)"><span class="ico">👥</span>Registered Users</button>
+        <button class="adm-nb" data-sec="ca-adm" onclick="goSec(this)"><span class="ico">🎓</span>Campus Ambassadors</button>
         <button class="adm-nb" data-sec="log-adm" onclick="goSec(this)"><span class="ico">📜</span>Activity Log</button>
 
         <div class="adm-ns">Verification</div>
@@ -374,6 +375,27 @@ select.fi{cursor:pointer}
       </div>
 
       <!-- REGISTERED USERS -->
+      <!-- CAMPUS AMBASSADORS -->
+      <div class="adm-sec" id="ca-adm">
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(37,99,235,.04));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">🎓 Campus Ambassadors</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">
+            কোনো সদস্যকে Campus Ambassador (CA) বানাতে তার Member ID দিন। এরপর কেউ ইভেন্টে রেজিস্ট্রেশনের সময় ওই কোড দিলে এখানে (আর CA-র নিজের Dashboard-এ) তার সংখ্যা দেখা যাবে।
+          </p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+          <input class="fi" id="ca-new-code" placeholder="Member ID (যেমন TV-7K3M9Q)" style="flex:1;min-width:210px;text-transform:uppercase;" onkeydown="if(event.key==='Enter')makeCa()">
+          <button class="add-btn" onclick="makeCa()">➕ Make Ambassador</button>
+        </div>
+        <div id="ca-summary" style="margin-bottom:14px;font-size:.85rem;color:var(--muted);"></div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>#</th><th>Name</th><th>Member ID</th><th>Institution</th><th>Registrations</th><th>Approved</th><th>Actions</th></tr></thead>
+            <tbody id="catbl"></tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="adm-sec" id="users-adm">
         <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
           <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">👥 Registered Users</h3>
@@ -385,9 +407,10 @@ select.fi{cursor:pointer}
           <input class="fi" id="user-code-search" placeholder="Member ID দিয়ে খুঁজুন (যেমন TV-7K3M9Q)" style="flex:1;min-width:210px;text-transform:uppercase;" onkeydown="if(event.key==='Enter')findMemberByCode()">
           <button class="add-btn" onclick="findMemberByCode()">🔍 Find</button>
         </div>
+        <div id="user-top" style="margin-bottom:16px;"></div>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Photo</th><th>Name</th><th>Member ID</th><th>Email</th><th>Phone</th><th>Institution</th><th>Verified</th><th>Signed Up</th><th>Access</th><th>Details</th></tr></thead>
+            <thead><tr><th>Photo</th><th>Name</th><th>Member ID</th><th>Email</th><th>Phone</th><th>Institution</th><th>Verified</th><th>Signed Up</th><th>Shares</th><th>Invited</th><th>Access</th><th>Details</th></tr></thead>
             <tbody id="userstbl"></tbody>
           </table>
         </div>
@@ -454,7 +477,7 @@ select.fi{cursor:pointer}
         <p style="font-size:.74rem;color:var(--muted);margin-bottom:12px;line-height:1.7;">যে ইভেন্টে "অ্যাডমিনের অনুমোদন লাগবে" টিক দেওয়া আছে, সেখানে শুধু <strong>Approved</strong> ব্যক্তিরাই পরীক্ষা দিতে পারবে।</p>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Olympiad</th><th>Segment</th><th>Transaction ID</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Olympiad</th><th>Segment</th><th>Transaction ID</th><th>CA</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody id="rtbl"></tbody>
           </table>
         </div>
@@ -1179,7 +1202,7 @@ select.fi{cursor:pointer}
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <!-- Site Scripts -->
-<script src="data.js?v=9"></script>
+<script src="data.js?v=10"></script>
 <script src="render.js"></script>
 <script src="certificate-render.js"></script>
 <script src="admin-log.js"></script>

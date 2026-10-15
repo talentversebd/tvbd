@@ -315,17 +315,119 @@ async function alreadyRegistered(olympiadTitle, email) {
 
 async function addRegistration(r) {
   await waitForFirebase();
-  const { collection, addDoc } = window.firebaseFunctions;
+  const { collection, doc, writeBatch, increment } = window.firebaseFunctions;
   const db = window.firebaseDB;
+  r.createdAt = Date.now();
+  r.approval = 'pending';           // every registration starts as pending; only an admin can approve / reject
+  const code = String(r.refCode || '').trim().toUpperCase();
+  if(code) r.refCode = code; else delete r.refCode;
+  const regRef = doc(collection(db, "registrations"));
   try {
-    r.createdAt = Date.now();
-    r.approval = 'pending';           // every registration starts as pending; only an admin can approve / reject
-    await addDoc(collection(db, "registrations"), r);
+    const batch = writeBatch(db);
+    batch.set(regRef, r);
+    if(code) {
+      // Campus Ambassador credit: +1 on that CA's counter, written in the same batch as the registration
+      const evKey = String(r.olympiad || 'event').replace(/[^A-Za-z0-9 _-]/g, '_').slice(0, 60) || 'event';
+      batch.set(doc(db, "ca_counts", code), { count: increment(1), lastReg: regRef.id, lastAt: Date.now(), byEvent: { [evKey]: increment(1) } }, { merge: true });
+    }
+    await batch.commit();
     return true;
   } catch(err) {
     console.error("Add registration error:", err);
+    if(code) {
+      // never lose a registration just because the CA credit failed: save it without the CA code
+      try {
+        delete r.refCode;
+        await window.firebaseFunctions.setDoc(doc(db, "registrations", regRef.id), r);
+        return true;
+      } catch(e2) { console.error("Add registration retry error:", e2); }
+    }
     return false;
   }
+}
+
+/*===== CAMPUS AMBASSADOR (CA) =====*/
+// Is this a real, active Campus Ambassador code? -> { ok, name, institution }
+async function caLookup(code) {
+  code = String(code || '').trim().toUpperCase();
+  if(!/^TV-[A-Z0-9]{6}$/.test(code)) return { ok: false };
+  try {
+    await waitForFirebase();
+    const { doc, getDoc } = window.firebaseFunctions;
+    const s = await getDoc(doc(window.firebaseDB, 'ca_codes', code));
+    if(!s.exists() || s.data().active === false) return { ok: false };
+    return { ok: true, code, name: s.data().name || '', institution: s.data().institution || '' };
+  } catch(e) { return { ok: false, error: true }; }
+}
+// Reads the optional CA-code box of a registration form. '' = left empty, false = wrong code (a message was shown).
+async function caReadInput(inputId) {
+  const el = document.getElementById(inputId);
+  const v = el ? el.value.trim().toUpperCase() : '';
+  if(!v) return '';
+  const r = await caLookup(v);
+  if(r.ok) return r.code;
+  toast("Campus Ambassador কোডটি সঠিক নয় — ঠিক করো অথবা ঘরটা খালি রাখো।", true);
+  if(el) el.focus();
+  return false;
+}
+function caFieldHtml(id) {
+  return `<div class="cf-group"><label>Campus Ambassador code (optional)</label>
+    <input class="cf-input ca-input" type="text" id="${id}" placeholder="TV-XXXXXX" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;">
+    <div class="ca-status" style="font-size:.78rem;margin-top:5px;min-height:1em;"></div></div>`;
+}
+async function caCheckBox(el) {
+  const st = el.parentNode.querySelector('.ca-status');
+  const v = el.value.trim().toUpperCase();
+  if(!st) return;
+  if(!v) { st.textContent = ''; return; }
+  const r = await caLookup(v);
+  st.style.color = r.ok ? '#4ade80' : '#f87171';
+  st.textContent = r.ok ? '✅ Campus Ambassador: ' + (r.name || v) + (r.institution ? ' · ' + r.institution : '') : '❌ এই কোডটি সঠিক নয়';
+}
+document.addEventListener('focusout', e => { if(e.target && e.target.classList && e.target.classList.contains('ca-input')) caCheckBox(e.target); });
+// a CA's own invite link (…?ref=CODE) fills the box automatically, but only if that code really is a CA
+(function() {
+  let busy = false;
+  const fill = async () => {
+    if(busy) return;
+    const boxes = Array.from(document.querySelectorAll('.ca-input')).filter(b => !b.dataset.caFilled && !b.value);
+    if(!boxes.length) return;
+    busy = true;
+    try {
+      const ref = localStorage.getItem('tvbd_ref') || '';
+      const r = ref ? await caLookup(ref) : { ok: false };
+      boxes.forEach(b => { b.dataset.caFilled = '1'; if(r.ok) { b.value = r.code; caCheckBox(b); } });
+    } catch(e) {}
+    busy = false;
+  };
+  const start = () => { fill(); new MutationObserver(fill).observe(document.body, { childList: true, subtree: true }); };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+async function loadCaCodes() {
+  try {
+    await waitForFirebase();
+    const { collection, getDocs } = window.firebaseFunctions;
+    const snap = await getDocs(collection(window.firebaseDB, 'ca_codes'));
+    return snap.docs.map(d => ({ code: d.id, ...d.data() }));
+  } catch(e) { console.error('Load CA codes error:', e); return []; }
+}
+async function loadCaCounts() {
+  try {
+    await waitForFirebase();
+    const { collection, getDocs } = window.firebaseFunctions;
+    const snap = await getDocs(collection(window.firebaseDB, 'ca_counts'));
+    const m = {}; snap.docs.forEach(d => { m[d.id] = d.data(); });
+    return m;
+  } catch(e) { console.error('Load CA counts error:', e); return {}; }
+}
+async function setCaStatus(code, data) {   // admin only
+  try {
+    await waitForFirebase();
+    const { doc, setDoc, deleteDoc } = window.firebaseFunctions;
+    if(data === null) await deleteDoc(doc(window.firebaseDB, 'ca_codes', code));
+    else await setDoc(doc(window.firebaseDB, 'ca_codes', code), data, { merge: true });
+    return true;
+  } catch(e) { console.error('Set CA error:', e); return false; }
 }
 
 async function loadRegistrations() {
@@ -2204,6 +2306,33 @@ async function loadCustomForms() {
     return cache.customForms;
   }
 }
+// Form Builder for members: only forms they own or that were shared with them
+async function loadMyCustomForms(uid) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  const db = window.firebaseDB, col = collection(db, "custom_forms"), map = {};
+  try {
+    const [a, b] = await Promise.all([
+      getDocs(query(col, where("ownerUid", "==", uid))),
+      getDocs(query(col, where("editors", "array-contains", uid)))
+    ]);
+    [...a.docs, ...b.docs].forEach(x => { map[x.id] = { id: x.id, ...x.data() }; });
+  } catch(err) { console.error("Load my forms error:", err); }
+  cache.customForms = Object.values(map).sort((x, y) => (y.createdAt || 0) - (x.createdAt || 0));
+  return cache.customForms;
+}
+// Member ID -> { uid } (member_codes/{CODE}); null if no such Member ID
+async function lookupMemberByCode(code) {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  code = String(code || '').trim().toUpperCase();
+  if(!code) return null;
+  try {
+    const s = await getDoc(doc(window.firebaseDB, "member_codes", code));
+    if(s.exists() && s.data().uid) return { uid: s.data().uid, code };
+  } catch(e) { console.error("Member lookup error:", e); }
+  return null;
+}
 function getCustomForms() { return cache.customForms || []; }
 function getPublishedCustomForms() { return (cache.customForms || []).filter(f => f.status === 'published'); }
 
@@ -2665,4 +2794,17 @@ async function getMyReferrals(code) {
     const snap = await getDocs(collection(window.firebaseDB, 'referrals', code, 'joins'));
     return snap.docs.map(d => d.data()).sort((a, b) => (b.at || 0) - (a.at || 0));
   } catch(err) { console.error('Get referrals error:', err); return []; }
+}
+
+
+/*===== SHARE STATS (admin) =====*/
+async function loadShareStats() {
+  try {
+    await waitForFirebase();
+    const { collection, getDocs } = window.firebaseFunctions;
+    const snap = await getDocs(collection(window.firebaseDB, 'share_stats'));
+    const map = {};
+    snap.docs.forEach(d => { map[d.id] = d.data(); });
+    return map;
+  } catch(err) { console.error('Load share stats error:', err); return {}; }
 }

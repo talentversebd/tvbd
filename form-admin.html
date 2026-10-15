@@ -223,10 +223,22 @@ select.fi{cursor:pointer}
   </div>
 </div>
 
+<div class="fm-ov" id="shm">
+  <div class="fm" style="max-width:440px;">
+    <div class="fm-head"><h3>👥 Share form</h3><button onclick="closeFM('shm')">✕</button></div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:10px;"><strong id="sh-title"></strong><br>The member can edit only this form and see its responses — nothing else.</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <input class="fi" type="text" id="sh-code" placeholder="Member ID e.g. TV-XXXXXX" style="text-transform:uppercase;" onkeydown="if(event.key==='Enter')addShareEditor()">
+      <button class="add-btn" onclick="addShareEditor()">Add</button>
+    </div>
+    <div id="sh-list"></div>
+  </div>
+</div>
+
 <div id="toast"><span id="t-ico">✅</span><span id="t-msg"></span></div>
 
 <script src="firebase-config.js" type="module"></script>
-<script src="data.js?v=9"></script>
+<script src="data.js?v=10"></script>
 <script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
 <script src="form-admin.js"></script>

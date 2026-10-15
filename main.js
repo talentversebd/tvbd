@@ -289,6 +289,8 @@ async function submitRegistration(e) {
 
   if(selectedOlympiad && isRegDeadlinePassed(selectedOlympiad)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
   if(await alreadyRegistered(olympiad, email)) return toast("তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+  const caCode = await caReadInput('rf-ca');
+  if(caCode === false) return;
 
   const btn = document.querySelector('.rf-btn');
   const originalText = btn.textContent;
@@ -300,7 +302,7 @@ async function submitRegistration(e) {
     // the time of registration — so this record stays accurate even if they
     // edit their profile later, and so the admin can see everything in one place.
     const saved = await addRegistration({
-      uid: user.uid, email, olympiad, segment, transactionId: txnId, message: msg,
+      uid: user.uid, email, olympiad, segment, transactionId: txnId, message: msg, refCode: caCode,
       name: fullName, phone: profile.phone,
       class: profile.classLevel || '', school: profile.institution || '',
       address: profile.district || ''
@@ -412,6 +414,8 @@ async function submitInlineRegistration(olympiadId) {
 
   if(isRegDeadlinePassed(o)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
   if(await alreadyRegistered(o.title, email)) return toast("তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+  const caCode = await caReadInput('im-ca');
+  if(caCode === false) return;
 
   const btn = document.querySelector('.im-submit-btn');
   const originalText = btn ? btn.textContent : '';
@@ -419,7 +423,7 @@ async function submitInlineRegistration(olympiadId) {
 
   try {
     const saved = await addRegistration({
-      uid: user.uid, email, olympiad: o.title, segment, transactionId: txnId, message: msg,
+      uid: user.uid, email, olympiad: o.title, segment, transactionId: txnId, message: msg, refCode: caCode,
       name: fullName, phone: profile.phone,
       class: profile.classLevel || '', school: profile.institution || '',
       address: profile.district || ''
@@ -502,6 +506,8 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
 
   if(isRegDeadlinePassed(o)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
   if(await alreadyRegistered(o.title, email)) return toast("তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+  const caCode = await caReadInput('im-ca');
+  if(caCode === false) return;
 
   const btn = document.querySelector('.im-submit-btn');
   const originalText = btn ? btn.textContent : '';
@@ -525,7 +531,7 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
       name: fullName, phone: profile.phone,
       class: profile.classLevel || '', school: profile.institution || '',
       address: profile.district || '',
-      segment: '', transactionId: '',
+      segment: '', transactionId: '', refCode: caCode,
       message: `[Custom form responses — see Form Builder → "${customForm.title}" → Responses]`
     });
 

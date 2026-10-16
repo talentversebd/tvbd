@@ -213,6 +213,7 @@ select.fi{cursor:pointer}
         <div class="adm-ns">Accounts</div>
         <button class="adm-nb" data-sec="users-adm" onclick="goSec(this)"><span class="ico">👥</span>Registered Users</button>
         <button class="adm-nb" data-sec="ca-adm" onclick="goSec(this)"><span class="ico">🎓</span>Campus Ambassadors</button>
+        <button class="adm-nb" data-sec="chal-adm" onclick="goSec(this)"><span class="ico">🔥</span>Daily Challenge</button>
         <button class="adm-nb" data-sec="log-adm" onclick="goSec(this)"><span class="ico">📜</span>Activity Log</button>
 
         <div class="adm-ns">Verification</div>
@@ -392,6 +393,43 @@ select.fi{cursor:pointer}
           <table class="tbl">
             <thead><tr><th>#</th><th>Name</th><th>Member ID</th><th>Institution</th><th>Registrations</th><th>Approved</th><th>Actions</th></tr></thead>
             <tbody id="catbl"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DAILY CHALLENGE -->
+      <div class="adm-sec" id="chal-adm">
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(37,99,235,.04));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">🔥 Daily Challenge (Streak)</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">প্রতিদিনের জন্য দুই সেক্টরে (🕌 Islamic, 🌍 General Knowledge) একটা করে MCQ দিন। সদস্য দিনে প্রতি সেক্টরে একবার উত্তর দিতে পারবে; সঠিক হলে ১০ পয়েন্ট, প্রতিদিন খেললে Streak বাড়বে।</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px;">
+          <input class="fi" type="date" id="ch-day">
+          <select class="fi" id="ch-sector"><option value="islamic">🕌 Islamic</option><option value="gk">🌍 General Knowledge</option></select>
+        </div>
+        <textarea class="fi" id="ch-q" placeholder="প্রশ্ন" style="margin-bottom:10px;min-height:70px;"></textarea>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px;">
+          <input class="fi" id="ch-o0" placeholder="অপশন ১"><input class="fi" id="ch-o1" placeholder="অপশন ২">
+          <input class="fi" id="ch-o2" placeholder="অপশন ৩"><input class="fi" id="ch-o3" placeholder="অপশন ৪">
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px;">
+          <select class="fi" id="ch-ans"><option value="0">সঠিক উত্তর: ১</option><option value="1">সঠিক উত্তর: ২</option><option value="2">সঠিক উত্তর: ৩</option><option value="3">সঠিক উত্তর: ৪</option></select>
+          <input class="fi" id="ch-exp" placeholder="ব্যাখ্যা (ঐচ্ছিক)">
+        </div>
+        <button class="add-btn" onclick="saveOneChallenge()">💾 Save Challenge</button>
+
+        <details style="margin:18px 0;background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px;">
+          <summary style="cursor:pointer;font-weight:700;">📥 একসাথে অনেক প্রশ্ন (Bulk)</summary>
+          <p style="color:var(--muted);font-size:.8rem;line-height:1.7;margin:10px 0;">প্রতি লাইনে একটা প্রশ্ন, এই ফরম্যাটে (| দিয়ে আলাদা):<br><code>2026-10-20|islamic|প্রশ্ন|অপশন১|অপশন২|অপশন৩|অপশন৪|সঠিক নম্বর (1-4)|ব্যাখ্যা</code><br>সেক্টর: <b>islamic</b> বা <b>gk</b>। একই তারিখ+সেক্টরে আবার দিলে আগেরটা বদলে যাবে।</p>
+          <textarea class="fi" id="ch-bulk" style="min-height:140px;font-family:monospace;font-size:.8rem;" placeholder="2026-10-20|gk|বাংলাদেশের রাজধানী কোনটি?|ঢাকা|চট্টগ্রাম|খুলনা|সিলেট|1|রাজধানী ঢাকা"></textarea>
+          <button class="add-btn" style="margin-top:10px;" onclick="saveBulkChallenges()">📥 Import</button>
+        </details>
+
+        <div id="ch-summary" style="margin-bottom:14px;font-size:.85rem;color:var(--muted);"></div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Sector</th><th>Question</th><th>Stats</th><th>Actions</th></tr></thead>
+            <tbody id="chtbl"></tbody>
           </table>
         </div>
       </div>
@@ -1202,7 +1240,7 @@ select.fi{cursor:pointer}
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <!-- Site Scripts -->
-<script src="data.js?v=10"></script>
+<script src="data.js?v=12"></script>
 <script src="render.js"></script>
 <script src="certificate-render.js"></script>
 <script src="admin-log.js"></script>

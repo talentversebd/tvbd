@@ -175,6 +175,55 @@ service cloud.firestore {
         || (signedIn() && canEditForm(get(/databases/$(database)/documents/custom_forms/$(resource.data.formId)).data));
     }
 
+    // ---- Daily Challenge (Islamic + General Knowledge) & streaks ----
+    // question is public; the answer key is readable only after you have answered;
+    // an attempt is create-only and its 'correct' flag must match the key; a streak changes only together with an attempt
+    function chalAdmin() { return isMain() || hasPerm('challenge'); }
+    function attAfter(a) { return getAfter(/databases/$(database)/documents/daily_attempts/$(a)).data; }
+    function streakOk(uid) {
+      let a = request.resource.data.lastAttempt;
+      return request.resource.data.keys().hasOnly(['uid','name','streak','best','points','lastDay','lastAttempt','done','right'])
+        && request.resource.data.uid == uid
+        && request.resource.data.name is string && request.resource.data.name.size() <= 120
+        && a is string
+        && !exists(/databases/$(database)/documents/daily_attempts/$(a))
+        && existsAfter(/databases/$(database)/documents/daily_attempts/$(a))
+        && attAfter(a).uid == uid
+        && request.resource.data.streak is int && request.resource.data.best is int
+        && request.resource.data.best >= request.resource.data.streak;
+    }
+    match /daily_challenges/{id} {
+      allow read: if true;
+      allow write: if chalAdmin();
+    }
+    match /daily_keys/{id} {
+      allow read: if chalAdmin()
+                  || (signedIn() && exists(/databases/$(database)/documents/daily_attempts/$(id + '_' + request.auth.uid)));
+      allow write: if chalAdmin();
+    }
+    match /daily_attempts/{id} {
+      allow create: if signedIn()
+                    && request.resource.data.keys().hasOnly(['uid','day','sector','choice','correct','at'])
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.sector in ['islamic','gk']
+                    && id == request.resource.data.day + '_' + request.resource.data.sector + '_' + request.auth.uid
+                    && request.resource.data.choice is int && request.resource.data.choice >= 0 && request.resource.data.choice <= 3
+                    && exists(/databases/$(database)/documents/daily_challenges/$(request.resource.data.day + '_' + request.resource.data.sector))
+                    && request.resource.data.correct == (get(/databases/$(database)/documents/daily_keys/$(request.resource.data.day + '_' + request.resource.data.sector)).data.answer == request.resource.data.choice);
+      allow read: if chalAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow update, delete: if isMain();
+    }
+    match /streaks/{uid} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == uid && streakOk(uid)
+                    && request.resource.data.streak == 1
+                    && request.resource.data.points == (attAfter(request.resource.data.lastAttempt).correct == true ? 10 : 0);
+      allow update: if signedIn() && request.auth.uid == uid && streakOk(uid)
+                    && request.resource.data.streak <= resource.data.streak + 1
+                    && request.resource.data.points - resource.data.points == (attAfter(request.resource.data.lastAttempt).correct == true ? 10 : 0);
+      allow delete: if isMain();
+    }
+
     // ---- Election ----
     match /election_candidates/{id} { allow read: if true; allow write: if isEC(); }
     match /election_votes/{id} {

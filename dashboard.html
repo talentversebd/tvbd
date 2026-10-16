@@ -157,6 +157,7 @@
         </div>
       </div>
 
+      <div id="db-chal"></div>
       <div id="db-ca"></div>
       <div id="db-invite"></div>
 
@@ -293,7 +294,7 @@
 <script type="module" src="firebase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-<script src="data.js?v=10"></script>
+<script src="data.js?v=12"></script>
 <script src="render.js"></script>
 <script src="certificate-render.js"></script>
 <script src="lang.js"></script>
@@ -594,6 +595,26 @@ function dbToggleBell() {
   }
 }
 
+/*===== DAILY CHALLENGE card =====*/
+async function dbRenderChal() {
+  const box = document.getElementById('db-chal');
+  if(!box || typeof loadMyStreak !== 'function') return;
+  const uid = window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.uid;
+  if(!uid) return;
+  const s = await loadMyStreak(uid);
+  const cur = (s && s.current) || 0, best = (s && s.best) || 0, pts = (s && s.points) || 0;
+  box.innerHTML = `<div class="inv-card" style="background:linear-gradient(135deg,rgba(245,158,11,.16),rgba(37,99,235,.1));">
+    <h3>🔥 Daily Challenge</h3>
+    <div class="sub">প্রতিদিন Islamic ও General Knowledge — রোজ খেলে Streak বাড়ান, পয়েন্ট ও ব্যাজ জিতুন।</div>
+    <div class="inv-stats">
+      <div><div class="inv-count">🔥 ${cur}</div><div style="font-size:.74rem;color:var(--muted)">বর্তমান Streak</div></div>
+      <div><div class="inv-count" style="color:#fcd34d">${best}</div><div style="font-size:.74rem;color:var(--muted)">সর্বোচ্চ</div></div>
+      <div><div class="inv-count" style="color:#86efac">${pts}</div><div style="font-size:.74rem;color:var(--muted)">পয়েন্ট</div></div>
+    </div>
+    <a class="inv-btn" href="challenge.html" style="display:inline-block;margin-top:12px;text-decoration:none;">▶ আজকের Challenge খেলুন</a>
+  </div>`;
+}
+
 /*===== CAMPUS AMBASSADOR (only for members the admin has made a CA) =====*/
 async function dbRenderCa() {
   const box = document.getElementById('db-ca');
@@ -680,6 +701,7 @@ async function dbLoadDashboard(user) {
   dbRenderProfile();
   if(typeof registerReferralIfAny === 'function') { try { await registerReferralIfAny(user, dbProfile); } catch(e) {} }
   dbRenderCa();
+  dbRenderChal();
   dbRenderInvite();
   try {
     const p = dbProfile || {};

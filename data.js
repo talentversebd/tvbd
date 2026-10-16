@@ -2808,3 +2808,143 @@ async function loadShareStats() {
     return map;
   } catch(err) { console.error('Load share stats error:', err); return {}; }
 }
+
+
+/*===== DAILY CHALLENGE (Islamic + General Knowledge) + STREAKS =====
+   daily_challenges/{day}_{sector}  public question (options only)
+   daily_keys/{day}_{sector}        correct answer + explanation (readable only after you answered)
+   daily_attempts/{day}_{sector}_{uid}  one answer per person per sector per day (create-only)
+   streaks/{uid}                    streak / best / points (changed only together with an attempt)  */
+const CHAL_SECTORS = { islamic: { icon: '🕌', bn: 'ইসলামিক', en: 'Islamic' }, gk: { icon: '🌍', bn: 'সাধারণ জ্ঞান', en: 'General Knowledge' } };
+const CHAL_POINTS = 10;
+function chalBdDay(offsetDays) { return new Date(Date.now() + 6 * 3600e3 + (offsetDays || 0) * 86400e3).toISOString().slice(0, 10); }
+
+async function loadChallengesForDay(day) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  try {
+    const s = await getDocs(query(collection(window.firebaseDB, "daily_challenges"), where("day", "==", day)));
+    return s.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { console.error("Load challenges error:", e); return null; }
+}
+async function loadMyChallengeAttempts(uid, day) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  try {
+    const s = await getDocs(query(collection(window.firebaseDB, "daily_attempts"), where("uid", "==", uid), where("day", "==", day)));
+    return s.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { console.error("Load attempts error:", e); return []; }
+}
+async function getChallengeKey(key) {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try { const s = await getDoc(doc(window.firebaseDB, "daily_keys", key)); return s.exists() ? s.data() : null; }
+  catch(e) { console.error("Get key error:", e); return null; }
+}
+async function loadMyStreak(uid) {
+  await waitForFirebase();
+  const { doc, getDoc } = window.firebaseFunctions;
+  try {
+    const s = await getDoc(doc(window.firebaseDB, "streaks", uid));
+    if(!s.exists()) return null;
+    const d = s.data();
+    // a streak only counts if you played today or yesterday
+    const alive = d.lastDay === chalBdDay(0) || d.lastDay === chalBdDay(-1);
+    return Object.assign({}, d, { current: alive ? (d.streak || 0) : 0 });
+  } catch(e) { console.error("Load streak error:", e); return null; }
+}
+async function loadStreakBoard(orderField) {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy, limit } = window.firebaseFunctions;
+  try {
+    const s = await getDocs(query(collection(window.firebaseDB, "streaks"), orderBy(orderField === 'points' ? 'points' : 'best', "desc"), limit(20)));
+    return s.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { console.error("Load board error:", e); return []; }
+}
+// Answer a challenge: one batch = the attempt + the streak update (rules check both together)
+async function submitChallengeAnswer(uid, name, ch, choice) {
+  await waitForFirebase();
+  const { doc, getDoc, writeBatch } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const attId = ch.day + '_' + ch.sector + '_' + uid;
+    // the answer key isn't readable before answering: the rules decide if 'correct' is true, so try true first, then false
+    const tryWrite = async (correct) => {
+      const sRef = doc(db, "streaks", uid);
+      const sSnap = await getDoc(sRef);
+      const old = sSnap.exists() ? sSnap.data() : null;
+      let streak = 1;
+      if(old) {
+        if(old.lastDay === ch.day) streak = old.streak || 1;
+        else if(old.lastDay === chalBdDay(-1)) streak = (old.streak || 0) + 1;
+      }
+      const best = Math.max(old ? (old.best || 0) : 0, streak);
+      const data = {
+        uid, name: String(name || 'Member').slice(0, 100), streak, best,
+        points: (old ? (old.points || 0) : 0) + (correct ? CHAL_POINTS : 0),
+        lastDay: ch.day, lastAttempt: attId,
+        done: (old ? (old.done || 0) : 0) + 1, right: (old ? (old.right || 0) : 0) + (correct ? 1 : 0)
+      };
+      const b = writeBatch(db);
+      b.set(doc(db, "daily_attempts", attId), { uid, day: ch.day, sector: ch.sector, choice, correct, at: Date.now() });
+      b.set(sRef, data);
+      await b.commit();
+      return data;
+    };
+    let data;
+    try { data = await tryWrite(true); }
+    catch(e1) { data = await tryWrite(false); }
+    const k = await getChallengeKey(ch.day + '_' + ch.sector);
+    return { success: true, key: k, correct: !!(k && k.answer === choice), streak: data };
+  } catch(e) {
+    console.error("Submit challenge error:", e);
+    return { success: false, error: e.message };
+  }
+}
+
+/*--- admin side ---*/
+async function loadAllChallenges() {
+  await waitForFirebase();
+  const { collection, getDocs, query, orderBy } = window.firebaseFunctions;
+  try {
+    const s = await getDocs(query(collection(window.firebaseDB, "daily_challenges"), orderBy("day", "desc")));
+    return s.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { console.error("Load all challenges error:", e); return []; }
+}
+async function saveChallenges(list) {   // [{day, sector, q, options[4], answer, explain}]
+  await waitForFirebase();
+  const { doc, writeBatch } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    for(let i = 0; i < list.length; i += 200) {
+      const b = writeBatch(db);
+      list.slice(i, i + 200).forEach(c => {
+        const id = c.day + '_' + c.sector;
+        b.set(doc(db, "daily_challenges", id), { day: c.day, sector: c.sector, q: c.q, options: c.options, createdAt: Date.now() });
+        b.set(doc(db, "daily_keys", id), { answer: c.answer, explain: c.explain || '' });
+      });
+      await b.commit();
+    }
+    return true;
+  } catch(e) { console.error("Save challenges error:", e); return false; }
+}
+async function deleteChallenge(id) {
+  await waitForFirebase();
+  const { doc, writeBatch } = window.firebaseFunctions;
+  try {
+    const b = writeBatch(window.firebaseDB);
+    b.delete(doc(window.firebaseDB, "daily_challenges", id));
+    b.delete(doc(window.firebaseDB, "daily_keys", id));
+    await b.commit();
+    return true;
+  } catch(e) { console.error("Delete challenge error:", e); return false; }
+}
+async function getChallengeStats(day, sector) {
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  try {
+    const s = await getDocs(query(collection(window.firebaseDB, "daily_attempts"), where("day", "==", day), where("sector", "==", sector)));
+    const rows = s.docs.map(d => d.data());
+    return { total: rows.length, right: rows.filter(r => r.correct).length };
+  } catch(e) { console.error("Challenge stats error:", e); return null; }
+}

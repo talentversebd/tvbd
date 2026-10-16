@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TalentVerse">
+<title>Daily Challenge — TalentVerse Bangladesh</title>
+<meta name="description" content="প্রতিদিনের Islamic ও General Knowledge চ্যালেঞ্জ — Streak ও পয়েন্ট জিতুন।">
+<link rel="canonical" href="https://talentversebd.github.io/tvbd/challenge.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TalentVerse Bangladesh">
+<meta property="og:title" content="Daily Challenge — TalentVerse Bangladesh">
+<meta property="og:description" content="প্রতিদিনের Islamic ও General Knowledge চ্যালেঞ্জ — Streak ও পয়েন্ট জিতুন।">
+<meta property="og:url" content="https://talentversebd.github.io/tvbd/challenge.html">
+<meta property="og:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Daily Challenge — TalentVerse Bangladesh">
+<meta name="twitter:description" content="প্রতিদিনের Islamic ও General Knowledge চ্যালেঞ্জ — Streak ও পয়েন্ট জিতুন।">
+<meta name="twitter:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="logo.jpg" as="image">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=58">
+<style>
+.dept-group{margin-bottom:44px;}
+.dept-group:last-child{margin-bottom:0;}
+.dept-header{
+  display:flex;align-items:center;gap:16px;
+  background:var(--card);border:1px solid var(--bdr);
+  border-radius:16px;padding:18px 22px;margin-bottom:22px;
+}
+.dept-icon{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue),var(--blue-dk));
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+  box-shadow:0 4px 14px rgba(37,99,235,.3);
+}
+.dept-name{font-family:Montserrat;font-weight:800;font-size:1.15rem;color:var(--txt);flex:1;}
+.dept-count{
+  background:rgba(37,99,235,.12);color:var(--lblue);
+  font-size:.78rem;font-weight:700;padding:6px 14px;border-radius:50px;
+  white-space:nowrap;
+}
+
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;padding:0 16px;}
+@media(max-width:500px){.team-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}}
+
+.team-card{
+  background:var(--card);border:1px solid var(--bdr);
+  border-radius:16px;overflow:hidden;text-align:center;
+  transition:transform .25s,box-shadow .25s,border-color .25s;
+}
+.team-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 12px 40px rgba(37,99,235,.2);
+  border-color:var(--bdr2);
+}
+.team-card-top{
+  padding:28px 16px 18px;
+  background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(37,99,235,.05));
+  position:relative;
+}
+.team-card-top::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,rgba(59,130,246,.15) 0%,transparent 70%);
+}
+.team-avatar{
+  width:90px;height:90px;border-radius:50%;
+  border:3px solid var(--bdr2);
+  margin:0 auto 12px;object-fit:cover;display:block;
+  position:relative;z-index:1;
+  box-shadow:0 4px 16px rgba(37,99,235,.3);
+}
+.team-avatar-ph{
+  width:90px;height:90px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--blue-dk));
+  border:3px solid var(--bdr2);
+  margin:0 auto 12px;display:flex;
+  align-items:center;justify-content:center;
+  font-size:1.6rem;font-weight:800;color:white;
+  position:relative;z-index:1;
+  box-shadow:0 4px 16px rgba(37,99,235,.3);
+}
+.team-card-top h4{
+  color:var(--txt);font-size:.95rem;font-weight:700;
+  margin-bottom:4px;position:relative;z-index:1;
+}
+.team-card-top .role{
+  color:var(--lblue);font-size:.7rem;
+  letter-spacing:1.5px;text-transform:uppercase;
+  font-weight:700;position:relative;z-index:1;
+}
+.team-card-body{padding:14px 16px 18px;}
+.dept-tag{
+  display:inline-block;background:rgba(37,99,235,.12);color:var(--lblue);
+  font-size:.7rem;font-weight:700;padding:3px 12px;border-radius:50px;
+  margin-bottom:10px;
+}
+.team-bio{
+  font-size:.8rem;color:var(--muted);line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:3;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+
+/* Special card (CEO / Department Head) — same structure, elevated design.
+   Kept in violet, not gold — gold is reserved for the Founder spotlight above
+   so the founder always reads as the most senior design on the page. */
+.team-card-special{
+  border-color:rgba(167,139,250,.32);
+  background:linear-gradient(160deg,var(--card),rgba(167,139,250,.05));
+}
+.team-card-special:hover{
+  transform:translateY(-6px);
+  box-shadow:0 14px 44px rgba(167,139,250,.22);
+  border-color:rgba(167,139,250,.48);
+}
+.team-card-special .team-card-top{
+  padding-top:34px;
+  background:linear-gradient(135deg,rgba(167,139,250,.16),rgba(167,139,250,.03));
+}
+.team-card-special .team-card-top::before{
+  background:radial-gradient(circle at 50% 0%,rgba(167,139,250,.2) 0%,transparent 70%);
+}
+.team-card-special .team-avatar,
+.team-card-special .team-avatar-ph{
+  width:104px;height:104px;
+  border-color:#a78bfa;
+  box-shadow:0 4px 20px rgba(167,139,250,.35);
+}
+.team-card-special .team-card-top .role{color:#a78bfa;}
+.special-badge{
+  position:absolute;top:10px;right:10px;z-index:2;
+  background:rgba(167,139,250,.14);color:#a78bfa;
+  border:1px solid rgba(167,139,250,.35);
+  font-size:.6rem;font-weight:800;letter-spacing:.05em;
+  padding:3px 9px;border-radius:20px;text-transform:uppercase;
+}
+.team-empty{text-align:center;padding:60px 20px;color:var(--muted);}
+
+/* Member profile modal */
+.tm-modal-ov{
+  position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.tm-modal-ov.open{opacity:1;pointer-events:all}
+.tm-modal{
+  background:var(--card);border:1px solid var(--bdr2);border-radius:16px;
+  width:100%;max-width:420px;max-height:88vh;overflow-y:auto;
+  padding:32px 26px 26px;position:relative;text-align:center;
+  transform:translateY(18px);transition:transform .2s;
+}
+.tm-modal-ov.open .tm-modal{transform:translateY(0)}
+.tm-modal-close{
+  position:absolute;top:14px;right:14px;background:none;border:none;
+  color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1;
+}
+.tm-modal-photo{
+  width:120px;height:120px;border-radius:50%;object-fit:cover;
+  border:4px solid var(--blue-br);box-shadow:0 4px 20px rgba(37,99,235,.35);
+  margin:0 auto 14px;display:block;background:#fff;
+}
+.tm-modal-photo-ph{
+  width:120px;height:120px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--blue-dk));
+  border:4px solid var(--blue-br);margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;font-weight:800;color:#fff;
+}
+.tm-modal.special-modal .tm-modal-photo,
+.tm-modal.special-modal .tm-modal-photo-ph{border-color:#a78bfa;box-shadow:0 4px 20px rgba(167,139,250,.4)}
+.tm-modal-badge{
+  display:inline-block;background:rgba(167,139,250,.14);color:#a78bfa;
+  border:1px solid rgba(167,139,250,.35);font-size:.65rem;font-weight:800;
+  letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;
+  border-radius:20px;margin-bottom:8px;
+}
+.tm-modal-name{font-family:Montserrat;font-size:1.25rem;font-weight:800}
+.tm-modal-role{color:var(--blue-br);font-size:.9rem;font-weight:600;margin-top:2px}
+.tm-modal.special-modal .tm-modal-role{color:#a78bfa}
+.tm-modal-dept{
+  display:inline-block;background:var(--card2);border:1px solid var(--bdr);
+  color:var(--muted);font-size:.72rem;font-weight:600;padding:4px 12px;
+  border-radius:20px;margin-top:12px;
+}
+.tm-modal-bio{color:var(--muted);font-size:.87rem;line-height:1.8;margin-top:16px;text-align:left;white-space:pre-line}
+.team-empty .icon{font-size:4rem;margin-bottom:16px;}
+.team-empty h3{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;color:var(--txt);}
+.team-empty p{font-size:.95rem;line-height:1.7;max-width:400px;margin:0 auto;}
+</style>
+<link rel="stylesheet" href="loader.css">
+<style>
+.ch-wrap{max-width:640px;margin:0 auto;padding:0 16px}
+.ch-top{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.ch-stat{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:14px 8px;text-align:center}
+.ch-stat b{display:block;font-family:Montserrat;font-size:1.5rem}.ch-stat span{font-size:.72rem;color:var(--muted)}
+.ch-tabs{display:flex;gap:8px;margin-bottom:14px}
+.ch-tab{flex:1;padding:12px 8px;border-radius:12px;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-weight:700;font-size:.9rem;cursor:pointer;font-family:inherit}
+.ch-tab.on{background:linear-gradient(135deg,var(--blue),var(--blue-dk));border-color:transparent;color:#fff}
+.ch-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px}
+.ch-q{font-size:1.05rem;font-weight:700;line-height:1.6;margin-bottom:14px}
+.ch-opt{display:block;width:100%;text-align:left;padding:13px 14px;margin-bottom:10px;border-radius:12px;border:1px solid var(--bdr2);background:rgba(255,255,255,.03);color:var(--txt);font-size:.95rem;cursor:pointer;font-family:inherit}
+.ch-opt:disabled{cursor:default}.ch-opt.ok{background:rgba(34,197,94,.18);border-color:#22c55e}.ch-opt.no{background:rgba(239,68,68,.16);border-color:#ef4444}
+.ch-res{margin-top:12px;padding:12px 14px;border-radius:12px;font-size:.9rem;line-height:1.6;background:rgba(37,99,235,.1)}
+.ch-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.ch-badge{padding:6px 12px;border-radius:50px;font-size:.78rem;font-weight:700;background:rgba(245,158,11,.14);color:#fcd34d}.ch-badge.off{opacity:.35;filter:grayscale(1)}
+.ch-board{margin-top:26px}.ch-row{display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:1px solid var(--bdr);font-size:.9rem}
+.ch-msg{text-align:center;color:var(--muted);padding:30px 10px}
+</style>
+</head>
+<body>
+<div id="tvbd-loader" class="tvbd-loader">
+  <div class="tvbd-loader-ring-wrap">
+    <svg class="tvbd-ring-svg" viewBox="0 0 160 160">
+      <circle class="tvbd-ring-bg" cx="80" cy="80" r="72"></circle>
+      <circle class="tvbd-ring-fg" cx="80" cy="80" r="72"></circle>
+    </svg>
+    <img src="logo.jpg" class="tvbd-loader-logo" alt="TalentVerse Bangladesh">
+  </div>
+  <div class="tvbd-loader-text">
+    <h1>TALENTVERSE <span>BANGLADESH</span></h1>
+    <p class="tvbd-loader-estd">ESTD 2026</p>
+  </div>
+  <div class="tvbd-loader-progress">
+    <div class="tvbd-loader-bar"><div class="tvbd-loader-fill" id="tvbd-loader-fill"></div></div>
+    <span class="tvbd-loader-pct" id="tvbd-loader-pct">Loading... 0%</span>
+  </div>
+</div>
+<script src="loader.js"></script>
+
+
+<!-- HEADER -->
+<header id="site-header">
+  <a class="h-logo" href="index.html">
+    <img class="h-logo-img" src="logo.jpg" alt="TalentVerse Logo">
+    <div class="h-logo-text">
+      <div class="name">Talent<span>Verse</span></div>
+      <div class="sub">Bangladesh</div>
+    </div>
+  </a>
+  <nav class="h-nav" id="hnav">
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <a href="events.html" data-i18n="nav_olympiads">Events &amp; Quiz</a>
+    <a href="team.html" data-i18n="nav_team">Team</a>
+    <a href="news.html" data-i18n="nav_news">News</a>
+    <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    <div class="nav-more" id="nav-more">
+      <button type="button" class="nav-more-btn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_more">More</span> <span class="nav-more-caret">▾</span></button>
+      <div class="nav-more-menu">
+        <a href="resources.html" data-i18n="nav_resources">Resources</a>
+        <a href="register.html" data-i18n="nav_register">Register</a>
+        <a href="challenge.html" data-i18n="nav_results">Results</a>
+        <a href="verify.html" data-i18n="nav_verify">Verify</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
+      </div>
+    </div>
+    <a href="forum.html" class="nav-forum-btn"><svg class="nav-forum-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg> <span data-i18n="nav_forum">Forum</span></a>
+    <a href="account.html" id="nav-account-link">🔐 Account</a>
+    <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
+      🌐 <span class="lang-toggle-label">বাং</span>
+    </button>
+  </nav>
+  <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <span class="eyebrow">Daily Challenge</span>
+  <h1><span>🔥 Daily</span> <span>Challenge</span></h1>
+  <p>প্রতিদিন দুটো প্রশ্ন — Islamic ও General Knowledge। রোজ খেলে Streak বাড়ান!</p>
+</div>
+
+<section class="section" style="padding-top:20px;">
+  <div class="ch-wrap" id="ch-root"><div class="ch-msg">লোড হচ্ছে…</div></div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-grid">
+    <div class="f-brand">
+      <a class="h-logo" href="index.html" style="text-decoration:none;">
+        <img class="h-logo-img" src="logo.jpg" alt="Logo">
+        <div class="h-logo-text">
+          <div class="name">Talent<span>Verse</span></div>
+          <div class="sub">Bangladesh</div>
+        </div>
+      </a>
+      <p id="f-desc" data-i18n="f_desc">TalentVerse Bangladesh is the country's most dedicated platform for event information, resources, and community.</p>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_quicklinks">Quick Links</h4>
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
+      <a href="team.html" data-i18n="nav_team">Team</a>
+      <a href="news.html" data-i18n="nav_news">News</a>
+      <a href="resources.html" data-i18n="nav_resources">Resources</a>
+      <a href="forum.html" data-i18n="nav_forum">Forum</a>
+      <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
+      <a href="register.html" data-i18n="nav_register">Register</a>
+      <a href="verify.html" data-i18n="nav_verify">Verify Certificate</a>
+      <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_contact">Contact</h4>
+      <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
+      <a id="f-phone" href="#">+880 1634-428536</a>
+      <a id="f-addr" href="#">Dhaka, Bangladesh</a>
+    </div>
+  </div>
+  <div class="f-bottom">
+    <p data-i18n="f_bottom">© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Samin & Fahad.</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<!-- Firebase -->
+<script type="module" src="firebase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="data.js?v=12"></script>
+<script src="render.js"></script>
+<script src="lang.js"></script>
+<script src="main.js"></script>
+
+<script>
+var CH = { user: null, name: '', day: '', list: [], attempts: {}, sector: 'islamic', streak: null, board: 'best' };
+function chEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var BADGES=[[7,'🥉 ৭ দিন'],[30,'🥈 ৩০ দিন'],[100,'🥇 ১০০ দিন']];
+
+document.addEventListener('DOMContentLoaded', function(){
+  var t=setInterval(function(){
+    if(window.firebaseAuth && window.firebaseAuthFunctions && window.firebaseDB && typeof loadChallengesForDay==='function'){
+      clearInterval(t);
+      window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, chStart);
+    }
+  },200);
+  setTimeout(function(){ if(!CH.day && !CH.user && document.querySelector('#ch-root .ch-msg')) document.getElementById('ch-root').innerHTML='<div class="ch-msg">লোড হয়নি। <button class="btn-out" style="cursor:pointer" onclick="location.reload()">Retry</button></div>'; },12000);
+});
+
+async function chStart(user){
+  var root=document.getElementById('ch-root');
+  if(!user){ root.innerHTML='<div class="ch-card ch-msg">Daily Challenge-এ অংশ নিতে আগে লগইন করুন।<br><br><a class="btn-out" href="account.html" style="text-decoration:none">🔐 Login / Sign up</a></div>'; return; }
+  CH.user=user; CH.day=chalBdDay(0);
+  var prof=await getRegisteredUserById(user.uid);
+  CH.name=(prof&&[prof.firstName,prof.lastName].filter(Boolean).join(' '))||user.displayName||(user.email||'Member').split('@')[0];
+  var res=await Promise.all([loadChallengesForDay(CH.day), loadMyChallengeAttempts(user.uid,CH.day), loadMyStreak(user.uid)]);
+  if(res[0]===null){ root.innerHTML='<div class="ch-msg">লোড হয়নি। <button class="btn-out" style="cursor:pointer" onclick="location.reload()">Retry</button></div>'; return; }
+  CH.list=res[0]; CH.streak=res[2]; CH.attempts={};
+  res[1].forEach(function(a){CH.attempts[a.sector]=a;});
+  chRender(); chBoard();
+}
+
+function chRender(){
+  var s=CH.streak||{}, cur=s.current||0, best=s.best||0, pts=s.points||0;
+  var root=document.getElementById('ch-root');
+  var tabs=Object.keys(CHAL_SECTORS).map(function(k){
+    return '<button class="ch-tab'+(CH.sector===k?' on':'')+'" onclick="chTab(\''+k+'\')">'+CHAL_SECTORS[k].icon+' '+CHAL_SECTORS[k].bn+(CH.attempts[k]?' ✔':'')+'</button>';
+  }).join('');
+  root.innerHTML=
+    '<div class="ch-top"><div class="ch-stat"><b>🔥 '+cur+'</b><span>বর্তমান Streak</span></div><div class="ch-stat"><b>'+best+'</b><span>সর্বোচ্চ Streak</span></div><div class="ch-stat"><b>'+pts+'</b><span>পয়েন্ট</span></div></div>'+
+    '<div class="ch-badges">'+BADGES.map(function(b){return '<span class="ch-badge'+(best>=b[0]?'':' off')+'">'+b[1]+'</span>';}).join('')+'</div>'+
+    '<div class="ch-tabs">'+tabs+'</div><div id="ch-card"></div><div class="ch-board" id="ch-board"></div>';
+  chCard();
+}
+function chTab(k){ CH.sector=k; chRender(); chBoard(); }
+
+async function chCard(){
+  var box=document.getElementById('ch-card');
+  var c=CH.list.find(function(x){return x.sector===CH.sector;});
+  if(!c){ box.innerHTML='<div class="ch-card ch-msg">আজকের এই সেক্টরের প্রশ্ন এখনো দেওয়া হয়নি। একটু পরে আবার দেখুন।</div>'; return; }
+  var att=CH.attempts[c.sector];
+  var key=null; if(att) key=await getChallengeKey(c.id);
+  var h='<div class="ch-card"><div class="ch-q">'+chEsc(c.q)+'</div>';
+  (c.options||[]).forEach(function(o,i){
+    var cls='',dis=att?' disabled':'';
+    if(att && key){ if(i===key.answer) cls=' ok'; else if(i===att.choice) cls=' no'; }
+    h+='<button class="ch-opt'+cls+'"'+dis+' onclick="chAnswer('+i+')">'+chEsc(o)+'</button>';
+  });
+  if(att){
+    h+='<div class="ch-res">'+(att.correct?'✅ সঠিক! +10 পয়েন্ট':'❌ ভুল উত্তর')+(key&&key.explain?'<br>'+chEsc(key.explain):'')+'<br><span style="color:var(--muted);font-size:.8rem">কাল নতুন প্রশ্ন আসবে — Streak ধরে রাখুন! 🔥</span></div>';
+  }
+  box.innerHTML=h+'</div>';
+}
+
+async function chAnswer(i){
+  var c=CH.list.find(function(x){return x.sector===CH.sector;});
+  if(!c||CH.attempts[c.sector]) return;
+  document.querySelectorAll('.ch-opt').forEach(function(b){b.disabled=true;});
+  var r=await submitChallengeAnswer(CH.user.uid, CH.name, c, i);
+  if(!r.success){ alert('জমা হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।'); chCard(); return; }
+  CH.attempts[c.sector]={uid:CH.user.uid,day:c.day,sector:c.sector,choice:i,correct:r.correct};
+  CH.streak=await loadMyStreak(CH.user.uid);
+  chRender(); chBoard();
+}
+
+async function chBoard(mode){
+  if(mode) CH.board=mode;
+  var el=document.getElementById('ch-board'); if(!el) return;
+  var rows=await loadStreakBoard(CH.board);
+  var key=CH.board==='points'?'points':'best';
+  el.innerHTML='<h3 style="font-family:Montserrat;margin-bottom:10px">🏆 Leaderboard</h3>'+
+   '<div class="ch-tabs"><button class="ch-tab'+(key==='best'?' on':'')+'" onclick="chBoard(\'best\')">🔥 সর্বোচ্চ Streak</button><button class="ch-tab'+(key==='points'?' on':'')+'" onclick="chBoard(\'points\')">⭐ পয়েন্ট</button></div>'+
+   (rows.length?rows.map(function(r,i){return '<div class="ch-row"><span>'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.')+' '+chEsc(r.name)+(r.uid===CH.user.uid?' <b>(আপনি)</b>':'')+'</span><b>'+(key==='points'?(r.points||0)+' pts':'🔥 '+(r.best||0))+'</b></div>';}).join(''):'<div class="ch-msg">এখনো কেউ খেলেনি — প্রথম হোন!</div>');
+}
+</script>
+<script src="bnav.js"></script>
+<script src="fx.js"></script>
+<script src="pwa.js"></script>
+</body>
+</html>

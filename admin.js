@@ -27,6 +27,7 @@ const PERM_CATALOG = [
   { key:'popup',         label:'Popup Notice',              sec:'popup-adm' },
   { key:'announce',      label:'Dashboard Notifications (bell)', sec:'bell-adm' },
   { key:'emailnotify',   label:'Email Notifications',       sec:'notify-adm' },
+  { key:'challenge',     label:'Daily Challenge',           sec:'chal-adm' },
   { key:'forms',         label:'Form Builder (form-admin.html)',      page:true },
   { key:'election',      label:'Election Panel (election-admin.html)', page:true }
 ];
@@ -188,6 +189,7 @@ function goSec(btn) {
     'founder-adm': "Founder's Message",
     'users-adm': "Registered Users",
     'ca-adm': 'Campus Ambassadors',
+    'chal-adm': 'Daily Challenge',
     'log-adm': 'Activity Log',
     'msg-adm': 'Contact Messages',
     'reg-adm': 'Registrations',
@@ -232,6 +234,7 @@ function goSec(btn) {
   if(secId === 'founder-adm' && typeof loadFounderSettingsUI === 'function') loadFounderSettingsUI();
   if(secId === 'users-adm' && typeof loadRegisteredUsersUI === 'function') loadRegisteredUsersUI();
   if(secId === 'ca-adm') loadCaAdminUI();
+  if(secId === 'chal-adm') loadChalAdminUI();
   if(secId === 'log-adm') loadActivityLogUI();
   if(secId === 'popup-adm' && typeof loadPopupSettings === 'function') loadPopupSettings();
   if(secId === 'notify-adm' && typeof initNotifyPanel === 'function') initNotifyPanel();
@@ -2907,4 +2910,69 @@ function viewCa(code) {
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h3 style="font-family:Montserrat;">🎓 ${bcEsc(c.name)} <small style="font-family:monospace;color:var(--muted);">${bcEsc(code)}</small></h3><button class="d-btn" onclick="closeUserOverlay('ca-overlay')">✕</button></div>
     <div style="margin-bottom:12px;font-size:.85rem;">মোট রেজিস্ট্রেশন: <strong>${list.length}</strong></div><div style="margin-bottom:12px;">${evHtml}</div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Event</th><th>School</th><th>Date</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></div>`);
+}
+
+
+/*===== DAILY CHALLENGE (admin) =====*/
+let chalAdminList = [];
+async function loadChalAdminUI() {
+  const tbody = document.getElementById('chtbl');
+  if(!tbody) return;
+  const dEl = document.getElementById('ch-day');
+  if(dEl && !dEl.value) dEl.value = chalBdDay(0);
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Loading…</td></tr>';
+  chalAdminList = await loadAllChallenges();
+  const today = chalBdDay(0);
+  const upcoming = chalAdminList.filter(c => c.day >= today).length;
+  const sum = document.getElementById('ch-summary');
+  if(sum) sum.innerHTML = `মোট প্রশ্ন <strong>${chalAdminList.length}</strong> · আজ বা ভবিষ্যতের জন্য <strong>${upcoming}</strong>টি`;
+  if(!chalAdminList.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="5">এখনো কোনো প্রশ্ন নেই।</td></tr>'; return; }
+  tbody.innerHTML = chalAdminList.slice(0, 120).map(c => `<tr>
+    <td>${bcEsc(c.day)}${c.day === today ? ' <span class="bs bs-active">আজ</span>' : ''}</td>
+    <td>${(CHAL_SECTORS[c.sector] || {}).icon || ''} ${bcEsc((CHAL_SECTORS[c.sector] || {}).en || c.sector)}</td>
+    <td style="max-width:320px;">${bcEsc(c.q)}</td>
+    <td id="chst-${bcEsc(c.id)}"><button class="e-btn" onclick="showChalStats('${bcEsc(c.day)}','${bcEsc(c.sector)}','${bcEsc(c.id)}')">Stats</button></td>
+    <td class="tbl-acts"><button class="d-btn" onclick="delChal('${bcEsc(c.id)}')">Delete</button></td></tr>`).join('');
+}
+async function showChalStats(day, sector, id) {
+  const el = document.getElementById('chst-' + id);
+  if(el) el.textContent = '…';
+  const s = await getChallengeStats(day, sector);
+  if(el) el.textContent = s ? `${s.total} জন · সঠিক ${s.right}` : 'ব্যর্থ';
+}
+async function delChal(id) {
+  if(!confirm('এই প্রশ্নটি মুছবেন?')) return;
+  if(await deleteChallenge(id)) { toast('মুছে ফেলা হয়েছে'); loadChalAdminUI(); }
+  else toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);
+}
+async function saveOneChallenge() {
+  const day = document.getElementById('ch-day').value;
+  const sector = document.getElementById('ch-sector').value;
+  const q = document.getElementById('ch-q').value.trim();
+  const options = [0, 1, 2, 3].map(i => document.getElementById('ch-o' + i).value.trim());
+  const answer = parseInt(document.getElementById('ch-ans').value, 10);
+  const explain = document.getElementById('ch-exp').value.trim();
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(day)) return toast('তারিখ দিন।', true);
+  if(!q) return toast('প্রশ্ন লিখুন।', true);
+  if(options.some(o => !o)) return toast('৪টা অপশনই দিন।', true);
+  if(!(await saveChallenges([{ day, sector, q, options, answer, explain }]))) return toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);
+  toast('Challenge সেভ হয়েছে ✅');
+  ['ch-q', 'ch-o0', 'ch-o1', 'ch-o2', 'ch-o3', 'ch-exp'].forEach(id => document.getElementById(id).value = '');
+  loadChalAdminUI();
+}
+async function saveBulkChallenges() {
+  const lines = (document.getElementById('ch-bulk').value || '').split('\n').map(s => s.trim()).filter(Boolean);
+  if(!lines.length) return toast('কিছু লেখা নেই।', true);
+  const list = [], bad = [];
+  lines.forEach((ln, i) => {
+    const p = ln.split('|').map(s => s.trim());
+    const ans = parseInt(p[7], 10);
+    if(p.length < 8 || !/^\d{4}-\d{2}-\d{2}$/.test(p[0]) || !CHAL_SECTORS[p[1]] || !p[2] || p.slice(3, 7).some(o => !o) || !(ans >= 1 && ans <= 4)) { bad.push(i + 1); return; }
+    list.push({ day: p[0], sector: p[1], q: p[2], options: p.slice(3, 7), answer: ans - 1, explain: p.slice(8).join('|') });
+  });
+  if(bad.length) return toast('এই লাইনগুলোতে ভুল: ' + bad.slice(0, 8).join(', '), true);
+  if(!(await saveChallenges(list))) return toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);
+  document.getElementById('ch-bulk').value = '';
+  toast(list.length + 'টি প্রশ্ন ইমপোর্ট হয়েছে ✅');
+  loadChalAdminUI();
 }

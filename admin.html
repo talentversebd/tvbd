@@ -416,11 +416,20 @@ select.fi{cursor:pointer}
           <select class="fi" id="ch-ans"><option value="0">সঠিক উত্তর: ১</option><option value="1">সঠিক উত্তর: ২</option><option value="2">সঠিক উত্তর: ৩</option><option value="3">সঠিক উত্তর: ৪</option></select>
           <input class="fi" id="ch-exp" placeholder="ব্যাখ্যা (ঐচ্ছিক)">
         </div>
+        <details style="margin-bottom:12px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:12px;">
+          <summary style="cursor:pointer;font-weight:700;">🇬🇧 English version (ঐচ্ছিক — সাইট English মোডে থাকলে এটা দেখাবে)</summary>
+          <textarea class="fi" id="ch-q-en" placeholder="Question (English)" style="margin:10px 0;min-height:60px;"></textarea>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px;">
+            <input class="fi" id="ch-eo0" placeholder="Option 1"><input class="fi" id="ch-eo1" placeholder="Option 2">
+            <input class="fi" id="ch-eo2" placeholder="Option 3"><input class="fi" id="ch-eo3" placeholder="Option 4">
+          </div>
+          <input class="fi" id="ch-exp-en" placeholder="Explanation (English, optional)">
+        </details>
         <button class="add-btn" onclick="saveOneChallenge()">💾 Save Challenge</button>
 
         <details style="margin:18px 0;background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px;">
           <summary style="cursor:pointer;font-weight:700;">📥 একসাথে অনেক প্রশ্ন (Bulk)</summary>
-          <p style="color:var(--muted);font-size:.8rem;line-height:1.7;margin:10px 0;">প্রতি লাইনে একটা প্রশ্ন, এই ফরম্যাটে (| দিয়ে আলাদা):<br><code>2026-10-20|islamic|প্রশ্ন|অপশন১|অপশন২|অপশন৩|অপশন৪|সঠিক নম্বর (1-4)|ব্যাখ্যা</code><br>সেক্টর: <b>islamic</b> বা <b>gk</b>। একই তারিখ+সেক্টরে আবার দিলে আগেরটা বদলে যাবে।</p>
+          <p style="color:var(--muted);font-size:.8rem;line-height:1.7;margin:10px 0;">প্রতি লাইনে একটা প্রশ্ন, এই ফরম্যাটে (| দিয়ে আলাদা):<br><code>2026-10-20|islamic|প্রশ্ন|অপশন১|অপশন২|অপশন৩|অপশন৪|সঠিক নম্বর (1-4)|ব্যাখ্যা</code><br>English সহ চাইলে ওই লাইনের শেষে আরও ৬টা ঘর যোগ করুন: <code>|English question|opt1|opt2|opt3|opt4|English explanation</code><br>সেক্টর: <b>islamic</b> বা <b>gk</b>। একই তারিখ+সেক্টরে আবার দিলে আগেরটা বদলে যাবে।</p>
           <textarea class="fi" id="ch-bulk" style="min-height:140px;font-family:monospace;font-size:.8rem;" placeholder="2026-10-20|gk|বাংলাদেশের রাজধানী কোনটি?|ঢাকা|চট্টগ্রাম|খুলনা|সিলেট|1|রাজধানী ঢাকা"></textarea>
           <button class="add-btn" style="margin-top:10px;" onclick="saveBulkChallenges()">📥 Import</button>
         </details>

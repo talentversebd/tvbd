@@ -279,7 +279,7 @@
 </div>
 
 <section class="section" style="padding-top:20px;">
-  <div class="ch-wrap" id="ch-root"><div class="ch-msg">লোড হচ্ছে…</div></div>
+  <div class="ch-wrap" id="ch-root"><div class="ch-msg">…</div></div>
 </section>
 
 <!-- FOOTER -->
@@ -335,61 +335,90 @@
 <script src="main.js"></script>
 
 <script>
-var CH = { user: null, name: '', day: '', list: [], attempts: {}, sector: 'islamic', streak: null, board: 'best' };
+var CH = { user: null, name: '', day: '', list: [], attempts: {}, keys: {}, sector: 'islamic', streak: null, board: 'best' };
+var TT = {
+ bn:{eyebrow:'Daily Challenge',h1a:'🔥 Daily',h1b:'Challenge',sub:'প্রতিদিন দুটো প্রশ্ন — Islamic ও General Knowledge। রোজ খেলে Streak বাড়ান!',
+  loading:'লোড হচ্ছে…',retry:'Retry',loginMsg:'Daily Challenge-এ অংশ নিতে আগে লগইন করুন।',login:'🔐 Login / Sign up',
+  cur:'বর্তমান Streak',best:'সর্বোচ্চ Streak',pts:'পয়েন্ট',none:'আজকের এই সেক্টরের প্রশ্ন এখনো দেওয়া হয়নি। একটু পরে আবার দেখুন।',
+  right:'✅ সঠিক! +10 পয়েন্ট',wrong:'❌ ভুল উত্তর',tomorrow:'কাল নতুন প্রশ্ন আসবে — Streak ধরে রাখুন! 🔥',
+  fail:'জমা হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।',board:'🏆 Leaderboard',bBest:'🔥 সর্বোচ্চ Streak',bPts:'⭐ পয়েন্ট',you:'(আপনি)',empty:'এখনো কেউ খেলেনি — প্রথম হোন!',
+  badges:['🥉 ৭ দিন','🥈 ৩০ দিন','🥇 ১০০ দিন'],sec:{islamic:'🕌 ইসলামিক',gk:'🌍 সাধারণ জ্ঞান'}},
+ en:{eyebrow:'Daily Challenge',h1a:'🔥 Daily',h1b:'Challenge',sub:'Two questions every day — Islamic and General Knowledge. Play daily to grow your streak!',
+  loading:'Loading…',retry:'Retry',loginMsg:'Please log in to join the Daily Challenge.',login:'🔐 Login / Sign up',
+  cur:'Current streak',best:'Best streak',pts:'Points',none:"Today's question for this section hasn't been added yet. Please check back later.",
+  right:'✅ Correct! +10 points',wrong:'❌ Wrong answer',tomorrow:'A new question arrives tomorrow — keep your streak alive! 🔥',
+  fail:'Could not submit. Check your internet and try again.',board:'🏆 Leaderboard',bBest:'🔥 Best streak',bPts:'⭐ Points',you:'(you)',empty:'Nobody has played yet — be the first!',
+  badges:['🥉 7 days','🥈 30 days','🥇 100 days'],sec:{islamic:'🕌 Islamic',gk:'🌍 General Knowledge'}}
+};
+function L(){ return TT[chalLang()]; }
 function chEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-var BADGES=[[7,'🥉 ৭ দিন'],[30,'🥈 ৩০ দিন'],[100,'🥇 ১০০ দিন']];
+var BADGE_N=[7,30,100];
+
+function chStatic(){
+  var t=L(), q=function(s){return document.querySelector(s)};
+  var ey=q('.page-header .eyebrow'); if(ey) ey.textContent=t.eyebrow;
+  var sp=document.querySelectorAll('.page-header h1 span'); if(sp[0]) sp[0].textContent=t.h1a; if(sp[1]) sp[1].textContent=t.h1b;
+  var p=q('.page-header p'); if(p) p.textContent=t.sub;
+}
+// re-draw when the visitor switches language
+(function(){
+  var o=window.applyLanguage;
+  window.applyLanguage=function(){ if(o) o.apply(this,arguments); chStatic(); if(CH.user&&CH.day){ chRender(); chBoard(); } };
+})();
 
 document.addEventListener('DOMContentLoaded', function(){
+  chStatic();
   var t=setInterval(function(){
     if(window.firebaseAuth && window.firebaseAuthFunctions && window.firebaseDB && typeof loadChallengesForDay==='function'){
       clearInterval(t);
       window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, chStart);
     }
   },200);
-  setTimeout(function(){ if(!CH.day && !CH.user && document.querySelector('#ch-root .ch-msg')) document.getElementById('ch-root').innerHTML='<div class="ch-msg">লোড হয়নি। <button class="btn-out" style="cursor:pointer" onclick="location.reload()">Retry</button></div>'; },12000);
+  setTimeout(function(){ if(!CH.day && !CH.user && document.querySelector('#ch-root .ch-msg')) document.getElementById('ch-root').innerHTML='<div class="ch-msg">'+L().loading+' <button class="btn-out" style="cursor:pointer" onclick="location.reload()">'+L().retry+'</button></div>'; },12000);
 });
 
 async function chStart(user){
   var root=document.getElementById('ch-root');
-  if(!user){ root.innerHTML='<div class="ch-card ch-msg">Daily Challenge-এ অংশ নিতে আগে লগইন করুন।<br><br><a class="btn-out" href="account.html" style="text-decoration:none">🔐 Login / Sign up</a></div>'; return; }
+  if(!user){ root.innerHTML='<div class="ch-card ch-msg">'+L().loginMsg+'<br><br><a class="btn-out" href="account.html" style="text-decoration:none">'+L().login+'</a></div>'; return; }
   CH.user=user; CH.day=chalBdDay(0);
   var prof=await getRegisteredUserById(user.uid);
   CH.name=(prof&&[prof.firstName,prof.lastName].filter(Boolean).join(' '))||user.displayName||(user.email||'Member').split('@')[0];
   var res=await Promise.all([loadChallengesForDay(CH.day), loadMyChallengeAttempts(user.uid,CH.day), loadMyStreak(user.uid)]);
-  if(res[0]===null){ root.innerHTML='<div class="ch-msg">লোড হয়নি। <button class="btn-out" style="cursor:pointer" onclick="location.reload()">Retry</button></div>'; return; }
+  if(res[0]===null){ root.innerHTML='<div class="ch-msg">'+L().loading+' <button class="btn-out" style="cursor:pointer" onclick="location.reload()">'+L().retry+'</button></div>'; return; }
   CH.list=res[0]; CH.streak=res[2]; CH.attempts={};
   res[1].forEach(function(a){CH.attempts[a.sector]=a;});
   chRender(); chBoard();
 }
 
 function chRender(){
-  var s=CH.streak||{}, cur=s.current||0, best=s.best||0, pts=s.points||0;
+  var t=L(), s=CH.streak||{}, cur=s.current||0, best=s.best||0, pts=s.points||0;
   var root=document.getElementById('ch-root');
   var tabs=Object.keys(CHAL_SECTORS).map(function(k){
-    return '<button class="ch-tab'+(CH.sector===k?' on':'')+'" onclick="chTab(\''+k+'\')">'+CHAL_SECTORS[k].icon+' '+CHAL_SECTORS[k].bn+(CH.attempts[k]?' ✔':'')+'</button>';
+    return '<button class="ch-tab'+(CH.sector===k?' on':'')+'" onclick="chTab(\''+k+'\')">'+t.sec[k]+(CH.attempts[k]?' ✔':'')+'</button>';
   }).join('');
   root.innerHTML=
-    '<div class="ch-top"><div class="ch-stat"><b>🔥 '+cur+'</b><span>বর্তমান Streak</span></div><div class="ch-stat"><b>'+best+'</b><span>সর্বোচ্চ Streak</span></div><div class="ch-stat"><b>'+pts+'</b><span>পয়েন্ট</span></div></div>'+
-    '<div class="ch-badges">'+BADGES.map(function(b){return '<span class="ch-badge'+(best>=b[0]?'':' off')+'">'+b[1]+'</span>';}).join('')+'</div>'+
+    '<div class="ch-top"><div class="ch-stat"><b>🔥 '+cur+'</b><span>'+t.cur+'</span></div><div class="ch-stat"><b>'+best+'</b><span>'+t.best+'</span></div><div class="ch-stat"><b>'+pts+'</b><span>'+t.pts+'</span></div></div>'+
+    '<div class="ch-badges">'+BADGE_N.map(function(n,i){return '<span class="ch-badge'+(best>=n?'':' off')+'">'+t.badges[i]+'</span>';}).join('')+'</div>'+
     '<div class="ch-tabs">'+tabs+'</div><div id="ch-card"></div><div class="ch-board" id="ch-board"></div>';
   chCard();
 }
 function chTab(k){ CH.sector=k; chRender(); chBoard(); }
 
 async function chCard(){
-  var box=document.getElementById('ch-card');
+  var t=L(), box=document.getElementById('ch-card');
   var c=CH.list.find(function(x){return x.sector===CH.sector;});
-  if(!c){ box.innerHTML='<div class="ch-card ch-msg">আজকের এই সেক্টরের প্রশ্ন এখনো দেওয়া হয়নি। একটু পরে আবার দেখুন।</div>'; return; }
+  if(!c){ box.innerHTML='<div class="ch-card ch-msg">'+t.none+'</div>'; return; }
   var att=CH.attempts[c.sector];
-  var key=null; if(att) key=await getChallengeKey(c.id);
-  var h='<div class="ch-card"><div class="ch-q">'+chEsc(c.q)+'</div>';
-  (c.options||[]).forEach(function(o,i){
+  var key=null; if(att){ key=CH.keys[c.id]||(CH.keys[c.id]=await getChallengeKey(c.id)); }
+  var h='<div class="ch-card"><div class="ch-q">'+chEsc(chalQ(c))+'</div>';
+  chalOpts(c).forEach(function(o,i){
     var cls='',dis=att?' disabled':'';
     if(att && key){ if(i===key.answer) cls=' ok'; else if(i===att.choice) cls=' no'; }
     h+='<button class="ch-opt'+cls+'"'+dis+' onclick="chAnswer('+i+')">'+chEsc(o)+'</button>';
   });
   if(att){
-    h+='<div class="ch-res">'+(att.correct?'✅ সঠিক! +10 পয়েন্ট':'❌ ভুল উত্তর')+(key&&key.explain?'<br>'+chEsc(key.explain):'')+'<br><span style="color:var(--muted);font-size:.8rem">কাল নতুন প্রশ্ন আসবে — Streak ধরে রাখুন! 🔥</span></div>';
+    var ex=chalExplain(key);
+    h+='<div class="ch-res">'+(att.correct?t.right:t.wrong)+(ex?'<br>'+chEsc(ex):'')+'<br><span style="color:var(--muted);font-size:.8rem">'+t.tomorrow+'</span></div>';
   }
   box.innerHTML=h+'</div>';
 }
@@ -399,20 +428,21 @@ async function chAnswer(i){
   if(!c||CH.attempts[c.sector]) return;
   document.querySelectorAll('.ch-opt').forEach(function(b){b.disabled=true;});
   var r=await submitChallengeAnswer(CH.user.uid, CH.name, c, i);
-  if(!r.success){ alert('জমা হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।'); chCard(); return; }
+  if(!r.success){ alert(L().fail); chCard(); return; }
   CH.attempts[c.sector]={uid:CH.user.uid,day:c.day,sector:c.sector,choice:i,correct:r.correct};
+  if(r.key) CH.keys[c.id]=r.key;
   CH.streak=await loadMyStreak(CH.user.uid);
   chRender(); chBoard();
 }
 
 async function chBoard(mode){
   if(mode) CH.board=mode;
-  var el=document.getElementById('ch-board'); if(!el) return;
+  var t=L(), el=document.getElementById('ch-board'); if(!el) return;
   var rows=await loadStreakBoard(CH.board);
   var key=CH.board==='points'?'points':'best';
-  el.innerHTML='<h3 style="font-family:Montserrat;margin-bottom:10px">🏆 Leaderboard</h3>'+
-   '<div class="ch-tabs"><button class="ch-tab'+(key==='best'?' on':'')+'" onclick="chBoard(\'best\')">🔥 সর্বোচ্চ Streak</button><button class="ch-tab'+(key==='points'?' on':'')+'" onclick="chBoard(\'points\')">⭐ পয়েন্ট</button></div>'+
-   (rows.length?rows.map(function(r,i){return '<div class="ch-row"><span>'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.')+' '+chEsc(r.name)+(r.uid===CH.user.uid?' <b>(আপনি)</b>':'')+'</span><b>'+(key==='points'?(r.points||0)+' pts':'🔥 '+(r.best||0))+'</b></div>';}).join(''):'<div class="ch-msg">এখনো কেউ খেলেনি — প্রথম হোন!</div>');
+  el.innerHTML='<h3 style="font-family:Montserrat;margin-bottom:10px">'+t.board+'</h3>'+
+   '<div class="ch-tabs"><button class="ch-tab'+(key==='best'?' on':'')+'" onclick="chBoard(\'best\')">'+t.bBest+'</button><button class="ch-tab'+(key==='points'?' on':'')+'" onclick="chBoard(\'points\')">'+t.bPts+'</button></div>'+
+   (rows.length?rows.map(function(r,i){return '<div class="ch-row"><span>'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.')+' '+chEsc(r.name)+(r.uid===CH.user.uid?' <b>'+t.you+'</b>':'')+'</span><b>'+(key==='points'?(r.points||0)+' pts':'🔥 '+(r.best||0))+'</b></div>';}).join(''):'<div class="ch-msg">'+t.empty+'</div>');
 }
 </script>
 <script src="bnav.js"></script>

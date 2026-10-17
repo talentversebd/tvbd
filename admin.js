@@ -2955,9 +2955,16 @@ async function saveOneChallenge() {
   if(!/^\d{4}-\d{2}-\d{2}$/.test(day)) return toast('তারিখ দিন।', true);
   if(!q) return toast('প্রশ্ন লিখুন।', true);
   if(options.some(o => !o)) return toast('৪টা অপশনই দিন।', true);
-  if(!(await saveChallenges([{ day, sector, q, options, answer, explain }]))) return toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);
+  const q_en = document.getElementById('ch-q-en').value.trim();
+  const options_en = [0, 1, 2, 3].map(i => document.getElementById('ch-eo' + i).value.trim());
+  const explain_en = document.getElementById('ch-exp-en').value.trim();
+  const hasEn = q_en || options_en.some(Boolean);
+  if(hasEn && (!q_en || options_en.some(o => !o))) return toast('English দিলে প্রশ্ন ও ৪টা অপশনই English-এ দিন (বা সব খালি রাখুন)।', true);
+  const item = { day, sector, q, options, answer, explain };
+  if(hasEn) { item.q_en = q_en; item.options_en = options_en; item.explain_en = explain_en; }
+  if(!(await saveChallenges([item]))) return toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);
   toast('Challenge সেভ হয়েছে ✅');
-  ['ch-q', 'ch-o0', 'ch-o1', 'ch-o2', 'ch-o3', 'ch-exp'].forEach(id => document.getElementById(id).value = '');
+  ['ch-q', 'ch-o0', 'ch-o1', 'ch-o2', 'ch-o3', 'ch-exp', 'ch-q-en', 'ch-eo0', 'ch-eo1', 'ch-eo2', 'ch-eo3', 'ch-exp-en'].forEach(id => document.getElementById(id).value = '');
   loadChalAdminUI();
 }
 async function saveBulkChallenges() {
@@ -2968,7 +2975,12 @@ async function saveBulkChallenges() {
     const p = ln.split('|').map(s => s.trim());
     const ans = parseInt(p[7], 10);
     if(p.length < 8 || !/^\d{4}-\d{2}-\d{2}$/.test(p[0]) || !CHAL_SECTORS[p[1]] || !p[2] || p.slice(3, 7).some(o => !o) || !(ans >= 1 && ans <= 4)) { bad.push(i + 1); return; }
-    list.push({ day: p[0], sector: p[1], q: p[2], options: p.slice(3, 7), answer: ans - 1, explain: p.slice(8).join('|') });
+    if(p.length >= 15) {   // English version present
+      if(!p[9] || p.slice(10, 14).some(o => !o)) { bad.push(i + 1); return; }
+      list.push({ day: p[0], sector: p[1], q: p[2], options: p.slice(3, 7), answer: ans - 1, explain: p[8], q_en: p[9], options_en: p.slice(10, 14), explain_en: p[14] });
+    } else {
+      list.push({ day: p[0], sector: p[1], q: p[2], options: p.slice(3, 7), answer: ans - 1, explain: p.slice(8).join('|') });
+    }
   });
   if(bad.length) return toast('এই লাইনগুলোতে ভুল: ' + bad.slice(0, 8).join(', '), true);
   if(!(await saveChallenges(list))) return toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);

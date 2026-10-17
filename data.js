@@ -2817,6 +2817,11 @@ async function loadShareStats() {
    streaks/{uid}                    streak / best / points (changed only together with an attempt)  */
 const CHAL_SECTORS = { islamic: { icon: '🕌', bn: 'ইসলামিক', en: 'Islamic' }, gk: { icon: '🌍', bn: 'সাধারণ জ্ঞান', en: 'General Knowledge' } };
 const CHAL_POINTS = 10;
+// text in the visitor's language (falls back to Bangla if no English version was entered)
+function chalLang() { try { return (typeof getLang === 'function' ? getLang() : (localStorage.getItem('tvbd_lang') || 'en')) === 'bn' ? 'bn' : 'en'; } catch(e) { return 'bn'; } }
+function chalQ(c) { return (chalLang() === 'en' && c.q_en) ? c.q_en : c.q; }
+function chalOpts(c) { return (chalLang() === 'en' && c.options_en && c.options_en.length === 4) ? c.options_en : (c.options || []); }
+function chalExplain(k) { return k ? ((chalLang() === 'en' && k.explain_en) ? k.explain_en : (k.explain || '')) : ''; }
 function chalBdDay(offsetDays) { return new Date(Date.now() + 6 * 3600e3 + (offsetDays || 0) * 86400e3).toISOString().slice(0, 10); }
 
 async function loadChallengesForDay(day) {
@@ -2920,8 +2925,12 @@ async function saveChallenges(list) {   // [{day, sector, q, options[4], answer,
       const b = writeBatch(db);
       list.slice(i, i + 200).forEach(c => {
         const id = c.day + '_' + c.sector;
-        b.set(doc(db, "daily_challenges", id), { day: c.day, sector: c.sector, q: c.q, options: c.options, createdAt: Date.now() });
-        b.set(doc(db, "daily_keys", id), { answer: c.answer, explain: c.explain || '' });
+        const pub = { day: c.day, sector: c.sector, q: c.q, options: c.options, createdAt: Date.now() };
+        const key = { answer: c.answer, explain: c.explain || '' };
+        if(c.q_en && c.options_en && c.options_en.length === 4) { pub.q_en = c.q_en; pub.options_en = c.options_en; }
+        if(c.explain_en) key.explain_en = c.explain_en;
+        b.set(doc(db, "daily_challenges", id), pub);
+        b.set(doc(db, "daily_keys", id), key);
       });
       await b.commit();
     }

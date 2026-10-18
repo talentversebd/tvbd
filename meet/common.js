@@ -26,6 +26,17 @@ window.mIsAdmin = async function (user) {
     return s.exists() && (s.data().permissions || []).includes('meetings');
   } catch (e) { return false; }
 };
+// { main:true } for the main admin, { member:true, limit:N } for a member with the "meetings" permission (N rooms in total), else null
+window.mAccess = async function (user) {
+  if (!user) return null;
+  if ((user.email || '').toLowerCase() === window.MEET_MAIN_EMAIL) return { main: true, limit: Infinity };
+  try {
+    const { doc, getDoc } = window.firebaseFunctions;
+    const s = await getDoc(doc(window.firebaseDB, 'member_access', user.uid));
+    if (s.exists() && (s.data().permissions || []).includes('meetings')) return { member: true, limit: Math.max(1, parseInt(s.data().meetLimit, 10) || 1) };
+  } catch (e) {}
+  return null;
+};
 window.mLoginError = function (e) {
   const c = (e && e.code) || '';
   if (c.includes('invalid-credential') || c.includes('wrong-password') || c.includes('user-not-found') || c.includes('invalid-email')) return 'Email or password is wrong.';

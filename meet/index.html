@@ -50,9 +50,9 @@
   <div class="rooms" id="rooms"><div class="empty">Loading…</div></div>
 </main>
 <script type="module" src="../firebase-config.js"></script>
-<script src="common.js?v=1"></script>
+<script src="common.js?v=2"></script>
 <script>
-let ME = null, ADMIN = false, unsub = null;
+let ME = null, ADMIN = false, ACC = null, MYROOMS = [], unsub = null;
 const $ = id => document.getElementById(id);
 
 async function doLogin() {
@@ -74,16 +74,27 @@ mWatchAuth(async user => {
   }
   $('v-login').classList.add('hidden'); $('v-lobby').classList.remove('hidden');
   $('userbox').classList.remove('hidden'); $('uname').textContent = user.displayName || user.email;
-  ADMIN = await mIsAdmin(user);
+  ACC = await mAccess(user); ADMIN = !!ACC;
   $('admin-box').classList.toggle('hidden', !ADMIN);
   const { collection, query, orderBy, onSnapshot } = window.firebaseFunctions;
   unsub = onSnapshot(query(collection(window.firebaseDB, 'meet_rooms'), orderBy('startAt', 'desc')), snap => {
-    renderRooms(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    MYROOMS = all.filter(r => (r.hostEmail || '') === (ME.email || '').toLowerCase());
+    renderRooms(all);
   }, err => { console.error(err); $('rooms').innerHTML = '<div class="empty">Could not load rooms. Please sign in again.</div>'; });
 });
 
 function renderRooms(list) {
   const el = $('rooms');
+  const qb = $('admin-box');
+  if (ACC && ACC.member) {
+    const left = ACC.limit - MYROOMS.length;
+    let note = $('quota-note');
+    if (!note) { note = document.createElement('p'); note.id = 'quota-note'; note.className = 'sub'; note.style.margin = '8px 0 0'; qb.appendChild(note); }
+    note.textContent = `Your room limit: ${MYROOMS.length} / ${ACC.limit} used` + (left <= 0 ? ' — you cannot create more rooms (ask the admin to raise your limit).' : '.');
+    qb.querySelector('.btn').style.display = left > 0 ? '' : 'none';
+    if (left <= 0) $('create-card').classList.add('hidden');
+  }
   if (!list.length) { el.innerHTML = '<div class="empty">No rooms yet.</div>'; return; }
   const order = { live: 0, scheduled: 1, ended: 2 };
   list.sort((a, b) => (order[a.status || 'scheduled'] - order[b.status || 'scheduled']) || ((a.startAt || 0) - (b.startAt || 0)));
@@ -92,12 +103,13 @@ function renderRooms(list) {
     const tag = st === 'live' ? '<span class="tag live">● Live</span>' : st === 'ended' ? '<span class="tag end">Ended</span>' : '<span class="tag sch">Scheduled</span>';
     const mode = r.mode === 'seminar' ? '<span class="tag sem">Seminar</span>' : '<span class="tag meet">Meeting</span>';
     const join = st === 'ended' ? '' : `<a class="btn sm" href="room.html?r=${encodeURIComponent(r.id)}">${st === 'live' ? 'Join now' : 'Join'}</a>`;
-    const adm = ADMIN ? `
+    const mine = ACC && (ACC.main || (r.hostEmail || '') === (ME.email || '').toLowerCase());
+    const adm = mine ? `
       ${st !== 'live' && st !== 'ended' ? `<button class="btn sm green" onclick="setStatus('${r.id}','live')">Start</button>` : ''}
       ${st === 'live' ? `<button class="btn sm ghost" onclick="setStatus('${r.id}','ended')">End</button>` : ''}
       ${st !== 'ended' ? `<button class="btn sm ghost" onclick="setWait('${r.id}',${!r.waitingRoom})">Waiting room: ${r.waitingRoom ? 'ON' : 'off'}</button>` : ''}
       <button class="btn sm ghost" onclick="copyLink('${r.id}')">Copy link</button>
-      <button class="btn sm red" onclick="delRoom('${r.id}')">Delete</button>` : '';
+      ${ACC && ACC.main ? `<button class="btn sm red" onclick="delRoom('${r.id}')">Delete</button>` : ''}` : '';
     return `<div class="room"><div><h3>${tag}${mode}${mEsc(r.title)}</h3><p>${mFmtTime(r.startAt)}${r.desc ? ' · ' + mEsc(r.desc) : ''}</p></div><div class="act">${join}${adm}</div></div>`;
   }).join('');
 }
@@ -107,12 +119,21 @@ async function createRoom() {
   const mode = $('rm-mode').value;
   const st = $('rm-start').value ? new Date($('rm-start').value).getTime() : Date.now();
   const speakers = mode === 'seminar' ? $('rm-speakers').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean).slice(0, 30) : [];
-  const { collection, addDoc } = window.firebaseFunctions;
+  const { collection, addDoc, doc, setDoc } = window.firebaseFunctions;
+  const data = {
+    title: title.slice(0, 120), mode, startAt: st, desc: $('rm-desc').value.trim().slice(0, 400),
+    waitingRoom: $('rm-wait').checked, speakers, hostEmail: (ME.email || '').toLowerCase(), status: 'scheduled', createdAt: Date.now()
+  };
   try {
-    await addDoc(collection(window.firebaseDB, 'meet_rooms'), {
-      title: title.slice(0, 120), mode, startAt: st, desc: $('rm-desc').value.trim().slice(0, 400),
-      waitingRoom: $('rm-wait').checked, speakers, hostEmail: (ME.email || '').toLowerCase(), status: 'scheduled', createdAt: Date.now()
-    });
+    if (ACC && ACC.main) {
+      await addDoc(collection(window.firebaseDB, 'meet_rooms'), data);
+    } else {
+      // a member gets numbered slots (m_<uid>_1 … m_<uid>_limit); the Firestore rules enforce the limit
+      let slot = 0;
+      for (let n = 1; n <= ACC.limit; n++) { if (!MYROOMS.some(r => r.id === 'm_' + ME.uid + '_' + n)) { slot = n; break; } }
+      if (!slot) return mToast('Room limit reached. Ask the admin to raise your limit.', true);
+      await setDoc(doc(window.firebaseDB, 'meet_rooms', 'm_' + ME.uid + '_' + slot), data);
+    }
     $('rm-title').value = ''; $('rm-desc').value = ''; $('rm-speakers').value = ''; $('create-card').classList.add('hidden');
     mToast('Room created.');
   } catch (e) { console.error(e); mToast('Could not create — publish the latest Firestore rules first.', true); }

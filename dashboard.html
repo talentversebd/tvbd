@@ -720,6 +720,10 @@ async function dbLoadDashboard(user) {
   if(typeof getMyAccess === 'function') {
     getMyAccess(user.uid).then(a => {
       if(a && (a.permissions || []).length) document.getElementById('db-staff-link').style.display = 'block';
+      if(a && a.officialId) {
+        const w = document.getElementById('db-memberid-wrap');
+        if(w) { w.style.display = 'flex'; w.insertAdjacentHTML('beforeend', '<span style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);border-radius:8px;padding:6px 12px;font-size:.82rem;">⭐ Official Member: <strong style="font-family:monospace;letter-spacing:1px;">' + String(a.officialId).replace(/[<>&"]/g,'') + '</strong></span>'); }
+      }
     });
   }
 

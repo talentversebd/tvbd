@@ -29,7 +29,8 @@ const PERM_CATALOG = [
   { key:'emailnotify',   label:'Email Notifications',       sec:'notify-adm' },
   { key:'challenge',     label:'Daily Challenge',           sec:'chal-adm' },
   { key:'forms',         label:'Form Builder (form-admin.html)',      page:true },
-  { key:'election',      label:'Election Panel (election-admin.html)', page:true }
+  { key:'election',      label:'Election Panel (election-admin.html)', page:true },
+  { key:'meetings',      label:'TalentVerse Meet — create/run meetings (meet/)', page:true }
 ];
 const SEC_PERM = {};
 PERM_CATALOG.forEach(p => { if(p.sec) SEC_PERM[p.sec] = p.key; });
@@ -1029,14 +1030,14 @@ function userAvatar(u, size) {
 async function loadRegisteredUsersUI() {
   const tbody = document.getElementById('userstbl');
   if(!tbody) return;
-  tbody.innerHTML = `<tr class="empty-row"><td colspan="12">Loading…</td></tr>`;
-  const [users, accessMap, shareMap] = await Promise.all([
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="13">Loading…</td></tr>`;
+  let [users, accessMap, shareMap] = await Promise.all([
     typeof loadRegisteredUsers === 'function' ? loadRegisteredUsers() : [],
     typeof loadAllMemberAccess === 'function' ? loadAllMemberAccess() : {},
     typeof loadShareStats === 'function' ? loadShareStats() : {}
   ]);
   if(!users.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="12">No one has signed up yet.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="13">No one has signed up yet.</td></tr>`;
     return;
   }
   // who invited how many (people who signed up through someone's Member ID link) and how many times each member shared
@@ -1055,6 +1056,10 @@ async function loadRegisteredUsersUI() {
       rank.map((r, i) => `<div style="display:flex;justify-content:space-between;gap:10px;font-size:.84rem;padding:5px 0;border-top:1px solid var(--bdr);">
         <span>${i + 1}. ${escUser([r.u.firstName, r.u.lastName].filter(Boolean).join(' ') || r.u.email)} <span style="color:var(--muted);font-family:monospace;">${escUser(r.u.memberCode)}</span></span>
         <span style="white-space:nowrap;">🔗 ${r.shares} share · 👥 ${r.ver} joined${r.inv > r.ver ? ' (+' + (r.inv - r.ver) + ' pending)' : ''}</span></div>`).join('') + '</div>' : '';
+  const offOnly = (document.getElementById('user-off-filter') || {}).checked;
+  if(offOnly) users = users.filter(u => accessMap[u.id] && accessMap[u.id].officialId);
+  const q = ((document.getElementById('user-text-filter') || {}).value || '').trim().toLowerCase();
+  if(q) users = users.filter(u => [u.firstName, u.lastName, u.email, u.memberCode, u.phone, (accessMap[u.id] || {}).officialId].join(' ').toLowerCase().includes(q));
   tbody.innerHTML = users.map(u => {
     const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
     const acc = accessMap[u.id];
@@ -1064,6 +1069,7 @@ async function loadRegisteredUsersUI() {
       <td>${userAvatar(u, 38)}</td>
       <td>${escUser(name)}</td>
       <td style="font-family:monospace;letter-spacing:.5px;">${escUser(u.memberCode)}</td>
+      <td>${acc && acc.officialId ? `<span class="bs bs-active" style="font-family:monospace;">⭐ ${escUser(acc.officialId)}</span>` : '—'}</td>
       <td>${escUser(u.email)}</td>
       <td>${escUser(u.phone)}</td>
       <td>${escUser(u.institution)}</td>
@@ -1108,6 +1114,7 @@ function viewRegisteredUser(id) {
       </div>
       <div style="display:flex;justify-content:center;margin-bottom:12px;">${userAvatar(u, 96)}</div>
       ${row('Member ID', u.memberCode)}
+      ${acc && acc.officialId ? row('⭐ Official ID', acc.officialId) : ''}
       ${row('Full Name', name)}
       ${row('Email', u.email)}
       ${row('Phone', u.phone)}
@@ -1129,8 +1136,15 @@ async function findMemberByCode() {
   const input = document.getElementById('user-code-search');
   let code = (input.value || '').trim().toUpperCase().replace(/\s+/g, '');
   if(!code) return toast('Member ID লিখুন!', true);
-  if(!code.startsWith('TV-')) code = 'TV-' + code;
-  const uid = await getUidByMemberCode(code);
+  let uid;
+  if(code.startsWith('TVM-')) {
+    const mp = await loadAllMemberAccess();
+    const hit = Object.entries(mp).find(([k, v]) => String(v.officialId || '').toUpperCase() === code);
+    uid = hit && hit[0];
+  } else {
+    if(!code.startsWith('TV-')) code = 'TV-' + code;
+    uid = await getUidByMemberCode(code);
+  }
   if(!uid) return toast('এই Member ID পাওয়া যায়নি।', true);
   if(!getRegisteredUsers().find(x => x.id === uid)) await loadRegisteredUsers();
   await loadAllMemberAccess();
@@ -1157,14 +1171,9 @@ async function openMemberAccess(uid) {
       </div>
       <p style="font-size:.85rem;margin-bottom:4px;"><strong>${escUser(name)}</strong> · <span style="font-family:monospace;">${escUser(u.memberCode)}</span></p>
       <p style="font-size:.76rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">যে পেজগুলো টিক দেবেন শুধু সেগুলোই এই সদস্য নিজের অ্যাকাউন্ট দিয়ে admin.html-এ এডিট করতে পারবেন।</p>
-      <div class="fg"><label>Role label (optional)</label>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <h3 style="font-family:Montserrat;font-size:1.05rem;">🔑 Manage Access</h3>
-        <button onclick="closeUserOverlay('member-access-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
-      </div>
-      <p style="font-size:.85rem;margin-bottom:4px;"><strong>${escUser(name)}</strong> · <span style="font-family:monospace;">${escUser(u.memberCode)}</span></p>
-      <p style="font-size:.76rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">যে পেজগুলো টিক দেবেন শুধু সেগুলোই এই সদস্য নিজের অ্যাকাউন্ট দিয়ে admin.html-এ এডিট করতে পারবেন। ইউজার ম্যানেজমেন্ট ও সিস্টেম সেটিংস সবসময় শুধু আপনার কাছে থাকবে।</p>
       <div class="fg"><label>Role label (optional)</label><input class="fi" id="ma-label" value="${String(acc.label || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}" placeholder="e.g. Official Member, Content Team"></div>
+      <div class="fg"><label>⭐ Official Member ID (ফাঁকা রাখলে সে Official নয়)</label><div style="display:flex;gap:8px;"><input class="fi" id="ma-offid" style="text-transform:uppercase;font-family:monospace;" value="${escUser(acc.officialId || '')}" placeholder="e.g. TVM-001"><button type="button" class="e-btn" onclick="document.getElementById('ma-offid').value=nextOfficialId()">Auto</button></div></div>
+      <div class="fg"><label>Meet room limit (কতটা মিটিং রুম বানাতে পারবে — শুধু Meet access টিক দিলে কাজ করবে)</label><input class="fi" id="ma-meetlimit" type="number" min="1" max="50" value="${Math.max(1, parseInt(acc.meetLimit, 10) || 1)}"></div>
       <div style="display:flex;gap:10px;margin:8px 0;">
         <button class="e-btn" onclick="document.querySelectorAll('.ma-perm').forEach(c=>c.checked=true)">Select all</button>
         <button class="e-btn" onclick="document.querySelectorAll('.ma-perm').forEach(c=>c.checked=false)">Clear</button>
@@ -1174,13 +1183,24 @@ async function openMemberAccess(uid) {
     </div>`);
 }
 
+function nextOfficialId() {
+  let max = 0;
+  Object.values(getMemberAccessMap()).forEach(v => { const m = /^TVM-(\d+)$/.exec(String(v.officialId || '').toUpperCase()); if(m) max = Math.max(max, +m[1]); });
+  return 'TVM-' + String(max + 1).padStart(3, '0');
+}
+
 async function saveMemberAccessUI(uid) {
   const u = getRegisteredUsers().find(x => x.id === uid);
   if(!u) return;
   const perms = Array.from(document.querySelectorAll('.ma-perm')).filter(c => c.checked).map(c => c.value);
   const label = document.getElementById('ma-label').value.trim();
   let ok;
-  if(!perms.length) {
+  const offId = ((document.getElementById('ma-offid') || {}).value || '').trim().toUpperCase().replace(/\s+/g, '').slice(0, 20);
+  if(offId) {
+    const dup = Object.entries(getMemberAccessMap()).find(([k, v]) => k !== uid && String(v.officialId || '').toUpperCase() === offId);
+    if(dup) return toast('এই Official ID আরেকজনের আছে!', true);
+  }
+  if(!perms.length && !offId) {
     ok = await removeMemberAccess(uid);
   } else {
     ok = await saveMemberAccess(uid, {
@@ -1190,11 +1210,13 @@ async function saveMemberAccessUI(uid) {
       email: u.email || '',
       permissions: perms,
       label,
+      officialId: offId,
+      meetLimit: Math.min(50, Math.max(1, parseInt((document.getElementById('ma-meetlimit') || {}).value, 10) || 1)),
       grantedAt: Date.now()
     });
   }
   if(!ok) return toast('Save failed! Rules/internet চেক করুন।', true);
-  toast(perms.length ? 'Access saved! ✅' : 'সব অ্যাক্সেস সরানো হয়েছে।');
+  toast((perms.length || offId) ? 'Saved! ✅' : 'সব অ্যাক্সেস সরানো হয়েছে।');
   closeUserOverlay('member-access-ov');
   closeUserOverlay('user-detail-ov');
   loadRegisteredUsersUI();

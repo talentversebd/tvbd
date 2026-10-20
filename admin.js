@@ -3078,3 +3078,55 @@ async function m360Search(forceUid) {
     ${card('💬 Forum Posts (' + myPosts.length + ')', li(myPosts.map(p => `<strong>${escUser(p.title)}</strong> — ${escUser(p.category)} · ${escUser(p.status)}`)))}
     ${card('🤝 Volunteer Applications (' + myVols.length + ')', li(myVols.map(v => `<strong>${escUser(v.role)}</strong> (${escUser(v.type)}) — ${escUser(v.status)} <span style="color:var(--muted);">${fmtUserDate(v.createdAt)}</span>`)))}`;
 }
+
+/*===== COLLAPSIBLE SIDEBAR + PAGE SEARCH (keeps the menu short as pages grow) =====*/
+(function () {
+  const OPEN_KEY = 'tvbd_adm_groups';
+  const st = document.createElement('style');
+  st.textContent = '.adm-nb.grp-hide{display:none !important}.adm-ns.grp-head{cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}.adm-ns.grp-head:after{content:"▾";font-size:.8rem;opacity:.7}.adm-ns.grp-head.closed:after{content:"▸"}#adm-find{width:calc(100% - 24px);margin:8px 12px;padding:9px 12px;border-radius:8px;border:1px solid var(--bdr2);background:var(--card);color:var(--txt);font-size:.85rem;box-sizing:border-box}';
+  document.head.appendChild(st);
+  let mem = null;
+  function saved() { try { const v = localStorage.getItem(OPEN_KEY); if(v) return JSON.parse(v); } catch (e) {} return mem; }
+  function save(o) { mem = o; try { localStorage.setItem(OPEN_KEY, JSON.stringify(o)); } catch (e) {} }
+  function groups(nav) {
+    const out = []; let cur = null;
+    Array.from(nav.children).forEach(el => {
+      if(el.classList.contains('adm-ns')) { cur = { head: el, btns: [], name: el.textContent.trim() }; out.push(cur); }
+      else if(el.classList.contains('adm-nb') && cur) cur.btns.push(el);
+    });
+    return out;
+  }
+  function render() {
+    const nav = document.querySelector('.adm-nav'); if(!nav) return;
+    const find = ((document.getElementById('adm-find') || {}).value || '').trim().toLowerCase();
+    const s = saved();
+    groups(nav).forEach(g => {
+      const hasActive = g.btns.some(b => b.classList.contains('active'));
+      const open = find ? true : (s ? (s[g.name] !== undefined ? s[g.name] : hasActive) || hasActive : (g.name === 'Overview' || hasActive));
+      g.head.classList.add('grp-head'); g.head.classList.toggle('closed', !open);
+      g.btns.forEach(b => {
+        const match = !find || b.textContent.toLowerCase().includes(find);
+        b.classList.toggle('grp-hide', !(open && match));
+      });
+      if(find) g.head.style.display = g.btns.some(b => b.textContent.toLowerCase().includes(find) && b.style.display !== 'none') ? '' : 'none';
+      else if(g.head.style.display === 'none' && g.btns.some(b => b.style.display !== 'none')) g.head.style.display = '';
+    });
+  }
+  function init() {
+    const nav = document.querySelector('.adm-nav'); if(!nav || document.getElementById('adm-find')) return;
+    const inp = document.createElement('input'); inp.id = 'adm-find'; inp.placeholder = '🔍 পেজ খুঁজুন…'; inp.oninput = render;
+    nav.insertBefore(inp, nav.firstChild);
+    nav.addEventListener('click', e => {
+      const h = e.target.closest('.adm-ns'); if(!h) return;
+      const s = saved() || {};
+      groups(nav).forEach(g => { if(!(g.name in s)) s[g.name] = !g.head.classList.contains('closed'); });
+      const g = groups(nav).find(x => x.head === h); if(!g) return;
+      s[g.name] = h.classList.contains('closed'); save(s); render();
+    });
+    nav.addEventListener('click', e => { if(e.target.closest('.adm-nb')) setTimeout(render, 0); });
+    render();
+  }
+  const orig = window.applyAccessToNav;
+  window.applyAccessToNav = function () { orig.apply(this, arguments); render(); };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(init, 300)); else setTimeout(init, 300);
+})();

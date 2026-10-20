@@ -3102,7 +3102,7 @@ async function m360Search(forceUid) {
     const s = saved();
     groups(nav).forEach(g => {
       const hasActive = g.btns.some(b => b.classList.contains('active'));
-      const open = find ? true : (s ? (s[g.name] !== undefined ? s[g.name] : hasActive) || hasActive : (g.name === 'Overview' || hasActive));
+      const open = find ? true : (s && s[g.name] !== undefined ? s[g.name] || hasActive : true);
       g.head.classList.add('grp-head'); g.head.classList.toggle('closed', !open);
       g.btns.forEach(b => {
         const match = !find || b.textContent.toLowerCase().includes(find);
@@ -3114,7 +3114,7 @@ async function m360Search(forceUid) {
   }
   function init() {
     const nav = document.querySelector('.adm-nav'); if(!nav || document.getElementById('adm-find')) return;
-    const inp = document.createElement('input'); inp.id = 'adm-find'; inp.placeholder = '🔍 পেজ খুঁজুন…'; inp.oninput = render;
+    const inp = document.createElement('input'); inp.id = 'adm-find'; inp.style.display = 'none';
     nav.insertBefore(inp, nav.firstChild);
     nav.addEventListener('click', e => {
       const h = e.target.closest('.adm-ns'); if(!h) return;

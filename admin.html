@@ -212,6 +212,7 @@ select.fi{cursor:pointer}
 
         <div class="adm-ns">Accounts</div>
         <button class="adm-nb" data-sec="users-adm" onclick="goSec(this)"><span class="ico">👥</span>Registered Users</button>
+        <button class="adm-nb" data-sec="m360-adm" onclick="goSec(this)"><span class="ico">🧾</span>Member 360 (Full Profile)</button>
         <button class="adm-nb" data-sec="ca-adm" onclick="goSec(this)"><span class="ico">🎓</span>Campus Ambassadors</button>
         <button class="adm-nb" data-sec="chal-adm" onclick="goSec(this)"><span class="ico">🔥</span>Daily Challenge</button>
         <button class="adm-nb" data-sec="log-adm" onclick="goSec(this)"><span class="ico">📜</span>Activity Log</button>
@@ -377,6 +378,18 @@ select.fi{cursor:pointer}
 
       <!-- REGISTERED USERS -->
       <!-- CAMPUS AMBASSADORS -->
+      <div class="adm-sec" id="m360-adm">
+        <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">🧾 Member 360 — এক জায়গায় সব তথ্য</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">Member ID (TV-…), Official ID (TVM-…), ইমেইল বা নাম লিখে খুঁজুন। প্রোফাইল, ইভেন্ট, সার্টিফিকেট, CA, কুইজ, স্ট্রিক, শেয়ার/ইনভাইট, ফোরাম সব দেখা যাবে।</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+          <input class="fi" id="m360-q" placeholder="TV-7K3M9Q / TVM-001 / email / নাম" style="flex:1;min-width:210px;" onkeydown="if(event.key==='Enter')m360Search()">
+          <button class="add-btn" onclick="m360Search()">🔍 Search</button>
+        </div>
+        <div id="m360-res"></div>
+      </div>
+
       <div class="adm-sec" id="ca-adm">
         <div style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(37,99,235,.04));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
           <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">🎓 Campus Ambassadors</h3>
@@ -1258,7 +1271,7 @@ select.fi{cursor:pointer}
 <script src="certificate-render.js"></script>
 <script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
-<script src="admin.js?v=3"></script>
+<script src="admin.js?v=4"></script>
 <script src="main.js"></script>
 
 <script src="fx.js"></script>

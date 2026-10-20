@@ -190,6 +190,7 @@ function goSec(btn) {
     'founder-adm': "Founder's Message",
     'users-adm': "Registered Users",
     'ca-adm': 'Campus Ambassadors',
+    'm360-adm': 'Member 360',
     'chal-adm': 'Daily Challenge',
     'log-adm': 'Activity Log',
     'msg-adm': 'Contact Messages',
@@ -235,6 +236,7 @@ function goSec(btn) {
   if(secId === 'founder-adm' && typeof loadFounderSettingsUI === 'function') loadFounderSettingsUI();
   if(secId === 'users-adm' && typeof loadRegisteredUsersUI === 'function') loadRegisteredUsersUI();
   if(secId === 'ca-adm') loadCaAdminUI();
+  if(secId === 'm360-adm') { const q = document.getElementById('m360-q'); if(q) q.focus(); }
   if(secId === 'chal-adm') loadChalAdminUI();
   if(secId === 'log-adm') loadActivityLogUI();
   if(secId === 'popup-adm' && typeof loadPopupSettings === 'function') loadPopupSettings();
@@ -1129,6 +1131,7 @@ function viewRegisteredUser(id) {
       ${row('Last Login', fmtUserDate(u.lastLoginAt))}
       ${row('Admin Access', accText)}
       <button class="save-btn" style="width:100%;margin-top:16px;" onclick="openMemberAccess('${escUser(id)}')">🔑 Manage Access</button>
+      <button class="e-btn" style="width:100%;margin-top:10px;" onclick="closeUserOverlay('user-detail-ov');goSec(document.querySelector('[data-sec=m360-adm]'));document.getElementById('m360-q').value='${escUser(u.email)}';m360Search('${escUser(id)}')">🧾 Full Profile (Member 360)</button>
     </div>`);
 }
 
@@ -3009,4 +3012,69 @@ async function saveBulkChallenges() {
   document.getElementById('ch-bulk').value = '';
   toast(list.length + 'টি প্রশ্ন ইমপোর্ট হয়েছে ✅');
   loadChalAdminUI();
+}
+
+
+/*===== MEMBER 360: one search -> everything about one member =====*/
+async function m360Search(forceUid) {
+  const box = document.getElementById('m360-res');
+  const raw = ((document.getElementById('m360-q') || {}).value || '').trim();
+  if(!forceUid && !raw) return toast('কিছু লিখুন!', true);
+  box.innerHTML = '<p style="color:var(--muted);">⏳ খোঁজা হচ্ছে…</p>';
+  const [users, access] = await Promise.all([loadRegisteredUsers(), loadAllMemberAccess()]);
+  const q = raw.toLowerCase().replace(/\s+/g, '');
+  const fullName = u => [u.firstName, u.lastName].filter(Boolean).join(' ');
+  let list = forceUid ? users.filter(u => u.id === forceUid) : users.filter(u => {
+    const a = access[u.id] || {};
+    return String(u.memberCode || '').toLowerCase() === q || String(a.officialId || '').toLowerCase() === q
+      || String(u.email || '').toLowerCase() === q;
+  });
+  if(!list.length && !forceUid) list = users.filter(u => (fullName(u) + ' ' + (u.email || '') + ' ' + (u.phone || '') + ' ' + (u.memberCode || '')).toLowerCase().includes(raw.toLowerCase())).slice(0, 15);
+  if(!list.length) { box.innerHTML = '<p style="color:var(--muted);">কাউকে পাওয়া যায়নি।</p>'; return; }
+  if(list.length > 1) {
+    box.innerHTML = '<p style="color:var(--muted);font-size:.85rem;margin-bottom:8px;">' + list.length + 'জন পাওয়া গেছে — একজনকে বেছে নিন:</p>' + list.map(u =>
+      `<div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--bdr);border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="m360Search('${escUser(u.id)}')">${userAvatar(u, 38)}<div><strong>${escUser(fullName(u) || u.email)}</strong><div style="font-size:.78rem;color:var(--muted);font-family:monospace;">${escUser(u.memberCode)} · ${escUser(u.email)}</div></div></div>`).join('');
+    return;
+  }
+  const u = list[0], acc = access[u.id] || {};
+  const email = String(u.email || '').toLowerCase();
+  const safe = p => p.catch(() => null);
+  const [regs, certs, owners, quizzes, subs, caList, caCounts, streak, shares, posts, vols] = await Promise.all([
+    safe(loadRegistrations()), safe(loadCertificates()), safe(loadCertificateOwners()), safe(loadQuizzes()), safe(loadQuizSubmissions()),
+    safe(loadCaCodes()), safe(loadCaCounts()), safe(loadMyStreak(u.id)), safe(loadShareStats()), safe(loadForumPosts()), safe(loadVolunteerApplications())
+  ]);
+  const mine = arr => (arr || []).filter(x => String(x.email || '').toLowerCase() === email);
+  const myRegs = mine(regs);
+  const myCerts = (certs || []).filter(c => String((owners || {})[c.id] || '').toLowerCase() === email);
+  const qMap = {}; (quizzes || []).forEach(z => qMap[z.id] = z);
+  const mySubs = mine(subs);
+  const ca = (caList || []).find(c => c.uid === u.id || String(c.code).toUpperCase() === String(u.memberCode || '').toUpperCase());
+  const cc = ca && caCounts ? (caCounts[ca.code] || {}) : {};
+  const myPosts = (posts || []).filter(p => p.authorUid === u.id);
+  const myVols = mine(vols);
+  const sh = (shares && shares[u.id]) || {};
+  const invited = users.filter(x => String(x.referredBy || '').toUpperCase() === String(u.memberCode || '').toUpperCase());
+  const perms = (acc.permissions || []).map(k => (PERM_CATALOG.find(p => p.key === k) || { label: k }).label);
+  const card = (t, body) => `<div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px;margin-bottom:14px;"><div style="font-weight:800;font-size:.92rem;margin-bottom:10px;">${t}</div>${body}</div>`;
+  const kv = (l, v) => `<div style="display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:.85rem;"><span style="color:var(--muted);">${l}</span><strong style="text-align:right;word-break:break-word;">${escUser(v)}</strong></div>`;
+  const li = arr => arr.length ? arr.map(x => `<div style="padding:7px 0;border-bottom:1px solid var(--bdr);font-size:.84rem;line-height:1.6;">${x}</div>`).join('') : '<span style="color:var(--muted);font-size:.84rem;">কিছু নেই</span>';
+  const badge = (t, c) => `<span class="bs ${c || 'bs-active'}" style="margin-right:6px;">${t}</span>`;
+  box.innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap;">
+      ${userAvatar(u, 72)}
+      <div><div style="font-weight:800;font-size:1.1rem;">${escUser(fullName(u) || u.email)}</div>
+        <div style="font-family:monospace;font-size:.85rem;margin:4px 0;">${escUser(u.memberCode)}${acc.officialId ? ' · ⭐ ' + escUser(acc.officialId) : ''}</div>
+        <div>${acc.officialId ? badge('⭐ Official Member') : ''}${ca ? badge('🎓 Campus Ambassador') : ''}${perms.length ? badge('🔑 Admin access') : ''}${u.emailVerified ? badge('✅ Verified') : badge('⏳ Not verified', 'bs-past')}</div></div>
+      <button class="e-btn" onclick="openMemberAccess('${escUser(u.id)}')">🔑 Manage Access / Official ID</button>
+    </div>
+    ${card('👤 Profile', kv('Email', u.email) + kv('Phone', u.phone) + kv('Date of Birth', u.dob) + kv('Gender', u.gender) + kv('Religion', u.religion) + kv('Institution', u.institution) + kv('Class / Level', u.classLevel) + kv('District', u.district) + kv('Account Created', fmtUserDate(u.createdAt)) + kv('Last Login', fmtUserDate(u.lastLoginAt)) + kv('Invited by', u.referredBy))}
+    ${card('⭐ Official & Access', kv('Official ID', acc.officialId) + kv('Role label', acc.label) + kv('Admin pages', perms.join(', ') || 'None') + (perms.length ? kv('Meet room limit', acc.meetLimit || 1) : ''))}
+    ${card('🎓 Campus Ambassador', ca ? kv('Status', ca.active ? 'Active' : 'Inactive') + kv('CA code', ca.code) + kv('Registrations brought', cc.count || 0) + kv('Last registration', cc.lastAt ? fmtUserDate(cc.lastAt) : '') : '<span style="color:var(--muted);font-size:.84rem;">CA নয়</span>')}
+    ${card('📝 Event Registrations (' + myRegs.length + ')', li(myRegs.map(r => `<strong>${escUser(r.olympiad)}</strong>${r.segment ? ' · ' + escUser(r.segment) : ''} — ${badge(escUser(r.approval || 'pending'), r.approval === 'approved' ? 'bs-active' : 'bs-past')} <span style="color:var(--muted);">${fmtUserDate(r.createdAt)}</span>`)))}
+    ${card('📜 Certificates (' + myCerts.length + ')', li(myCerts.map(c => `<strong>${escUser(c.event)}</strong> — ${escUser(c.position)} · <span style="font-family:monospace;">${escUser(c.certId || c.id)}</span> <span style="color:var(--muted);">${escUser(c.issueDate)}</span>`)))}
+    ${card('🧠 Quiz Submissions (' + mySubs.length + ')', li(mySubs.map(s => `<strong>${escUser((qMap[s.quizId] || {}).title || s.quizId)}</strong> — ${s.totalScore == null ? 'pending' : s.totalScore + '/' + s.totalPossible} <span style="color:var(--muted);">${fmtUserDate(s.submittedAt)}</span>`)))}
+    ${card('🔥 Daily Challenge', streak ? kv('Current streak', streak.current) + kv('Best streak', streak.best) + kv('Points', streak.points) + kv('Questions answered', streak.done) + kv('Correct', streak.right) : '<span style="color:var(--muted);font-size:.84rem;">এখনো অংশ নেয়নি</span>')}
+    ${card('🔗 Share & Invite', kv('Shares', sh.count || 0) + kv('People invited', invited.length) + kv('Verified joins', invited.filter(x => x.refCounted).length))}
+    ${card('💬 Forum Posts (' + myPosts.length + ')', li(myPosts.map(p => `<strong>${escUser(p.title)}</strong> — ${escUser(p.category)} · ${escUser(p.status)}`)))}
+    ${card('🤝 Volunteer Applications (' + myVols.length + ')', li(myVols.map(v => `<strong>${escUser(v.role)}</strong> (${escUser(v.type)}) — ${escUser(v.status)} <span style="color:var(--muted);">${fmtUserDate(v.createdAt)}</span>`)))}`;
 }

@@ -113,6 +113,7 @@ function openFormBuilder() {
   document.getElementById('ff-desc').value = '';
   document.getElementById('ff-status').value = 'draft';
   document.getElementById('ff-isquiz').checked = false;
+  document.getElementById('ff-multistep').checked = false;
   ffIsQuiz = false;
   document.getElementById('ff-duration-wrap').style.display = 'none';
   document.getElementById('ff-duration').value = '';
@@ -139,6 +140,7 @@ function editCustomForm(id) {
   document.getElementById('ff-desc').value = f.description || '';
   document.getElementById('ff-status').value = f.status || 'draft';
   document.getElementById('ff-isquiz').checked = !!f.isQuiz;
+  document.getElementById('ff-multistep').checked = !!f.multiStep;
   ffIsQuiz = !!f.isQuiz;
   document.getElementById('ff-duration-wrap').style.display = ffIsQuiz ? 'block' : 'none';
   document.getElementById('ff-duration').value = f.duration || '';
@@ -343,7 +345,8 @@ async function saveCustomForm() {
     }
   }
 
-  const formData = { title, description, status, isQuiz, duration, startAt, endAt, closedMessage, thankYouTitle, thankYouMessage, fields: ffFields };
+  const multiStep = document.getElementById('ff-multistep').checked;
+  const formData = { multiStep, title, description, status, isQuiz, duration, startAt, endAt, closedMessage, thankYouTitle, thankYouMessage, fields: ffFields };
   if(!eid) { formData.ownerUid = faUser ? faUser.uid : ''; formData.ownerEmail = faUser ? (faUser.email || '') : ''; formData.editors = []; formData.editorCodes = []; }
   const result = eid ? await updateCustomForm(eid, formData) : await addCustomForm(formData);
 

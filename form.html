@@ -39,6 +39,7 @@ textarea.pf-input{min-height:90px;resize:vertical}
 .pf-err.show{display:block}
 .pf-submit{width:100%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:14px;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:var(--glow);transition:opacity .2s}
 .pf-submit:hover{opacity:.88}
+.pf-nav{display:flex;justify-content:space-between;gap:10px;margin:14px 0}.pf-navbtn{flex:1;padding:13px;border-radius:10px;border:1px solid var(--bdr2);background:var(--card);color:var(--txt);font-weight:700;cursor:pointer}.pf-navbtn.pf-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none}.pf-prog{margin-bottom:16px}
 .pf-submit:disabled{opacity:.6;cursor:not-allowed}
 .pf-state{text-align:center;padding:70px 20px;color:var(--muted)}
 .pf-state .ei{font-size:2.8rem;margin-bottom:14px}
@@ -224,7 +225,7 @@ function updatePfTimerText() {
 function renderPfFields() {
   const wrap = document.getElementById('pf-fields');
   let qNum = 0;
-  wrap.innerHTML = (pfForm.fields || []).map((f) => {
+  const pfParts = (pfForm.fields || []).map((f) => {
     if(f.type === 'section') {
       return `
         <div class="pf-section">
@@ -270,7 +271,46 @@ function renderPfFields() {
         ${control}
         <div class="pf-err" id="pf-err-${f.id}">This question is required.</div>
       </div>`;
-  }).join('');
+  });
+  if(!pfForm.multiStep) { wrap.innerHTML = pfParts.join(''); pfSteps = 0; return; }
+  // multi-step: every Section Heading starts a new page
+  const groups = [[]];
+  (pfForm.fields || []).forEach((fl, i) => {
+    if(fl.type === 'section' && groups[groups.length - 1].length) groups.push([]);
+    groups[groups.length - 1].push({ id: fl.id, html: pfParts[i], real: fl.type !== 'section' });
+  });
+  const real = groups.filter(g => g.some(x => x.real));
+  pfSteps = real.length; pfStep = 0;
+  pfStepIds = real.map(g => g.filter(x => x.real).map(x => x.id));
+  wrap.innerHTML = '<div id="pf-prog" class="pf-prog"></div>' + real.map((g, i) => `<div class="pf-step" data-step="${i}" style="${i ? 'display:none' : ''}">${g.map(x => x.html).join('')}</div>`).join('') +
+    `<div class="pf-nav"><button type="button" class="pf-navbtn" id="pf-back" onclick="pfGo(-1)">← Back</button><button type="button" class="pf-navbtn pf-primary" id="pf-next" onclick="pfGo(1)">Next →</button></div>`;
+  pfShowStep();
+}
+
+let pfSteps = 0, pfStep = 0, pfStepIds = [];
+function pfShowStep() {
+  document.querySelectorAll('.pf-step').forEach(s => { s.style.display = (+s.dataset.step === pfStep) ? '' : 'none'; });
+  const last = pfStep === pfSteps - 1;
+  document.getElementById('pf-back').style.visibility = pfStep ? 'visible' : 'hidden';
+  document.getElementById('pf-next').style.display = last ? 'none' : '';
+  document.getElementById('pf-submit-btn').style.display = last ? '' : 'none';
+  const pg = document.getElementById('pf-prog');
+  pg.innerHTML = `<div style="font-size:.8rem;color:var(--muted);margin-bottom:6px;">Step ${pfStep + 1} of ${pfSteps}</div><div style="height:6px;background:var(--bdr);border-radius:6px;overflow:hidden;"><div style="height:100%;width:${Math.round((pfStep + 1) / pfSteps * 100)}%;background:var(--blue);"></div></div>`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function pfGo(d) {
+  if(d > 0) {
+    let bad = false;
+    (pfForm.fields || []).filter(f => pfStepIds[pfStep].includes(f.id)).forEach(f => {
+      const val = getPfFieldValue(f);
+      const empty = Array.isArray(val) ? !val.length : !val;
+      const er = document.getElementById('pf-err-' + f.id);
+      if(f.required && empty) { er.classList.add('show'); bad = true; } else er.classList.remove('show');
+    });
+    if(bad) return toast('Please answer all required questions.', true);
+  }
+  pfStep = Math.max(0, Math.min(pfSteps - 1, pfStep + d));
+  pfShowStep();
 }
 
 function getPfFieldValue(f) {

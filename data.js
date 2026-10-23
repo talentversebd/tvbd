@@ -1601,10 +1601,7 @@ async function addQuizSubmission(sub, quiz) {
       return { success: false, error: "You have already submitted this exam.", alreadySubmitted: true };
     }
 
-    // If the public quiz copy has no correct answers (answer key kept private in quiz_keys), it cannot be
-    // scored in the browser — treat it as secure so the student isn't wrongly marked every answer "Incorrect".
-    const keyHidden = quiz.secure || (quiz.questions || []).some(q => q.type === 'mcq' && (q.correctIndex === undefined || q.correctIndex === null || !Number.isFinite(Number(q.correctIndex))));
-    if(keyHidden) {
+    if(quiz.secure) {
       // the answer key is private: only record what was answered, an admin grades it later
       const qs = quiz.questions || [];
       sub.mcqScore = null;

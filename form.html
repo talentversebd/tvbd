@@ -383,7 +383,9 @@ function gradePfSubmission(answers) {
     review.push({
       label: f.label, correct,
       given: Array.isArray(given) ? (given.join(', ') || '(no answer)') : (given || '(no answer)'),
-      correctAnswer: Array.isArray(f.correctAnswers) ? f.correctAnswers.join(', ') : f.correctAnswer
+      // only checkbox questions keep their answers in correctAnswers; MCQ/dropdown use correctAnswer
+      // (correctAnswers is an empty [] for those, which made "Correct answer:" show blank)
+      correctAnswer: f.type === 'checkbox' ? (f.correctAnswers || []).join(', ') : (f.correctAnswer || '')
     });
   });
   return { score, totalPossible, review };

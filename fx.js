@@ -54,3 +54,30 @@
   setTimeout(function(){d.querySelectorAll('.fx-rv:not(.fx-in)').forEach(function(el){var r=el.getBoundingClientRect();if(r.top<window.innerHeight)el.classList.add('fx-in')})},4000);
  }catch(e){}
 })();
+
+(function(){
+ try{
+  var d=document;
+  /* tap ripple on buttons */
+  d.addEventListener('pointerdown',function(e){
+   var b=e.target.closest&&e.target.closest('.btn-pri,.btn-out,.save-btn,.add-btn');
+   if(!b)return;
+   var r=b.getBoundingClientRect(),s=Math.max(r.width,r.height)*2,el=d.createElement('span');
+   el.className='fx-ripple';el.style.width=el.style.height=s+'px';
+   el.style.left=(e.clientX-r.left-s/2)+'px';el.style.top=(e.clientY-r.top-s/2)+'px';
+   b.appendChild(el);setTimeout(function(){el.remove()},650);
+  },{passive:true});
+  /* gentle 3D tilt on cards (mouse devices only) */
+  if(!window.matchMedia||!matchMedia('(hover:hover) and (pointer:fine)').matches||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  d.addEventListener('mousemove',function(e){
+   var c=e.target.closest&&e.target.closest('.o-card,.team-card,.explore-card');
+   if(!c)return;
+   var r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+   c.classList.add('fx-tilt');c.style.transform='perspective(800px) rotateX('+(-y*5).toFixed(2)+'deg) rotateY('+(x*6).toFixed(2)+'deg) translateY(-3px)';
+  },{passive:true});
+  d.addEventListener('mouseout',function(e){
+   var c=e.target.closest&&e.target.closest('.fx-tilt');
+   if(c&&!c.contains(e.relatedTarget))c.style.transform='';
+  },{passive:true});
+ }catch(e){}
+})();

@@ -978,7 +978,7 @@ async function saveRegistrationSettings() {
 async function loadFounderSettingsUI() {
   if(typeof getFounderSettings !== 'function') return;
   const f = await getFounderSettings();
-  const m = { 'fs-name': f.name, 'fs-title': f.title, 'fs-bio': f.bio, 'fs-photo': f.photo, 'fs-facebook': f.facebook, 'fs-linkedin': f.linkedin };
+  const m = { 'fs-name': f.name, 'fs-title': f.title, 'fs-bio': f.bio, 'fs-photo': f.photo, 'fs-facebook': f.facebook, 'fs-linkedin': f.linkedin, 'fs-website': f.website };
   Object.entries(m).forEach(([id, val]) => { const el = document.getElementById(id); if(el) el.value = val || ''; });
   const en = document.getElementById('fs-enabled'); if(en) en.checked = f.enabled || false;
   const prev = document.getElementById('fs-photo-prev');
@@ -997,7 +997,8 @@ async function saveFounderSettingsUI() {
     enabled, name, title, bio,
     photo: document.getElementById('fs-photo')?.value.trim() || '',
     facebook: document.getElementById('fs-facebook')?.value.trim() || '',
-    linkedin: document.getElementById('fs-linkedin')?.value.trim() || ''
+    linkedin: document.getElementById('fs-linkedin')?.value.trim() || '',
+    website: document.getElementById('fs-website')?.value.trim() || ''
   };
   if(await updateFounderSettings(data)) toast("Saved! ✅");
   else toast("Failed to save.", true);

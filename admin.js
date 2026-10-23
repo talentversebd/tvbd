@@ -888,7 +888,7 @@ async function previewCertificate(id) {
   const shell = inner => `
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:18px;width:100%;max-width:640px;max-height:92vh;overflow:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <h3 style="font-family:Montserrat;font-size:1.02rem;">🎓 ${bcEsc(c.certId)}</h3>
+        <h3 style="font-family:var(--display);font-size:1.02rem;">🎓 ${bcEsc(c.certId)}</h3>
         <button onclick="closeUserOverlay('cert-prev-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>${inner}</div>`;
   openUserOverlay('cert-prev-ov', shell('<p style="color:var(--muted);padding:20px 0;text-align:center;">Generating…</p>'));
@@ -925,7 +925,7 @@ function viewCertificate(id) {
     <div style="text-align:center;padding:10px;">
       <div style="background:rgba(37,99,235,.1);border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
         <div style="font-size:2.5rem;margin-bottom:8px;">✅</div>
-        <h3 style="font-family:Montserrat;color:#4ade80;">Certificate Verified</h3>
+        <h3 style="font-family:var(--display);color:#4ade80;">Certificate Verified</h3>
       </div>
       <div style="text-align:left;background:var(--card2);border-radius:10px;padding:16px;margin-bottom:20px;">
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);"><span style="color:var(--muted);">🆔 ID</span><strong style="color:var(--blue-br);font-family:monospace;">${c.certId}</strong></div>
@@ -934,7 +934,7 @@ function viewCertificate(id) {
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);"><span style="color:var(--muted);">🥇 Position</span><strong style="color:#4ade80;">${c.position}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;"><span style="color:var(--muted);">📅 Date</span><strong>${c.issueDate}</strong></div>
       </div>
-      <h4 style="font-family:Montserrat;margin-bottom:12px;">📱 QR Code</h4>
+      <h4 style="font-family:var(--display);margin-bottom:12px;">📱 QR Code</h4>
       <div style="background:#fff;padding:16px;border-radius:12px;display:inline-block;margin-bottom:16px;">
         <img src="${qrUrl}" style="width:200px;height:200px;">
       </div>
@@ -1111,7 +1111,7 @@ function viewRegisteredUser(id) {
   openUserOverlay('user-detail-ov', `
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:88vh;overflow:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <h3 style="font-family:Montserrat;font-size:1.05rem;">👤 User Profile</h3>
+        <h3 style="font-family:var(--display);font-size:1.05rem;">👤 User Profile</h3>
         <button onclick="closeUserOverlay('user-detail-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
       <div style="display:flex;justify-content:center;margin-bottom:12px;">${userAvatar(u, 96)}</div>
@@ -1169,7 +1169,7 @@ async function openMemberAccess(uid) {
   openUserOverlay('member-access-ov', `
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:90vh;overflow:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <h3 style="font-family:Montserrat;font-size:1.05rem;">🔑 Manage Access</h3>
+        <h3 style="font-family:var(--display);font-size:1.05rem;">🔑 Manage Access</h3>
         <button onclick="closeUserOverlay('member-access-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
       <p style="font-size:.85rem;margin-bottom:4px;"><strong>${escUser(name)}</strong> · <span style="font-family:monospace;">${escUser(u.memberCode)}</span></p>
@@ -1266,7 +1266,7 @@ async function openPublishResults() {
   openUserOverlay('pub-res-ov', `
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:20px;width:100%;max-width:520px;max-height:92vh;overflow:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <h3 style="font-family:Montserrat;font-size:1.05rem;">🏆 Publish Results</h3>
+        <h3 style="font-family:var(--display);font-size:1.05rem;">🏆 Publish Results</h3>
         <button onclick="closeUserOverlay('pub-res-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
       <p style="font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:12px;">Publish করলে প্রতিটা অংশগ্রহণকারী নিজের ড্যাশবোর্ডে স্কোর, পজিশন ও র‍্যাংক দেখবে, আর Results পেজে সেরা N জনের তালিকা সবার জন্য খুলে যাবে। শুধু গ্রেড করা সাবমিশন র‍্যাংকে ধরা হয় (স্কোর সমান হলে যে কম সময়ে শেষ করেছে সে এগিয়ে)।</p>
@@ -1351,7 +1351,7 @@ async function openCertTemplate(targetId) {
   openUserOverlay('cert-tpl-ov', `
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:18px;width:100%;max-width:680px;max-height:94vh;overflow:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <h3 style="font-family:Montserrat;font-size:1.05rem;">🖼 Certificate Template</h3>
+        <h3 style="font-family:var(--display);font-size:1.05rem;">🖼 Certificate Template</h3>
         <button onclick="closeUserOverlay('cert-tpl-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
       <p style="font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:10px;">১) সার্টিফিকেটের ছবি আপলোড করুন। ২) Name / Verify ID / QR বেছে ছবির যেখানে বসাতে চান সেখানে ট্যাপ করুন। ৩) Save করুন।</p>
@@ -1538,7 +1538,7 @@ function openBulkCert() {
   openUserOverlay('bulk-cert-ov', `
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:20px;width:100%;max-width:640px;max-height:92vh;overflow:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h3 style="font-family:Montserrat;font-size:1.05rem;">⚡ Bulk Certificate Generator</h3>
+        <h3 style="font-family:var(--display);font-size:1.05rem;">⚡ Bulk Certificate Generator</h3>
         <button onclick="closeUserOverlay('bulk-cert-ov')" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
       </div>
 
@@ -1733,7 +1733,7 @@ function bulkShowResult() {
   openUserOverlay('bulk-cert-ov', `
     <div style="background:var(--bg,#0b1220);color:var(--txt);border:1px solid var(--bdr2);border-radius:14px;padding:22px;width:100%;max-width:440px;max-height:90vh;overflow:auto;text-align:center;">
       <div style="font-size:2.4rem;margin-bottom:6px;">✅</div>
-      <h3 style="font-family:Montserrat;font-size:1.05rem;margin-bottom:8px;">${bulkCreated.length}টা সার্টিফিকেট তৈরি হয়েছে</h3>
+      <h3 style="font-family:var(--display);font-size:1.05rem;margin-bottom:8px;">${bulkCreated.length}টা সার্টিফিকেট তৈরি হয়েছে</h3>
       <p style="font-size:.82rem;color:var(--muted);line-height:1.7;">প্রতিটা সার্টিফিকেটে নাম, Verify ID ও QR কোড নিজে থেকে বসানো আছে। ${parts > 1 ? 'ফোনে ভারী না হওয়ার জন্য ৪০টা করে ZIP আলাদা করা হয়েছে।' : ''}</p>
       ${btns}
       <button class="e-btn" style="width:100%;margin-top:14px;padding:10px;" onclick="closeUserOverlay('bulk-cert-ov')">Done</button>
@@ -2932,7 +2932,7 @@ function viewCa(code) {
   const rowsHtml = list.length ? list.map(r => `<tr><td>${bcEsc(r.name)}</td><td>${bcEsc(r.olympiad)}</td><td>${bcEsc(r.school || '—')}</td><td>${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''}</td></tr>`).join('')
     : '<tr><td colspan="4" style="color:var(--muted);">এখনো কেউ নেই।</td></tr>';
   openUserOverlay('ca-overlay', `<div style="background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:22px;max-width:640px;width:100%;max-height:86vh;overflow:auto;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h3 style="font-family:Montserrat;">🎓 ${bcEsc(c.name)} <small style="font-family:monospace;color:var(--muted);">${bcEsc(code)}</small></h3><button class="d-btn" onclick="closeUserOverlay('ca-overlay')">✕</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h3 style="font-family:var(--display);">🎓 ${bcEsc(c.name)} <small style="font-family:monospace;color:var(--muted);">${bcEsc(code)}</small></h3><button class="d-btn" onclick="closeUserOverlay('ca-overlay')">✕</button></div>
     <div style="margin-bottom:12px;font-size:.85rem;">মোট রেজিস্ট্রেশন: <strong>${list.length}</strong></div><div style="margin-bottom:12px;">${evHtml}</div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Event</th><th>School</th><th>Date</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></div>`);
 }

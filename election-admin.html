@@ -14,15 +14,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=56">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=59">
 <style>
 #adm-wrap{position:fixed;inset:0;z-index:4000;display:flex;flex-direction:column;background:var(--bg)}
 .adm-login{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(37,99,235,.12) 0%,transparent 70%),var(--bg)}
 .login-box{background:var(--card);border:1px solid var(--bdr2);border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:var(--glow);text-align:center}
 @media(max-width:440px){.login-box{padding:28px 20px;margin:0 12px}}
 .login-box img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-br);margin-bottom:14px;background:#fff}
-.login-box h2{font-family:Montserrat;font-size:1.3rem;font-weight:800;margin-bottom:5px}
+.login-box h2{font-family:var(--display);font-size:1.3rem;font-weight:600;margin-bottom:5px}
 .login-box .ls{color:var(--muted);font-size:.83rem;margin-bottom:22px}
 .lbl{display:block;font-size:.77rem;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.05em;text-align:left}
 .inp{width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);padding:10px 13px;border-radius:8px;font-size:.9rem;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:14px}
@@ -32,7 +32,7 @@
 .adm-shell{display:flex;flex:1;height:100%;overflow:hidden}
 .adm-sb{width:220px;flex-shrink:0;background:var(--card);border-right:1px solid var(--bdr);display:flex;flex-direction:column;height:100%;overflow-y:auto;transition:transform .3s}
 .adm-sb-head{padding:18px 16px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px}
-.adm-sb-head span{font-family:Montserrat;font-size:.88rem;font-weight:800}
+.adm-sb-head span{font-family:var(--display);font-size:.88rem;font-weight:600}
 .adm-nav{flex:1;padding:14px 10px;overflow-y:auto}
 .adm-nb{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;color:var(--muted);padding:9px 10px;border-radius:7px;cursor:pointer;font-size:.85rem;font-weight:500;transition:background .15s,color .15s;text-align:left;white-space:nowrap}
 .adm-nb:hover,.adm-nb.active{background:rgba(59,130,246,.1);color:var(--txt)}
@@ -46,7 +46,7 @@
 .adm-main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
 .adm-topbar{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--bdr);background:var(--card);flex-shrink:0;flex-wrap:wrap}
 .menu-toggle-btn{background:none;border:1px solid var(--bdr);color:var(--txt);padding:7px 10px;border-radius:7px;cursor:pointer;font-size:1rem;flex-shrink:0;display:none}
-.adm-page-title{font-family:Montserrat;font-size:1.2rem;font-weight:800;flex:1}
+.adm-page-title{font-family:var(--display);font-size:1.2rem;font-weight:600;flex:1}
 .add-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:.83rem;font-weight:700;cursor:pointer;box-shadow:var(--glow);white-space:nowrap}
 .save-btn{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:.83rem;font-weight:700;cursor:pointer;white-space:nowrap}
 .adm-sec{display:none;padding:20px;flex:1}
@@ -54,7 +54,7 @@
 .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:22px}
 .stat-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r2);padding:18px}
 .stat-card .sl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:7px}
-.stat-card .sv{font-family:Montserrat;font-size:1.9rem;font-weight:800;color:var(--blue-br)}
+.stat-card .sv{font-family:var(--display);font-size:1.9rem;font-weight:600;color:var(--blue-br)}
 .tbl-wrap{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;overflow-x:auto}
 .tbl{width:100%;border-collapse:collapse;min-width:480px}
 .tbl th{background:var(--card2);color:var(--muted);font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:11px 14px;text-align:left;border-bottom:1px solid var(--bdr);white-space:nowrap}
@@ -73,7 +73,7 @@
 @media(max-width:500px){.fm{padding:18px 14px;border-radius:10px}}
 .fm-ov.open .fm{transform:translateY(0)}
 .fm-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.fm-head h3{font-family:Montserrat;font-size:1.1rem;font-weight:800}
+.fm-head h3{font-family:var(--display);font-size:1.1rem;font-weight:600}
 .fm-head button{background:none;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer}
 .fg{margin-bottom:15px}
 .fg label{display:block;font-size:.76rem;font-weight:600;color:var(--muted);margin-bottom:6px}
@@ -90,13 +90,13 @@ textarea.fi{min-height:80px;resize:vertical}
 .chk-wrap input[type="checkbox"]{width:18px;height:18px;cursor:pointer;accent-color:var(--blue-br)}
 .chk-wrap label{margin:0;font-size:.85rem;color:var(--txt);cursor:pointer}
 .res-group{margin-bottom:26px}
-.res-pos{font-family:Montserrat;font-weight:800;font-size:1rem;margin-bottom:12px;color:var(--blue-br)}
+.res-pos{font-family:var(--display);font-weight:600;font-size:1rem;margin-bottom:12px;color:var(--blue-br)}
 .res-row{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:10px 14px;margin-bottom:8px}
 .res-row img{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0}
 .res-name{flex:1;font-weight:600;font-size:.88rem}
 .res-bar-wrap{flex:2;background:var(--card);border-radius:6px;height:8px;overflow:hidden;min-width:80px}
 .res-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-br));border-radius:6px}
-.res-count{font-family:Montserrat;font-weight:800;color:var(--blue-br);min-width:70px;text-align:right;font-size:.85rem}
+.res-count{font-family:var(--display);font-weight:600;color:var(--blue-br);min-width:70px;text-align:right;font-size:.85rem}
 .st-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:capitalize;white-space:nowrap}
 .st-pending{background:rgba(234,179,8,.14);color:#eab308}
 .st-approved{background:rgba(74,222,128,.14);color:#4ade80}
@@ -218,7 +218,7 @@ textarea.fi{min-height:80px;resize:vertical}
       <div class="adm-sec" id="set-adm">
         <div class="set-wrap">
           <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;">
-            <h3 style="font-family:Montserrat;font-size:1.1rem;font-weight:800;margin-bottom:6px;">🗳️ Election Settings</h3>
+            <h3 style="font-family:var(--display);font-size:1.1rem;font-weight:600;margin-bottom:6px;">🗳️ Election Settings</h3>
             <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">Control when the public voting link (vote.html) is open.</p>
 
             <div class="chk-wrap" style="margin-bottom:16px;">
@@ -239,7 +239,7 @@ textarea.fi{min-height:80px;resize:vertical}
           </div>
 
           <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-top:20px;">
-            <h3 style="font-family:Montserrat;font-size:1.1rem;font-weight:800;margin-bottom:6px;">🧾 Nomination Settings</h3>
+            <h3 style="font-family:var(--display);font-size:1.1rem;font-weight:600;margin-bottom:6px;">🧾 Nomination Settings</h3>
             <p style="color:var(--muted);font-size:.83rem;margin-bottom:20px;line-height:1.6;">Control when the public self-nomination link (nomination.html) is open. Submitted nominations show up under the Nominations tab for your review.</p>
 
             <div class="chk-wrap" style="margin-bottom:16px;">
@@ -262,7 +262,7 @@ textarea.fi{min-height:80px;resize:vertical}
           </div>
 
           <div style="background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:24px;margin-top:20px;">
-            <h3 style="font-family:Montserrat;font-size:1rem;font-weight:800;margin-bottom:6px;">🔄 Election Rounds</h3>
+            <h3 style="font-family:var(--display);font-size:1rem;font-weight:600;margin-bottom:6px;">🔄 Election Rounds</h3>
             <p style="color:var(--muted);font-size:.83rem;margin-bottom:14px;line-height:1.6;">
               This election's current round: <strong style="color:var(--txt);" id="es-round-id">—</strong><br>
               Running a brand new election later (e.g. next year, or a different vote)? Starting a new round lets <strong style="color:var(--txt);">everyone vote again</strong> — including people who already voted this round. Nothing is deleted; past voter lists and results stay saved under their own round and simply stop showing here once you start a new one.

@@ -35,8 +35,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=58">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=59">
 <link rel="stylesheet" href="loader.css">
 </head>
 <body>
@@ -144,7 +144,7 @@
           <input type="file" id="db-photo-file" accept="image/*" style="display:none;" onchange="dbUploadPhoto(this)">
         </div>
         <div style="flex:1;min-width:180px;">
-          <div id="db-fullname" style="font-family:Montserrat;font-weight:800;font-size:1.25rem;color:var(--txt);">Loading...</div>
+          <div id="db-fullname" style="font-family:var(--display);font-weight:600;font-size:1.25rem;color:var(--txt);">Loading...</div>
           <div id="db-username" style="color:var(--blue-br);font-size:.85rem;font-weight:600;margin-top:2px;"></div>
           <div id="db-institution-line" style="color:var(--muted);font-size:.85rem;margin-top:2px;"></div>
           <div id="db-memberid-wrap" style="display:none;margin-top:10px;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -170,7 +170,7 @@
       <!-- PERSONAL INFORMATION -->
       <div style="background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:22px;margin-bottom:20px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-          <h3 style="font-family:Montserrat;font-weight:800;font-size:1rem;color:var(--txt);">Personal Information</h3>
+          <h3 style="font-family:var(--display);font-weight:600;font-size:1rem;color:var(--txt);">Personal Information</h3>
           <button onclick="dbOpenEdit()" style="background:none;border:none;color:var(--blue-br);font-size:.85rem;font-weight:600;cursor:pointer;">✏️ Edit Profile</button>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;" id="db-personal-grid"></div>
@@ -178,20 +178,20 @@
 
       <!-- ACADEMIC INFORMATION -->
       <div style="background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:22px;margin-bottom:20px;">
-        <h3 style="font-family:Montserrat;font-weight:800;font-size:1rem;color:var(--txt);margin-bottom:16px;">Academic Information</h3>
+        <h3 style="font-family:var(--display);font-weight:600;font-size:1rem;color:var(--txt);margin-bottom:16px;">Academic Information</h3>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;" id="db-academic-grid"></div>
       </div>
       </div>
 
       <!-- MY EVENTS -->
       <div id="events" style="scroll-margin-top:90px;">
-      <h3 style="font-family:Montserrat;font-weight:800;font-size:1.1rem;margin-bottom:14px;color:var(--txt);">🎟️ My Events</h3>
+      <h3 style="font-family:var(--display);font-weight:600;font-size:1.1rem;margin-bottom:14px;color:var(--txt);">🎟️ My Events</h3>
       <div id="db-events-list"></div>
       </div>
 
       <!-- MY RESULTS -->
       <div id="results" style="scroll-margin-top:90px;margin-top:20px;">
-      <h3 style="font-family:Montserrat;font-weight:800;font-size:1.1rem;margin-bottom:14px;color:var(--txt);">📊 My Quiz Results</h3>
+      <h3 style="font-family:var(--display);font-weight:600;font-size:1.1rem;margin-bottom:14px;color:var(--txt);">📊 My Quiz Results</h3>
       <div id="db-results-list"></div>
       </div>
     </div>
@@ -200,7 +200,7 @@
     <div id="db-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)dbCloseEdit()">
       <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:16px;padding:26px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-          <h3 style="font-family:Montserrat;font-weight:800;color:var(--txt);">Edit Profile</h3>
+          <h3 style="font-family:var(--display);font-weight:600;color:var(--txt);">Edit Profile</h3>
           <button onclick="dbCloseEdit()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
         </div>
 
@@ -238,7 +238,7 @@
 
     <div id="db-guest" style="display:none;text-align:center;padding:60px 20px;">
       <div style="font-size:2.6rem;margin-bottom:12px;">🔒</div>
-      <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:10px;color:var(--txt);">Please Log In</h3>
+      <h3 style="font-family:var(--display);font-weight:600;margin-bottom:10px;color:var(--txt);">Please Log In</h3>
       <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px;">You need to be logged in to view your dashboard.</p>
       <a href="account.html" class="btn-pri">Log In →</a>
     </div>
@@ -775,7 +775,7 @@ async function dbLoadDashboard(user) {
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.58) 48%,rgba(0,0,0,.08) 100%);"></div>
         ${o && o.cat ? `<span style="position:absolute;top:16px;left:16px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff;border-radius:999px;padding:7px 14px;font-size:.74rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;">${esc(o.cat)}</span>` : ''}
         <div style="position:relative;padding:20px;">
-          <h4 style="color:#fff;font-family:Montserrat;font-weight:800;font-size:1.4rem;line-height:1.25;margin-bottom:12px;">${esc(r.olympiad || 'Event')}</h4>
+          <h4 style="color:#fff;font-family:var(--display);font-weight:600;font-size:1.4rem;line-height:1.25;margin-bottom:12px;">${esc(r.olympiad || 'Event')}</h4>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
             ${dateTxt ? `<span style="${chip}">📅 ${dateTxt}</span>` : ''}
             ${r._certOnly ? '' : apChip}

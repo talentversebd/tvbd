@@ -26,13 +26,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=58">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=59">
 <style>
 .vt-container{max-width:720px;margin:0 auto;padding:0 16px;}
 .vt-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:32px;box-shadow:var(--glow);}
 @media(max-width:500px){.vt-card{padding:22px 18px;}}
-.vt-card h2{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:8px;}
+.vt-card h2{font-family:var(--display);font-size:1.4rem;font-weight:600;margin-bottom:8px;}
 .vt-card h2 span{color:var(--blue-br);}
 .vt-fg{margin-bottom:15px;}
 .vt-fg label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:6px;}
@@ -48,7 +48,7 @@
 .vt-hidden{display:none;}
 
 .vt-pos-group{margin-bottom:26px;}
-.vt-pos-title{font-family:Montserrat;font-weight:800;font-size:1.05rem;margin-bottom:4px;color:var(--blue-br);}
+.vt-pos-title{font-family:var(--display);font-weight:600;font-size:1.05rem;margin-bottom:4px;color:var(--blue-br);}
 .vt-pos-hint{font-size:.78rem;color:var(--muted);margin-bottom:14px;}
 .vt-opt{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--bdr);border-radius:11px;padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:border-color .15s,background .15s;}
 .vt-opt:hover{border-color:var(--bdr2);}
@@ -67,7 +67,7 @@
 
 .vt-result{text-align:center;padding:20px;}
 .vt-result .ri{font-size:4rem;margin-bottom:16px;}
-.vt-result h2{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;}
+.vt-result h2{font-family:var(--display);font-size:1.4rem;font-weight:600;margin-bottom:10px;}
 .vt-sched{font-size:.78rem;color:var(--lblue);margin-top:10px;}
 </style>
 <link rel="stylesheet" href="loader.css">
@@ -110,7 +110,7 @@
     <div id="vt-view-closed" class="vt-hidden">
       <div class="vt-card vt-empty">
         <div class="ei" id="vt-closed-icon">🔒</div>
-        <h3 style="font-family:Montserrat;font-weight:800;margin-bottom:8px;color:var(--txt);" id="vt-closed-title">Voting Not Open</h3>
+        <h3 style="font-family:var(--display);font-weight:600;margin-bottom:8px;color:var(--txt);" id="vt-closed-title">Voting Not Open</h3>
         <p id="vt-closed-msg">Voting is not currently open. Please check back later.</p>
         <p style="font-size:.82rem;margin-top:16px;"><a href="nomination.html" style="color:var(--blue-br);font-weight:600;">Want to run for a position? Submit a nomination →</a></p>
       </div>

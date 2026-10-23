@@ -53,7 +53,7 @@
 
 .tvbd-loader-text{text-align:center;}
 .tvbd-loader-text h1{
-  font-family:Montserrat,sans-serif;font-weight:800;
+  font-family:var(--display);font-weight:600;
   font-size:clamp(1.05rem,4.2vw,1.5rem);letter-spacing:.14em;
   color:var(--txt,#eef2ff);margin:0;
   opacity:0;transform:translateY(10px);

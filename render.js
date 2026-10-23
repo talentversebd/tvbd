@@ -255,7 +255,7 @@ function renderInlineRegistration(o, prefixHtml) {
   if(!o.regEnabled || o.status === 'past') { reg.innerHTML = prefixHtml; return; }
   if(isRegDeadlinePassed(o)) { reg.innerHTML = prefixHtml + `<div class="modal-reg-section" style="text-align:center;"><p style="color:#f87171;font-weight:600;">⛔ Registration closed — the deadline has passed.</p></div>`; return; }
 
-  const sectionHead = `<h4 style="font-family:Montserrat;font-weight:800;margin:4px 0 14px;">📝 Registration</h4>`;
+  const sectionHead = `<h4 style="font-family:var(--display);font-weight:600;margin:4px 0 14px;">📝 Registration</h4>`;
   const user = window.firebaseAuth && window.firebaseAuth.currentUser;
 
   if(!user || !user.emailVerified) {
@@ -346,7 +346,7 @@ function renderCustomRegFields(fields) {
   return fields.map(f => {
     if(f.type === 'section') {
       return `<div style="padding:14px 0 6px;border-top:1px solid var(--bdr);margin-top:10px;">
-        <h4 style="font-family:Montserrat;font-weight:800;color:var(--blue-br);margin-bottom:4px;">${f.label}</h4>
+        <h4 style="font-family:var(--display);font-weight:600;color:var(--blue-br);margin-bottom:4px;">${f.label}</h4>
         ${f.description ? `<p style="color:var(--muted);font-size:.85rem;">${f.description}</p>` : ''}
       </div>`;
     }

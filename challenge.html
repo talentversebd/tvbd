@@ -25,8 +25,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=58">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=59">
 <style>
 .dept-group{margin-bottom:44px;}
 .dept-group:last-child{margin-bottom:0;}
@@ -41,7 +41,7 @@
   display:flex;align-items:center;justify-content:center;font-size:1.3rem;
   box-shadow:0 4px 14px rgba(37,99,235,.3);
 }
-.dept-name{font-family:Montserrat;font-weight:800;font-size:1.15rem;color:var(--txt);flex:1;}
+.dept-name{font-family:var(--display);font-weight:600;font-size:1.15rem;color:var(--txt);flex:1;}
 .dept-count{
   background:rgba(37,99,235,.12);color:var(--lblue);
   font-size:.78rem;font-weight:700;padding:6px 14px;border-radius:50px;
@@ -181,7 +181,7 @@
   letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;
   border-radius:20px;margin-bottom:8px;
 }
-.tm-modal-name{font-family:Montserrat;font-size:1.25rem;font-weight:800}
+.tm-modal-name{font-family:var(--display);font-size:1.25rem;font-weight:600}
 .tm-modal-role{color:var(--blue-br);font-size:.9rem;font-weight:600;margin-top:2px}
 .tm-modal.special-modal .tm-modal-role{color:#a78bfa}
 .tm-modal-dept{
@@ -191,7 +191,7 @@
 }
 .tm-modal-bio{color:var(--muted);font-size:.87rem;line-height:1.8;margin-top:16px;text-align:left;white-space:pre-line}
 .team-empty .icon{font-size:4rem;margin-bottom:16px;}
-.team-empty h3{font-family:Montserrat;font-size:1.4rem;font-weight:800;margin-bottom:10px;color:var(--txt);}
+.team-empty h3{font-family:var(--display);font-size:1.4rem;font-weight:600;margin-bottom:10px;color:var(--txt);}
 .team-empty p{font-size:.95rem;line-height:1.7;max-width:400px;margin:0 auto;}
 </style>
 <link rel="stylesheet" href="loader.css">
@@ -199,7 +199,7 @@
 .ch-wrap{max-width:640px;margin:0 auto;padding:0 16px}
 .ch-top{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .ch-stat{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:14px 8px;text-align:center}
-.ch-stat b{display:block;font-family:Montserrat;font-size:1.5rem}.ch-stat span{font-size:.72rem;color:var(--muted)}
+.ch-stat b{display:block;font-family:var(--display);font-size:1.5rem}.ch-stat span{font-size:.72rem;color:var(--muted)}
 .ch-tabs{display:flex;gap:8px;margin-bottom:14px}
 .ch-tab{flex:1;padding:12px 8px;border-radius:12px;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-weight:700;font-size:.9rem;cursor:pointer;font-family:inherit}
 .ch-tab.on{background:linear-gradient(135deg,var(--blue),var(--blue-dk));border-color:transparent;color:#fff}
@@ -440,7 +440,7 @@ async function chBoard(mode){
   var t=L(), el=document.getElementById('ch-board'); if(!el) return;
   var rows=await loadStreakBoard(CH.board);
   var key=CH.board==='points'?'points':'best';
-  el.innerHTML='<h3 style="font-family:Montserrat;margin-bottom:10px">'+t.board+'</h3>'+
+  el.innerHTML='<h3 style="font-family:var(--display);margin-bottom:10px">'+t.board+'</h3>'+
    '<div class="ch-tabs"><button class="ch-tab'+(key==='best'?' on':'')+'" onclick="chBoard(\'best\')">'+t.bBest+'</button><button class="ch-tab'+(key==='points'?' on':'')+'" onclick="chBoard(\'points\')">'+t.bPts+'</button></div>'+
    (rows.length?rows.map(function(r,i){return '<div class="ch-row"><span>'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.')+' '+chEsc(r.name)+(r.uid===CH.user.uid?' <b>'+t.you+'</b>':'')+'</span><b>'+(key==='points'?(r.points||0)+' pts':'🔥 '+(r.best||0))+'</b></div>';}).join(''):'<div class="ch-msg">'+t.empty+'</div>');
 }

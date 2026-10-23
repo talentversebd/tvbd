@@ -1,5 +1,5 @@
 // TalentVerse PWA service worker (v1)
-const CACHE='tvbd-shell-v2';
+const CACHE='tvbd-shell-v3';
 const SHELL=['./','index.html','style.css','logo.jpg','icon-192.png','offline.html'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>Promise.all(SHELL.map(u=>c.add(u).catch(()=>{})))).then(()=>self.skipWaiting()));

@@ -2419,9 +2419,16 @@ const I18N_PAIRS = [
       MONTHS.forEach(([sh, bn]) => { t = t.replace(new RegExp('\\b' + sh + '\\b', 'g'), bn); });
       return toBnDigits(t);
     }
-    if (!/[জানুয়ারি|ফেব্রুয়ারি|মার্চ|এপ্রিল|জুন|জুলাই|আগস্ট|সেপ্টেম্বর|অক্টোবর|নভেম্বর|ডিসেম্বর]/.test(s)) return s;
+    // Only touch real dates: the text must contain a Bengali digit, and a Bengali month name
+    // counts only as a WHOLE word. (Plain substring matching turned the "মে" inside words like
+    // "ইসলামের" / "নামে" into "May".)
+    if (!/[০-৯]/.test(s)) return s;
     let t = s, hit = false;
-    MONTHS.forEach(([sh, bn]) => { if (t.indexOf(bn) !== -1) { hit = true; t = t.split(bn).join(sh); } });
+    const B = '\\u0980-\\u09FF';
+    MONTHS.forEach(([sh, bn]) => {
+      const re = new RegExp('(?<![' + B + '])' + bn + '(?![' + B + '])', 'g');
+      if (re.test(t)) { hit = true; t = t.replace(re, sh); }
+    });
     if (!hit) return s;
     return toEnDigits(t);
   }

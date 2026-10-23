@@ -16,7 +16,7 @@
   }
   window.addEventListener('scroll',onScroll,{passive:true});
   if(rm||!('IntersectionObserver' in window))return;
-  var SEL='.sec-hd,.explore-card,.o-card,.stat-card,.team-card,.news-card,.reg-card,.vt-card,.verify-card,.pf-card,.res-card,.post-card,.f-col,.founder-card,.h-stat,.vl-card,.af,.form-card';
+  var SEL='.sec-hd,.explore-card,.o-card,.stat-card,.team-card,.news-card,.reg-card,.vt-card,.verify-card,.pf-card,.res-card,.post-card,.f-col,.founder-card,.h-stat,.vl-card,.af,.form-card,.c-info-item,.nm-card,.inv-card,.ch-card,.qz-card,.qz-card-lg,.fp-card,.fo-new-card,.rh-card,.ch-row';
   d.documentElement.classList.add('fx-ready');
   var io=new IntersectionObserver(function(es){
    es.forEach(function(e){

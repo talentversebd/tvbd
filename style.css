@@ -1093,3 +1093,45 @@ body.has-bnav #bnav a.on::after{content:"";position:absolute;top:2px;left:50%;wi
 .founder-card .founder-msg-text{color:#e8ebf4}
 .founder-card:hover{box-shadow:0 26px 70px rgba(0,0,0,.55),0 0 110px rgba(255,190,40,.3)!important}
 @media(max-width:760px){.founder-body{border-top-color:rgba(255,201,60,.4)!important}}
+
+/* ===== v62 inner pages premium (events, team, news, resources, forum, account, challenge, leaderboard, contact, volunteer, quiz, register, verify, vote, nomination …) ===== */
+/* page headers: moving blue light + glossy title + growing underline */
+.page-header{position:relative;overflow:hidden;isolation:isolate}
+.page-header::before,.page-header::after{content:"";position:absolute;z-index:-1;border-radius:50%;filter:blur(64px);pointer-events:none}
+.page-header::before{width:300px;height:300px;left:-60px;top:-40px;background:rgba(31,107,242,.34);animation:fxFloat 13s ease-in-out infinite}
+.page-header::after{width:260px;height:260px;right:-50px;top:30px;background:rgba(56,189,248,.2);animation:fxFloat 16s ease-in-out -5s infinite reverse}
+.page-header h1{background:linear-gradient(180deg,#fff 30%,#b9d3ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:v57Rise .8s cubic-bezier(.2,.7,.2,1) .1s both;position:relative;padding-bottom:16px}
+.page-header h1::after{content:"";position:absolute;left:50%;bottom:0;width:70px;height:3px;border-radius:3px;transform:translateX(-50%);background:linear-gradient(90deg,transparent,#3b82f6,#38bdf8,transparent);animation:v62Grow 1s cubic-bezier(.2,.7,.2,1) .5s both}
+@keyframes v62Grow{from{width:0;opacity:0}to{width:70px;opacity:1}}
+.page-header .eyebrow{animation:v57Rise .7s cubic-bezier(.2,.7,.2,1) both}
+.page-header p{animation:v57Rise .8s cubic-bezier(.2,.7,.2,1) .25s both}
+/* all panels / cards on inner pages: glass finish + blue glow when touched */
+.vt-card,.verify-card,.reg-card,.nm-card,.inv-card,.ch-card,.vl-card,.qz-card,.qz-card-lg,.qz-qcard,.fp-card,.fo-new-card,.c-info-item,.rh-card,.form-card,.team-card,.news-card,.res-card,.post-card{background-image:linear-gradient(160deg,rgba(255,255,255,.04),transparent 50%);border:1px solid var(--bdr);border-radius:16px;transition:transform .25s,box-shadow .3s,border-color .3s}
+.vt-card:hover,.verify-card:hover,.reg-card:hover,.nm-card:hover,.inv-card:hover,.ch-card:hover,.vl-card:hover,.qz-card:hover,.c-info-item:hover,.rh-card:hover,.fp-card:hover{border-color:rgba(91,155,255,.5);box-shadow:0 16px 40px -18px rgba(31,107,242,.6)}
+.c-info-item:active,.rh-card:active,.qz-card:active,.post-card:active,.ch-card:active{transform:scale(.985);transition-duration:.1s}
+.c-info-icon,.explore-ico{animation:v62Bob 4.5s ease-in-out infinite}
+@keyframes v62Bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+/* empty-state icons float gently */
+.empty-state .ei,.qz-empty>:first-child,.team-empty>:first-child,.pf-state .ei{display:inline-block;animation:v62Float 3.8s ease-in-out infinite;filter:drop-shadow(0 8px 14px rgba(31,107,242,.35))}
+@keyframes v62Float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+/* tabs & filter pills: active one glows */
+.rh-filter-btn,.fo-tab,.ch-tab,.seg-btn,.filter-btn{transition:background .2s,color .2s,box-shadow .25s,transform .15s,border-color .2s}
+.rh-filter-btn:active,.fo-tab:active,.ch-tab:active{transform:scale(.95)}
+.rh-filter-btn.active,.fo-tab.active,.ch-tab.on{box-shadow:0 6px 20px -6px rgba(31,107,242,.8)}
+/* form fields: roomier, glassy, glow on focus */
+.fi,.pf-input,input[type=text],input[type=email],input[type=password],input[type=tel],input[type=number],input[type=search],select,textarea{border-radius:12px;background-color:rgba(255,255,255,.035);transition:border-color .2s,box-shadow .25s,background-color .2s}
+.fi:focus,.pf-input:focus,input:focus,select:focus,textarea:focus{background-color:rgba(31,107,242,.07)}
+/* leaderboard / list rows: soft hover highlight + rank medals glow */
+.ch-row{transition:background .2s,transform .2s}
+.ch-row:hover{background:rgba(31,107,242,.1);transform:translateX(3px)}
+/* tables */
+table th{letter-spacing:.04em}
+table tbody tr{transition:background .2s}
+table tbody tr:hover{background:rgba(31,107,242,.08)}
+/* quiz: option buttons feel tactile */
+.qz-opt,.pf-opt{transition:border-color .2s,background .2s,transform .12s}
+.qz-opt:active,.pf-opt:active{transform:scale(.985)}
+.qz-opt:hover,.pf-opt:hover{border-color:rgba(91,155,255,.6);background:rgba(31,107,242,.08)}
+/* success / locked big icons */
+.pf-state h2+*,.vt-lock,.nm-lock{filter:none}
+@media(prefers-reduced-motion:reduce){.page-header::before,.page-header::after,.page-header h1,.page-header h1::after,.page-header .eyebrow,.page-header p,.c-info-icon,.explore-ico,.empty-state .ei,.qz-empty>:first-child,.team-empty>:first-child{animation:none!important}.page-header h1::after{width:70px}}

@@ -1076,3 +1076,20 @@ footer::before{content:"";position:absolute;left:0;right:0;top:-1px;height:2px;b
 body.has-bnav #bnav a.on{position:relative}
 body.has-bnav #bnav a.on::after{content:"";position:absolute;top:2px;left:50%;width:18px;height:3px;margin-left:-9px;border-radius:3px;background:#5b9bff;box-shadow:0 0 10px #5b9bff}
 @media(prefers-reduced-motion:reduce){body{animation:none}footer::before{animation:none}.hero-bg{transform:none}}
+
+/* ===== v61 founder: bright true gold (not earthy) ===== */
+#founder-msg,.founder-card,.founder-spotlight,.founder-photo-wrap{--gold:#ffc93c;--gold-dk:#e0a100;--gold-bg:rgba(255,201,60,.14);--gold-bdr:rgba(255,201,60,.5)}
+.founder-card{background-image:linear-gradient(135deg,#0d1424 0%,rgba(255,196,50,.13) 100%)!important;border:1px solid rgba(255,201,60,.55)!important;box-shadow:0 22px 60px rgba(0,0,0,.5),0 0 80px rgba(255,190,40,.18)!important}
+.founder-card::before{background:radial-gradient(circle,rgba(255,200,60,.34),transparent 65%)!important}
+.founder-card::after{background:radial-gradient(circle,rgba(255,170,30,.24),transparent 65%)!important}
+.founder-ring{background:conic-gradient(from var(--v59a),#ffb300,#ffe27a,#fff6c2,#ffc93c,#ff9f0a,#ffb300)!important;animation:v59Spin 6s linear infinite,v61Halo 3.6s ease-in-out infinite}
+@keyframes v61Halo{0%,100%{box-shadow:0 0 26px 3px rgba(255,190,40,.4)}50%{box-shadow:0 0 54px 12px rgba(255,200,60,.72)}}
+.founder-name{background:linear-gradient(100deg,#fff 15%,#ffe27a 50%,#fff 85%)!important;background-size:220% auto!important;-webkit-background-clip:text!important;background-clip:text!important}
+.founder-title{color:#ffd23f!important;text-shadow:0 0 16px rgba(255,200,60,.65)}
+.founder-card .founder-social-btn{background:rgba(255,201,60,.14)!important;border-color:rgba(255,201,60,.55)!important;color:#ffd23f!important}
+.founder-card .founder-social-btn:hover{background:linear-gradient(135deg,#ffd95a,#ffb300)!important;color:#1a1000!important;box-shadow:0 10px 26px -6px rgba(255,190,40,.8)}
+.founder-body{border-left-color:rgba(255,201,60,.4)!important}
+.founder-card .founder-quote-mark,.founder-quote-end{color:#ffc93c!important;text-shadow:0 0 30px rgba(255,200,60,.7)}
+.founder-card .founder-msg-text{color:#e8ebf4}
+.founder-card:hover{box-shadow:0 26px 70px rgba(0,0,0,.55),0 0 110px rgba(255,190,40,.3)!important}
+@media(max-width:760px){.founder-body{border-top-color:rgba(255,201,60,.4)!important}}

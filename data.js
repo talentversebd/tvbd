@@ -2467,7 +2467,7 @@ async function getFounderSettings() {
   await waitForFirebase();
   const { doc, getDoc } = window.firebaseFunctions;
   const db = window.firebaseDB;
-  const defaults = { enabled: false, name: '', title: '', bio: '', photo: '', facebook: '', linkedin: '' };
+  const defaults = { enabled: false, name: '', title: '', bio: '', photo: '', facebook: '', linkedin: '', website: '' };
   try {
     const snap = await getDoc(doc(db, "settings", "founder"));
     if(snap.exists()) return { ...defaults, ...snap.data() };

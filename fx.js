@@ -105,8 +105,17 @@
   if('IntersectionObserver' in window){
    var cio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){cio.unobserve(e.target);countUp(e.target)}})},{threshold:.6});
    var go=function(){d.querySelectorAll('.h-stat .num,.stat-card .num,.stat-num').forEach(function(el){if(!el.dataset.fxn){el.dataset.fxn='1';cio.observe(el)}})};
-   if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',go);else go();
-   setTimeout(go,1500);
+   /* start only after the opening loader/intro has gone */
+   var whenReady=function(fn){
+    var L=d.getElementById('tvbd-loader');
+    var gone=function(){return !L||L.classList.contains('tvbd-hide')||!L.isConnected||getComputedStyle(L).visibility==='hidden'||getComputedStyle(L).display==='none'};
+    if(gone()){fn();return}
+    var done=false,fin=function(){if(done)return;done=true;setTimeout(fn,250)};
+    new MutationObserver(function(){if(gone())fin()}).observe(L,{attributes:true,attributeFilter:['class','style']});
+    setTimeout(function(){if(gone())fin()},6000);
+   };
+   var boot=function(){whenReady(function(){go();setTimeout(go,1200)})};
+   if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',boot);else boot();
   }
   /* gentle parallax on the hero light */
   var hb=null,ticking=false;
@@ -117,5 +126,32 @@
     if(hb){var y=window.scrollY||0;if(y<900)hb.style.setProperty('--fx-py',(y*.18).toFixed(1))}
    });
   },{passive:true});
+ }catch(e){}
+})();
+
+/* footer: keep "Fahad" a green clickable link even after the language script rewrites the line */
+(function(){
+ try{
+  var d=document,URL='https://fahad-abdur-rahman.github.io/ghost-leader/';
+  function fix(){
+   var p=d.querySelector('[data-i18n="f_bottom"]');
+   if(!p||p.querySelector('.dev-link'))return;
+   var w=d.createTreeWalker(p,NodeFilter.SHOW_TEXT,null),n;
+   while((n=w.nextNode())){
+    var i=n.nodeValue.indexOf('Fahad');
+    if(i<0)continue;
+    var after=n.splitText(i),rest=after.splitText(5);
+    var a=d.createElement('a');a.className='dev-link';a.href=URL;a.target='_blank';a.rel='noopener';a.textContent='Fahad';
+    after.parentNode.replaceChild(a,after);
+    break;
+   }
+  }
+  function start(){
+   fix();
+   var p=d.querySelector('[data-i18n="f_bottom"]');
+   if(p)new MutationObserver(fix).observe(p,{childList:true,characterData:true,subtree:true});
+  }
+  if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',start);else start();
+  setTimeout(fix,1500);
  }catch(e){}
 })();

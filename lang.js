@@ -643,7 +643,13 @@ function applyLanguage() {
   // Text content
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    if (dict[key] !== undefined) el.textContent = dict[key];
+    if (dict[key] === undefined) return;
+    if (key === 'f_bottom') {
+      // keep "Fahad" as a clickable green link and the org name highlighted
+      el.innerHTML = String(dict[key]).replace(/&/g, '&amp;')
+        .replace('TalentVerse Bangladesh', '<span>TalentVerse Bangladesh</span>')
+        .replace('Fahad', '<a class="dev-link" href="https://fahad-abdur-rahman.github.io/ghost-leader/" target="_blank" rel="noopener">Fahad</a>');
+    } else el.textContent = dict[key];
   });
 
   // Placeholders

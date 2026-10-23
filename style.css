@@ -1030,7 +1030,7 @@ img{transition:opacity .5s}
 #founder-msg,.founder-card,.founder-spotlight,.founder-photo-wrap{--gold:#d6b46a;--gold-dk:#a98a45;--gold-bg:rgba(214,180,106,.1);--gold-bdr:rgba(214,180,106,.34)}
 @property --v59a{syntax:"<angle>";initial-value:0deg;inherits:false}
 /* slowly turning golden ring around the photo */
-.founder-ring{background:conic-gradient(from var(--v59a),#a98a45,#f2d58a,#fff3c9,#d6b46a,#a98a45)!important;animation:v59Spin 7s linear infinite,v59Halo 4s ease-in-out infinite;position:relative}
+.founder-ring{background:conic-gradient(from var(--v59a),#d6b46a,#f59e0b,#fde68a,#d6b46a)!important;animation:v59Spin 7s linear infinite,v59Halo 4s ease-in-out infinite;position:relative}
 @keyframes v59Spin{to{--v59a:360deg}}
 @keyframes v59Halo{0%,100%{box-shadow:0 0 22px 2px rgba(214,180,106,.25)}50%{box-shadow:0 0 46px 8px rgba(214,180,106,.5)}}
 /* soft gold sweep across the card, and glinting sparkles */
@@ -1038,7 +1038,7 @@ img{transition:opacity .5s}
 .founder-card::before{animation:v59Drift 12s ease-in-out infinite}
 .founder-card::after{animation:v59Drift 15s ease-in-out -6s infinite reverse}
 @keyframes v59Drift{0%,100%{transform:translate(0,0)}50%{transform:translate(-26px,20px)}}
-.founder-name{background:linear-gradient(100deg,#fff 20%,#f2d58a 50%,#fff 80%);background-size:220% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:v59Shine 6s linear infinite}
+.founder-name{background:linear-gradient(100deg,#fff 20%,#fde68a 50%,#fff 80%);background-size:220% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:v59Shine 6s linear infinite}
 @keyframes v59Shine{to{background-position:220% center}}
 .founder-title{text-shadow:0 0 14px rgba(214,180,106,.45)}
 .founder-card .founder-quote-mark{text-shadow:0 0 28px rgba(214,180,106,.55);animation:v59Pulse 4s ease-in-out infinite}
@@ -1061,7 +1061,7 @@ body{animation:v60PageIn .55s ease-out both}
 footer{position:relative}
 footer::before{content:"";position:absolute;left:0;right:0;top:-1px;height:2px;background:linear-gradient(90deg,transparent,#1f6bf2,#5b9bff,#38bdf8,#1f6bf2,transparent);background-size:200% 100%;animation:v60Line 6s linear infinite}
 @keyframes v60Line{to{background-position:200% 0}}
-.f-col a{display:inline-block;transition:color .2s,transform .2s}
+.f-col a{display:block;width:fit-content;transition:color .2s,transform .2s}
 .f-col a:hover{transform:translateX(4px)}
 .f-bottom a,.f-brand a{transition:opacity .2s}
 /* soft glowing hairline between content sections */

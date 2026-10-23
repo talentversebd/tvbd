@@ -86,6 +86,17 @@ select.fi{cursor:pointer}
 .qf-opt-row span{width:16px;text-align:center;color:var(--muted);flex-shrink:0;font-size:.8rem}
 .qf-opt-row input[type="text"]{flex:1}
 .qf-opt-del{background:none;border:none;color:#f87171;cursor:pointer;font-size:.9rem;flex-shrink:0}
+.qf-grip{cursor:grab;color:var(--muted);font-size:1.1rem;line-height:1;padding:0 4px;user-select:none;flex-shrink:0}
+.qf-tools{display:inline-flex;gap:4px;margin-left:auto;flex-shrink:0}
+.qf-tools+.qf-qdel{margin-left:0!important}
+.qf-tbtn{background:none;border:1px solid var(--bdr2);color:var(--text,inherit);border-radius:6px;padding:4px 8px;font-size:.72rem;cursor:pointer}
+.qf-tbtn:hover:not(:disabled){background:rgba(59,130,246,.12)}
+.qf-tbtn:disabled{opacity:.3;cursor:default}
+.qf-insert{display:flex;gap:8px;justify-content:center;margin:-4px 0 12px;opacity:.35;transition:opacity .15s}
+.qf-insert:hover,.qf-insert:focus-within{opacity:1}
+.qf-insert button{background:none;border:1px dashed var(--bdr2);color:var(--blue-br);border-radius:999px;padding:3px 12px;font-size:.7rem;cursor:pointer}
+.qf-dragging{opacity:.5}
+.qf-dragover{outline:2px dashed var(--blue-br);outline-offset:2px}
 .qf-addopt{background:none;border:1px dashed var(--bdr2);color:var(--blue-br);border-radius:6px;padding:5px 12px;font-size:.75rem;cursor:pointer;margin-top:2px}
 .chk-wrap{display:flex;align-items:center;gap:8px;margin-top:8px}
 .chk-wrap input[type="checkbox"]{width:16px;height:16px;cursor:pointer;accent-color:var(--blue-br)}
@@ -218,7 +229,11 @@ select.fi{cursor:pointer}
 
     <label class="lbl" style="margin:18px 0 8px;display:block;">Questions</label>
     <div id="ff-fields"></div>
-    <button class="qf-addopt" style="margin-top:4px;" onclick="addFormFieldRow()">+ Add Question</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <button class="qf-addopt" onclick="addFormFieldRow('question')">+ Add Question</button>
+      <button class="qf-addopt" onclick="addFormFieldRow('section')">+ Add Section</button>
+    </div>
+    <p style="font-size:.7rem;color:var(--muted);margin-top:8px;">💡 Use <b>+ Question here / + Section here</b> between rows to insert in the middle, ▲▼ or drag ⠿ to reorder, ⧉ to duplicate. Turn on “multi-step” to show each section as its own page.</p>
 
     <div class="fm-foot">
       <button class="fc-btn" onclick="closeFM('ffm')">Cancel</button>

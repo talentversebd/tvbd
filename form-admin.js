@@ -165,13 +165,65 @@ function editCustomForm(id) {
 }
 
 /*===== FIELD ROW MANAGEMENT =====*/
-function addFormFieldRow() {
-  ffFields.push({ id: genFieldId(), type: 'short', label: '', description: '', required: false, options: ['Option 1'], points: 1, correctAnswer: '', correctAnswers: [] });
+function newField(type) {
+  if(type === 'section') return { id: genFieldId(), type: 'section', label: '', description: '' };
+  return { id: genFieldId(), type: 'short', label: '', description: '', required: false, options: ['Option 1'], points: 1, correctAnswer: '', correctAnswers: [] };
+}
+
+// type: 'question' (default) or 'section'. afterId: insert right below that row; omit to append at the end.
+function addFormFieldRow(type, afterId) {
+  const f = newField(type === 'section' ? 'section' : 'short');
+  const idx = afterId ? ffFields.findIndex(x => x.id === afterId) : -1;
+  if(idx > -1) ffFields.splice(idx + 1, 0, f); else ffFields.push(f);
   renderFieldRows();
+  // scroll to and focus the new row so you can type straight away
+  setTimeout(() => {
+    const el = document.querySelector(`[data-fid="${f.id}"]`);
+    if(el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.querySelector('input.fi[type="text"]')?.focus(); }
+  }, 30);
 }
 
 function removeFormFieldRow(fid) {
-  ffFields = ffFields.filter(f => f.id !== fid);
+  const f = ffFields.find(x => x.id === fid);
+  if(!f) return;
+  const hasContent = (f.label || '').trim() || (f.options || []).some(o => o && !/^Option \d+$/.test(o));
+  if(hasContent && !confirm('Delete this ' + (f.type === 'section' ? 'section' : 'question') + '?')) return;
+  ffFields = ffFields.filter(x => x.id !== fid);
+  renderFieldRows();
+}
+
+function moveFieldRow(fid, dir) {
+  const i = ffFields.findIndex(x => x.id === fid);
+  const j = i + dir;
+  if(i < 0 || j < 0 || j >= ffFields.length) return;
+  [ffFields[i], ffFields[j]] = [ffFields[j], ffFields[i]];
+  renderFieldRows();
+  document.querySelector(`[data-fid="${fid}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function duplicateFieldRow(fid) {
+  const i = ffFields.findIndex(x => x.id === fid);
+  if(i < 0) return;
+  const copy = JSON.parse(JSON.stringify(ffFields[i]));
+  copy.id = genFieldId();
+  ffFields.splice(i + 1, 0, copy);
+  renderFieldRows();
+}
+
+/* drag & drop reordering (rows are draggable only while the ⠿ handle is held) */
+let ffDragId = null;
+function ffDragStart(e, fid) { ffDragId = fid; e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', fid); } catch(_) {} e.currentTarget.classList.add('qf-dragging'); }
+function ffDragOver(e, fid) { if(!ffDragId || ffDragId === fid) return; e.preventDefault(); e.currentTarget.classList.add('qf-dragover'); }
+function ffDragLeave(e) { e.currentTarget.classList.remove('qf-dragover'); }
+function ffDragEnd() { ffDragId = null; document.querySelectorAll('.qf-dragging,.qf-dragover').forEach(el => el.classList.remove('qf-dragging', 'qf-dragover')); }
+function ffDrop(e, fid) {
+  e.preventDefault();
+  const from = ffFields.findIndex(x => x.id === ffDragId);
+  const to = ffFields.findIndex(x => x.id === fid);
+  ffDragEnd();
+  if(from < 0 || to < 0 || from === to) return;
+  const [moved] = ffFields.splice(from, 1);
+  ffFields.splice(to, 0, moved);
   renderFieldRows();
 }
 
@@ -235,23 +287,38 @@ function toggleFieldCorrectMulti(fid, value, checked) {
 
 function renderFieldRows() {
   const wrap = document.getElementById('ff-fields');
-  let qNum = 0;
+  let qNum = 0, secNum = 0;
+  const dragAttrs = f => `ondragstart="ffDragStart(event,'${f.id}')" ondragover="ffDragOver(event,'${f.id}')" ondragleave="ffDragLeave(event)" ondrop="ffDrop(event,'${f.id}')" ondragend="ffDragEnd()"`;
+  const rowTools = (f, i) => `
+    <span class="qf-tools">
+      <button type="button" class="qf-tbtn" title="Move up" ${i === 0 ? 'disabled' : ''} onclick="moveFieldRow('${f.id}', -1)">▲</button>
+      <button type="button" class="qf-tbtn" title="Move down" ${i === ffFields.length - 1 ? 'disabled' : ''} onclick="moveFieldRow('${f.id}', 1)">▼</button>
+      <button type="button" class="qf-tbtn" title="Duplicate" onclick="duplicateFieldRow('${f.id}')">⧉</button>
+    </span>
+    <button type="button" class="qf-qdel" onclick="removeFormFieldRow('${f.id}')">Delete</button>`;
+  const insertBar = f => `
+    <div class="qf-insert">
+      <button type="button" onclick="addFormFieldRow('question','${f.id}')">+ Question here</button>
+      <button type="button" onclick="addFormFieldRow('section','${f.id}')">+ Section here</button>
+    </div>`;
   wrap.innerHTML = ffFields.map((f, i) => {
     if(f.type === 'section') {
+      secNum++;
       return `
-      <div class="qf-qrow" style="border-left:3px solid var(--blue-br);">
+      <div class="qf-qrow" data-fid="${f.id}" ${dragAttrs(f)} style="border-left:3px solid var(--blue-br);">
         <div class="qf-qrow-head">
-          <span class="qf-qnum">§</span>
+          <span class="qf-grip" title="Drag to move" onmousedown="this.closest('.qf-qrow').draggable=true" onmouseup="this.closest('.qf-qrow').draggable=false" ontouchstart="">⠿</span>
+          <span class="qf-qnum">§ Section ${secNum}</span>
           <select class="fi" style="width:auto;" onchange="updateFieldProp('${f.id}', 'type', this.value)">
             ${Object.entries(FIELD_TYPES).map(([val, lbl]) => `<option value="${val}" ${f.type === val ? 'selected' : ''}>${lbl}</option>`).join('')}
           </select>
-          <button class="qf-qdel" onclick="removeFormFieldRow('${f.id}')">Delete</button>
+          ${rowTools(f, i)}
         </div>
         <input class="fi" type="text" value="${(f.label || '').replace(/"/g, '&quot;')}"
           placeholder="Section title" onchange="updateFieldProp('${f.id}', 'label', this.value)" style="margin-bottom:8px;font-weight:700;">
         <textarea class="fi" placeholder="Optional description shown under the title" onchange="updateFieldProp('${f.id}', 'description', this.value)" style="min-height:50px;">${(f.description || '')}</textarea>
         <p style="font-size:.7rem;color:var(--muted);margin-top:6px;">📄 This is just a heading — it doesn't collect an answer, only visually splits the form into parts.</p>
-      </div>`;
+      </div>${insertBar(f)}`;
     }
 
     const needsOptions = ['mcq', 'checkbox', 'dropdown'].includes(f.type);
@@ -291,13 +358,14 @@ function renderFieldRows() {
       </div>` : '';
 
     return `
-      <div class="qf-qrow">
+      <div class="qf-qrow" data-fid="${f.id}" ${dragAttrs(f)}>
         <div class="qf-qrow-head">
+          <span class="qf-grip" title="Drag to move" onmousedown="this.closest('.qf-qrow').draggable=true" onmouseup="this.closest('.qf-qrow').draggable=false">⠿</span>
           <span class="qf-qnum">Q${qNum}</span>
           <select class="fi" style="width:auto;" onchange="updateFieldProp('${f.id}', 'type', this.value)">
             ${Object.entries(FIELD_TYPES).map(([val, lbl]) => `<option value="${val}" ${f.type === val ? 'selected' : ''}>${lbl}</option>`).join('')}
           </select>
-          <button class="qf-qdel" onclick="removeFormFieldRow('${f.id}')">Delete</button>
+          ${rowTools(f, i)}
         </div>
         <input class="fi" type="text" value="${(f.label || '').replace(/"/g, '&quot;')}"
           placeholder="Question text" onchange="updateFieldProp('${f.id}', 'label', this.value)" style="margin-bottom:8px;">
@@ -307,7 +375,7 @@ function renderFieldRows() {
           <input type="checkbox" id="req-${f.id}" ${f.required ? 'checked' : ''} onchange="updateFieldProp('${f.id}', 'required', this.checked)">
           <label for="req-${f.id}">Required question</label>
         </div>
-      </div>`;
+      </div>${insertBar(f)}`;
   }).join('');
 }
 

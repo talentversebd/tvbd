@@ -1135,3 +1135,56 @@ table tbody tr:hover{background:rgba(31,107,242,.08)}
 /* success / locked big icons */
 .pf-state h2+*,.vt-lock,.nm-lock{filter:none}
 @media(prefers-reduced-motion:reduce){.page-header::before,.page-header::after,.page-header h1,.page-header h1::after,.page-header .eyebrow,.page-header p,.c-info-icon,.explore-ico,.empty-state .ei,.qz-empty>:first-child,.team-empty>:first-child{animation:none!important}.page-header h1::after{width:70px}}
+
+/* ===== v63 premium: public forms (form.html), voting & nomination, admin-style pages ===== */
+/* form: header card with glowing blue top edge, soft light behind it */
+.pf-wrap{position:relative}
+.pf-wrap::before{content:"";position:absolute;left:50%;top:-30px;width:340px;height:240px;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(31,107,242,.35),transparent);filter:blur(30px);z-index:-1;pointer-events:none;animation:fxFloat 12s ease-in-out infinite}
+.pf-head{border-top:0;position:relative;overflow:hidden;background-image:linear-gradient(160deg,rgba(255,255,255,.05),transparent 55%);box-shadow:0 22px 50px -26px rgba(31,107,242,.55);animation:v57Rise .7s cubic-bezier(.2,.7,.2,1) both}
+.pf-head::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,#1f6bf2,#5b9bff,#38bdf8,#1f6bf2);background-size:200% 100%;animation:v60Line 5s linear infinite}
+.pf-head img{box-shadow:0 0 0 3px rgba(91,155,255,.35),0 0 22px rgba(59,130,246,.5)}
+.pf-head h1{background:linear-gradient(180deg,#fff 35%,#b9d3ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pf-card{background-image:linear-gradient(160deg,rgba(255,255,255,.04),transparent 55%);border-radius:16px;transition:border-color .25s,box-shadow .3s,transform .2s}
+.pf-card:focus-within{border-color:rgba(91,155,255,.55);box-shadow:0 14px 36px -20px rgba(31,107,242,.7)}
+.pf-input{border-radius:12px}
+.pf-opt{border-radius:10px;padding:10px 8px;transition:background .2s,transform .12s}
+.pf-opt:hover{background:rgba(31,107,242,.1)}
+.pf-opt:active{transform:scale(.985)}
+.pf-opt input:checked+span{color:#9cc4ff;font-weight:600}
+.pf-submit,.pf-navbtn.pf-primary{position:relative;overflow:hidden;background-image:linear-gradient(135deg,#2f7bff,#1450c9);box-shadow:0 12px 28px -12px rgba(31,107,242,.9);transition:transform .15s,box-shadow .25s}
+.pf-submit::after{content:"";position:absolute;top:0;left:-70%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:v63Sweep 3.6s ease-in-out 1.2s infinite}
+@keyframes v63Sweep{0%,60%{left:-70%}100%{left:130%}}
+.pf-submit:active,.pf-navbtn:active{transform:scale(.97)}
+.pf-prog>div:last-child>div{background:linear-gradient(90deg,#1f6bf2,#5b9bff,#38bdf8)!important;box-shadow:0 0 12px rgba(59,130,246,.7);transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.pf-step{animation:v57Rise .45s cubic-bezier(.2,.7,.2,1) both}
+.pf-timer{box-shadow:0 8px 26px -10px rgba(31,107,242,.6);backdrop-filter:blur(10px)}
+.pf-state .ei{display:inline-block;animation:v62Float 3.8s ease-in-out infinite;filter:drop-shadow(0 8px 16px rgba(31,107,242,.4))}
+.pf-section h3{background:linear-gradient(90deg,#9cc4ff,#5b9bff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pf-link{color:#4ade80}
+/* thank-you score pops in */
+#pf-score-box:not(.pf-hidden){animation:v57Pop .5s cubic-bezier(.2,.7,.2,1) both}
+#pf-score-num{text-shadow:0 0 30px rgba(59,130,246,.6)}
+/* voting & nomination: option cards */
+.vt-opt{background-image:linear-gradient(160deg,rgba(255,255,255,.04),transparent 55%);border-radius:16px;transition:border-color .25s,box-shadow .3s,transform .15s,background .25s}
+.vt-opt:hover{border-color:rgba(91,155,255,.55);box-shadow:0 16px 40px -18px rgba(31,107,242,.65)}
+.vt-opt:active{transform:scale(.985)}
+.vt-opt.sel,.vt-opt.selected,.vt-opt:has(input:checked){border-color:#5b9bff;background-color:rgba(31,107,242,.12);box-shadow:0 0 0 1px #5b9bff,0 16px 40px -16px rgba(31,107,242,.8)}
+.vt-opt-ph{box-shadow:0 0 0 3px rgba(91,155,255,.3)}
+.vt-btn{position:relative;overflow:hidden;transition:transform .15s,box-shadow .25s}
+.vt-btn:not(.secondary){background-image:linear-gradient(135deg,#2f7bff,#1450c9);box-shadow:0 12px 28px -12px rgba(31,107,242,.9)}
+.vt-btn:active{transform:scale(.97)}
+.vt-card .vt-pos-title{background:linear-gradient(90deg,#fff,#9cc4ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.vt-confirm-item{border-radius:12px;background:linear-gradient(160deg,rgba(255,255,255,.04),transparent)}
+.vt-result{animation:v57Pop .5s cubic-bezier(.2,.7,.2,1) both}
+/* admin-style pages (admin, form-admin, election-admin): glowing active menu, hover rows, pop-in dialogs */
+.adm-nb{transition:background .2s,color .2s,transform .15s,box-shadow .2s}
+.adm-nb:hover{transform:translateX(3px)}
+.adm-nb.active{box-shadow:inset 3px 0 0 #5b9bff,0 8px 22px -12px rgba(31,107,242,.7)}
+.adm-main .tbl tbody tr{transition:background .2s}
+.adm-main .tbl tbody tr:hover{background:rgba(31,107,242,.08)}
+.adm-sec.active{animation:v57Rise .4s cubic-bezier(.2,.7,.2,1) both}
+.save-btn,.add-btn{position:relative;overflow:hidden;background-image:linear-gradient(135deg,#2f7bff,#1450c9);transition:transform .15s,box-shadow .25s}
+.save-btn:active,.add-btn:active{transform:scale(.97)}
+.qf-qrow{transition:border-color .2s,box-shadow .25s}
+.qf-qrow:focus-within{border-color:rgba(91,155,255,.5);box-shadow:0 12px 30px -18px rgba(31,107,242,.7)}
+@media(prefers-reduced-motion:reduce){.pf-wrap::before,.pf-head,.pf-head::before,.pf-submit::after,.pf-step,.pf-state .ei,.adm-sec.active,#pf-score-box,.vt-result{animation:none!important}}

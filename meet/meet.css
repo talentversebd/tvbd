@@ -100,3 +100,51 @@ body.inroom{overflow:hidden}
 .lobby-h{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:.8rem;color:#fcd34d;gap:8px}
 .chk{display:flex;gap:8px;align-items:center;font-size:.84rem;margin:4px 0 12px;color:var(--muted)}
 .chk input{width:auto}
+
+/* ===== v3 premium look for TalentVerse Meet ===== */
+:root{--bg:#060b19;--card:#0b1426;--card2:#0f1b33;--bdr:rgba(120,160,240,.18);--blue:#1f6bf2;--blue2:#5b9bff;--lblue:#a9c9ff}
+body{background:radial-gradient(60% 40% at 15% 0%,rgba(31,107,242,.28),transparent 70%),radial-gradient(50% 40% at 90% 100%,rgba(56,189,248,.14),transparent 70%),var(--bg);animation:mFade .5s ease-out both}
+@keyframes mFade{from{opacity:0}to{opacity:1}}
+@keyframes mRise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes mFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.mh{border-bottom-color:rgba(91,155,255,.25);box-shadow:0 8px 30px -14px rgba(31,107,242,.5);position:sticky}
+.mh::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,#1f6bf2,#5b9bff,#38bdf8,#1f6bf2,transparent);background-size:200% 100%;animation:mLine 6s linear infinite}
+@keyframes mLine{to{background-position:200% 0}}
+.mh-brand img{box-shadow:0 0 0 0 rgba(59,130,246,0);animation:mHalo 3.6s ease-in-out infinite}
+@keyframes mHalo{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}50%{box-shadow:0 0 18px 3px rgba(59,130,246,.55)}}
+h1{background:linear-gradient(180deg,#fff 35%,#b9d3ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.wrap>*,.login,.prejoin{animation:mRise .6s cubic-bezier(.2,.7,.2,1) both}
+.card,.room{background-image:linear-gradient(160deg,rgba(255,255,255,.045),transparent 55%);box-shadow:0 18px 44px -26px rgba(0,0,0,.9);transition:border-color .25s,box-shadow .3s,transform .2s}
+.login .card{border-color:rgba(91,155,255,.35);box-shadow:0 24px 60px -24px rgba(31,107,242,.6)}
+.room:hover{border-color:rgba(91,155,255,.5);box-shadow:0 16px 40px -18px rgba(31,107,242,.6);transform:translateY(-2px)}
+.rooms .room{animation:mRise .55s cubic-bezier(.2,.7,.2,1) both}
+.rooms .room:nth-child(2){animation-delay:.07s}.rooms .room:nth-child(3){animation-delay:.14s}.rooms .room:nth-child(4){animation-delay:.21s}.rooms .room:nth-child(n+5){animation-delay:.28s}
+input,select,textarea{border-radius:12px;transition:border-color .2s,box-shadow .25s,background .2s}
+input:focus,select:focus,textarea:focus{border-color:#5b9bff;box-shadow:0 0 0 3px rgba(59,130,246,.22);background:rgba(31,107,242,.07)}
+.btn{position:relative;overflow:hidden;background-image:linear-gradient(135deg,#2f7bff,#1450c9);box-shadow:0 10px 26px -12px rgba(31,107,242,.9);transition:transform .15s,box-shadow .25s,filter .2s}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;box-shadow:none}
+.btn.ghost:hover{border-color:#5b9bff;box-shadow:0 6px 20px -8px rgba(31,107,242,.6)}
+.btn.red{background-image:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 10px 26px -12px rgba(239,68,68,.8)}
+.btn.green{background-image:linear-gradient(135deg,#22c55e,#15803d);box-shadow:0 10px 26px -12px rgba(34,197,94,.8)}
+.btn:not(.ghost):not(.sm)::after{content:"";position:absolute;top:0;left:-70%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.3),transparent);transform:skewX(-20deg);animation:mSweep 4s ease-in-out 1.5s infinite}
+@keyframes mSweep{0%,65%{left:-70%}100%{left:130%}}
+/* live room status pulses */
+.tag.live{animation:mLive 1.6s ease-in-out infinite}
+@keyframes mLive{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.55)}50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+.empty{animation:mFloat 4s ease-in-out infinite}
+/* call room: glowing speaking tile, glassy bars, premium avatar */
+.call{background:radial-gradient(70% 50% at 50% 0%,rgba(31,107,242,.16),transparent 70%),#04070f}
+.ctop{backdrop-filter:blur(12px);border-bottom-color:rgba(91,155,255,.22)}
+.tile{background:#0a1224;border-radius:16px;transition:border-color .2s,box-shadow .3s}
+.tile.speaking{border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.25),0 0 30px rgba(34,197,94,.45);animation:mSpeak 1.2s ease-in-out infinite}
+@keyframes mSpeak{0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,.22),0 0 22px rgba(34,197,94,.35)}50%{box-shadow:0 0 0 5px rgba(34,197,94,.3),0 0 38px rgba(34,197,94,.6)}}
+.tile .av{background:linear-gradient(135deg,#1f6bf2,#38bdf8);box-shadow:0 8px 24px -6px rgba(31,107,242,.8)}
+.tile .nm,.tile .st span{backdrop-filter:blur(8px);background:rgba(4,10,24,.62)}
+.pv{border-color:rgba(91,155,255,.3);box-shadow:0 24px 60px -26px rgba(31,107,242,.55)}
+.pv .ph{text-shadow:0 0 30px rgba(59,130,246,.7)}
+.side{background:linear-gradient(180deg,rgba(11,20,38,.96),rgba(8,14,28,.98));border-left-color:rgba(91,155,255,.22)}
+.side .tabs button.on{color:#fff;border-color:#5b9bff;text-shadow:0 0 14px rgba(91,155,255,.7)}
+.tg .btn{border-radius:50px}
+@media(prefers-reduced-motion:reduce){body,.wrap>*,.login,.prejoin,.rooms .room,.mh::after,.mh-brand img,.btn::after,.tag.live,.empty,.tile.speaking{animation:none!important}}

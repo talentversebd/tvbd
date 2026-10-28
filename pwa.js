@@ -16,5 +16,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostn
     add('bnav.js');
     if(!admin){add('notice.js');}
     if(!admin){add('share.js');}
+    if(!admin){add('seo.js');}
+    if(!admin){add('push.js');}
   }catch(e){}
 })();

@@ -1188,3 +1188,47 @@ table tbody tr:hover{background:rgba(31,107,242,.08)}
 .qf-qrow{transition:border-color .2s,box-shadow .25s}
 .qf-qrow:focus-within{border-color:rgba(91,155,255,.5);box-shadow:0 12px 30px -18px rgba(31,107,242,.7)}
 @media(prefers-reduced-motion:reduce){.pf-wrap::before,.pf-head,.pf-head::before,.pf-submit::after,.pf-step,.pf-state .ei,.adm-sec.active,#pf-score-box,.vt-result{animation:none!important}}
+
+/* ===== v64 3D: depth, tilt, pressable buttons, glass cubes, flip-in cards ===== */
+:root{--d3:perspective(900px)}
+/* cards flip up into place instead of sliding */
+.fx-ready .fx-rv{translate:0 0;transform:perspective(900px) rotateX(-14deg) translateY(26px);transform-origin:50% 100%;transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--fx-i,0)*70ms)}
+.fx-ready .fx-rv.fx-in{transform:perspective(900px) rotateX(0) translateY(0)}
+/* tiltable cards (JS sets --rx/--ry while touched / hovered) */
+.o-card,.explore-card,.team-card,.news-card,.res-card,.stat-card,.post-card,.af,.c-info-item,.ch-card,.qz-card,.qz-card-lg,.rh-card,.vt-opt,.nm-card,.inv-card,.reg-card,.verify-card,.founder-card,.about-vis,.room,.fp-card{transform-style:preserve-3d;will-change:transform}
+.fx-tilting{transition:transform .08s linear!important;box-shadow:0 26px 50px -18px rgba(0,0,0,.75),0 0 40px -10px rgba(31,107,242,.55)!important}
+.fx-untilt{transition:transform .5s cubic-bezier(.2,.7,.2,1)!important}
+/* children pop off the card surface */
+.explore-card .explore-ico,.o-card .o-card-badge,.team-card img,.news-card img,.af .af-icon,.c-info-item .c-info-icon{transform:translateZ(28px)}
+.explore-card h3,.o-card-title,.founder-name{transform:translateZ(16px)}
+/* 3D icon tiles: lit top edge, thick base */
+.explore-ico,.af-icon,.c-info-icon{background-image:linear-gradient(160deg,rgba(255,255,255,.18),rgba(255,255,255,0) 55%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.35),0 10px 18px -6px rgba(0,0,0,.65),0 0 18px -4px rgba(31,107,242,.5)}
+/* pressable 3D buttons */
+.btn-pri,.save-btn,.add-btn,.pf-submit,.vt-btn:not(.secondary){box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 5px 0 #0d3a9e,0 14px 26px -8px rgba(31,107,242,.8)!important;transform:translateY(-2px);transition:transform .12s,box-shadow .12s}
+.btn-pri:active,.save-btn:active,.add-btn:active,.pf-submit:active,.vt-btn:not(.secondary):active{transform:translateY(3px)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 1px 0 #0d3a9e,0 4px 10px -4px rgba(31,107,242,.7)!important}
+.btn-out{box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 4px 0 rgba(255,255,255,.07)}
+.btn-out:active{transform:translateY(3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 0 rgba(255,255,255,.07)}
+/* headings with a solid extruded edge */
+.hero-title,.page-header h1{filter:drop-shadow(0 2px 0 #153a8c) drop-shadow(0 4px 0 #0f2b69) drop-shadow(0 12px 18px rgba(31,107,242,.45))}
+.hero-title .hl{filter:drop-shadow(0 2px 0 #153a8c) drop-shadow(0 4px 0 #0f2b69) drop-shadow(0 0 18px rgba(59,130,246,.6))}
+/* hero: floating glass cubes (made by fx.js) */
+.fx-scene{position:absolute;inset:0;pointer-events:none;perspective:900px;overflow:hidden;z-index:0}
+.fx-cube{position:absolute;width:var(--s);height:var(--s);transform-style:preserve-3d;animation:fxSpin var(--t) linear infinite,fxBob 7s ease-in-out infinite}
+.fx-cube i{position:absolute;inset:0;border:1px solid rgba(125,180,255,.55);background:linear-gradient(135deg,rgba(91,155,255,.20),rgba(31,107,242,.05));box-shadow:inset 0 0 18px rgba(91,155,255,.25)}
+.fx-cube i:nth-child(1){transform:translateZ(calc(var(--s)/2))}
+.fx-cube i:nth-child(2){transform:rotateY(180deg) translateZ(calc(var(--s)/2))}
+.fx-cube i:nth-child(3){transform:rotateY(90deg) translateZ(calc(var(--s)/2))}
+.fx-cube i:nth-child(4){transform:rotateY(-90deg) translateZ(calc(var(--s)/2))}
+.fx-cube i:nth-child(5){transform:rotateX(90deg) translateZ(calc(var(--s)/2))}
+.fx-cube i:nth-child(6){transform:rotateX(-90deg) translateZ(calc(var(--s)/2))}
+@keyframes fxSpin{from{transform:rotateX(20deg) rotateY(0)}to{transform:rotateX(380deg) rotateY(360deg)}}
+@keyframes fxBob{0%,100%{margin-top:0}50%{margin-top:-18px}}
+.page-header .fx-scene{opacity:.8}
+/* bottom nav: raised active tab, modals tip forward */
+body.has-bnav #bnav a.on{transform:translateY(-3px);box-shadow:0 10px 18px -8px rgba(31,107,242,.9),inset 0 1px 0 rgba(255,255,255,.2)}
+.modal,.popup-box,.tm-modal,.modal-box,.fm-box{animation:v64Pop .45s cubic-bezier(.2,.8,.2,1) both!important;transform-origin:50% 100%}
+@keyframes v64Pop{from{opacity:0;transform:perspective(900px) rotateX(-18deg) translateY(30px) scale(.96)}to{opacity:1;transform:perspective(900px) rotateX(0) translateY(0) scale(1)}}
+/* profile photos & logos: coin-like depth */
+.founder-ring,.av-logo,.h-logo-img{box-shadow:0 10px 24px -8px rgba(0,0,0,.8),0 0 0 3px rgba(255,255,255,.06)}
+.tile{transform-style:preserve-3d}
+@media(prefers-reduced-motion:reduce){.fx-cube,.modal,.popup-box,.tm-modal,.modal-box,.fm-box{animation:none!important}.fx-ready .fx-rv{transform:none!important}}

@@ -2957,3 +2957,16 @@ async function getChallengeStats(day, sector) {
     return { total: rows.length, right: rows.filter(r => r.correct).length };
   } catch(e) { console.error("Challenge stats error:", e); return null; }
 }
+
+
+/*===== MONTHLY TOP MEMBERS (published by admin into pub_monthly/{YYYY-MM}) =====*/
+async function loadMonthlyTops() {
+  try {
+    await waitForFirebase();
+    const { collection, getDocs } = window.firebaseFunctions;
+    const s = await getDocs(collection(window.firebaseDB, 'pub_monthly'));
+    const list = s.docs.map(x => ({ id: x.id, ...x.data() }));
+    list.sort((a, b) => String(b.month || b.id).localeCompare(String(a.month || a.id)));
+    return list;
+  } catch(e) { console.error('Load monthly tops error:', e); return []; }
+}

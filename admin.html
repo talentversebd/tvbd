@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=68">
+<link rel="stylesheet" href="style.css?v=69">
 <style>
 #admin-wrap{position:fixed;inset:0;z-index:4000;display:flex;flex-direction:column;background:var(--bg)}
 .adm-login{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(37,99,235,.12) 0%,transparent 70%),var(--bg)}
@@ -215,6 +215,7 @@ select.fi{cursor:pointer}
         <button class="adm-nb" data-sec="m360-adm" onclick="goSec(this)"><span class="ico">🧾</span>Member 360 (Full Profile)</button>
         <button class="adm-nb" data-sec="ca-adm" onclick="goSec(this)"><span class="ico">🎓</span>Campus Ambassadors</button>
         <button class="adm-nb" data-sec="chal-adm" onclick="goSec(this)"><span class="ico">🔥</span>Daily Challenge</button>
+        <button class="adm-nb" data-sec="monthly-adm" onclick="goSec(this)"><span class="ico">🏅</span>Monthly Top Member</button>
         <button class="adm-nb" data-sec="log-adm" onclick="goSec(this)"><span class="ico">📜</span>Activity Log</button>
 
         <div class="adm-ns">Verification</div>
@@ -224,6 +225,7 @@ select.fi{cursor:pointer}
         <button class="adm-nb" data-sec="founder-adm" onclick="goSec(this)"><span class="ico">👤</span>Founder's Message</button>
         <button class="adm-nb" data-sec="popup-adm" onclick="goSec(this)"><span class="ico">📢</span>Popup Notice</button>
         <button class="adm-nb" data-sec="notify-adm" onclick="goSec(this)"><span class="ico">📧</span>Email Notifications</button>
+        <button class="adm-nb" data-sec="push-adm" onclick="goSec(this)"><span class="ico">📲</span>Push Notifications</button>
         <button class="adm-nb" data-sec="bell-adm" onclick="goSec(this)"><span class="ico">🔔</span>Notifications</button>
         <button class="adm-nb" data-sec="set-adm" onclick="goSec(this)"><span class="ico">⚙️</span>Settings</button>
       </nav>
@@ -354,6 +356,20 @@ select.fi{cursor:pointer}
       </div>
 
       <!-- ACTIVITY LOG -->
+      <div class="adm-sec" id="monthly-adm">
+        <div style="background:linear-gradient(135deg,rgba(214,180,106,.14),rgba(37,99,235,.04));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:var(--display);font-size:1.05rem;margin-bottom:8px;">🏅 Monthly Top Member</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">মাস শেষে মাসের সবচেয়ে বেশি পয়েন্ট পাওয়া সদস্যদের তালিকা (Daily Challenge-এর সঠিক উত্তর × ১০ পয়েন্ট) হিসাব করুন, তারপর Publish করুন। Publish করলে Daily Challenge পেজে "Top of the Month" দেখাবে আর বিজয়ীর Dashboard-এ 🏅 ব্যাজ আসবে।</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+          <input class="fi" type="month" id="mt-month" style="max-width:220px;">
+          <button class="add-btn" onclick="calcMonthlyTop()">📊 Calculate</button>
+        </div>
+        <div id="mt-result"></div>
+        <h4 style="margin:22px 0 8px;font-family:var(--display);">Published months</h4>
+        <div id="mt-published"></div>
+      </div>
+
       <div class="adm-sec" id="log-adm">
         <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
           <h3 style="font-family:var(--display);font-size:1.05rem;margin-bottom:8px;">📜 Activity Log</h3>
@@ -793,6 +809,30 @@ select.fi{cursor:pointer}
         </div>
       </div>
         <!-- DASHBOARD NOTIFICATIONS -->
+      <div class="adm-sec" id="push-adm">
+        <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:20px;">
+          <h3 style="font-family:var(--display);font-size:1.05rem;margin-bottom:8px;">📲 Push Notifications</h3>
+          <p style="color:var(--muted);font-size:.85rem;line-height:1.7;">যারা Dashboard থেকে "নোটিফিকেশন চালু করুন" চাপে, তাদের ফোনে নতুন ইভেন্ট/চ্যালেঞ্জের খবর পাঠানো যায়। একবার নিচের Web Push Key বসালেই চালু হয়ে যাবে।</p>
+        </div>
+        <div class="fg"><label>Web Push Key (VAPID) — Firebase Console → Project settings → Cloud Messaging → Web Push certificates → Generate key pair → "Key pair" কপি করুন</label>
+          <input class="fi" id="push-vapid" placeholder="B...">
+          <button class="save-btn" style="margin-top:10px;" onclick="savePushKey()">💾 Save Key</button></div>
+        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px;margin:16px 0;">
+          <div style="font-weight:800;margin-bottom:4px;">📈 Subscribers</div>
+          <div style="font-size:1.8rem;font-weight:800;" id="push-count">—</div>
+          <div style="color:var(--muted);font-size:.8rem;">এখন যতজন নোটিফিকেশন চালু করে রেখেছে।</div>
+          <button class="e-btn" style="margin-top:10px;" onclick="loadPushAdmin()">🔄 Refresh</button>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px;line-height:1.9;font-size:.86rem;">
+          <div style="font-weight:800;margin-bottom:6px;">✉️ নোটিফিকেশন পাঠানোর নিয়ম</div>
+          ১. <b>Firebase Console</b> → বাঁ পাশে <b>Engage → Messaging</b> (বা Run → Messaging)।<br>
+          ২. <b>New campaign → Notifications</b> চাপুন।<br>
+          ৩. Title আর Text লিখুন (যেমন: "নতুন ইভেন্ট!" / "রেজিস্ট্রেশন শুরু হয়েছে")।<br>
+          ৪. <b>Target</b>-এ আপনার <b>Web app</b> বেছে নিন, তারপর Review → <b>Publish</b>।<br>
+          <span style="color:var(--muted);">শুধু যারা নিজে চালু করেছে তারাই পাবে। পাঠানোর সময় আমি এখান থেকে সরাসরি পাঠাতে পারি না — Firebase Console থেকেই পাঠাতে হবে।</span>
+        </div>
+      </div>
+
       <div class="adm-sec" id="bell-adm">
         <div class="set-wrap" style="max-width:760px;">
           <div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.02));border:1px solid var(--bdr2);border-radius:12px;padding:20px;margin-bottom:22px;">
@@ -1267,12 +1307,12 @@ select.fi{cursor:pointer}
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <!-- Site Scripts -->
-<script src="data.js?v=12"></script>
+<script src="data.js?v=13"></script>
 <script src="render.js"></script>
 <script src="certificate-render.js"></script>
 <script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
-<script src="admin.js?v=6"></script>
+<script src="admin.js?v=7"></script>
 <script src="main.js"></script>
 
 <script src="fx.js"></script>

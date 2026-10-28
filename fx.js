@@ -67,18 +67,7 @@
    el.style.left=(e.clientX-r.left-s/2)+'px';el.style.top=(e.clientY-r.top-s/2)+'px';
    b.appendChild(el);setTimeout(function(){el.remove()},650);
   },{passive:true});
-  /* gentle 3D tilt on cards (mouse devices only) */
-  if(!window.matchMedia||!matchMedia('(hover:hover) and (pointer:fine)').matches||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  d.addEventListener('mousemove',function(e){
-   var c=e.target.closest&&e.target.closest('.o-card,.team-card,.explore-card');
-   if(!c)return;
-   var r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
-   c.classList.add('fx-tilt');c.style.transform='perspective(800px) rotateX('+(-y*5).toFixed(2)+'deg) rotateY('+(x*6).toFixed(2)+'deg) translateY(-3px)';
-  },{passive:true});
-  d.addEventListener('mouseout',function(e){
-   var c=e.target.closest&&e.target.closest('.fx-tilt');
-   if(c&&!c.contains(e.relatedTarget))c.style.transform='';
-  },{passive:true});
+  /* 3D tilt now lives in the v64 block below */
  }catch(e){}
 })();
 
@@ -153,5 +142,61 @@
   }
   if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',start);else start();
   setTimeout(fix,1500);
+ }catch(e){}
+})();
+
+/* v64 — 3D: tilt on touch/hover + floating glass cubes */
+(function(){
+ try{
+  var d=document,rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(rm)return;
+  var SEL='.o-card,.explore-card,.team-card,.news-card,.res-card,.stat-card,.post-card,.af,.c-info-item,.ch-card,.qz-card,.qz-card-lg,.rh-card,.nm-card,.inv-card,.reg-card,.verify-card,.founder-card,.about-vis,.room,.fp-card';
+  var cur=null,down=false;
+  function tilt(el,e){
+   var r=el.getBoundingClientRect();if(!r.width)return;
+   var x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+   var max=Math.min(10,Math.max(4,520/Math.max(r.width,160)*3));
+   el.classList.remove('fx-untilt');el.classList.add('fx-tilting');
+   el.style.transform='perspective(800px) rotateX('+(-y*max).toFixed(2)+'deg) rotateY('+(x*max*1.15).toFixed(2)+'deg) translateZ(0) scale(1.015)';
+  }
+  function reset(el){
+   if(!el)return;
+   el.classList.remove('fx-tilting');el.classList.add('fx-untilt');el.style.transform='';
+   setTimeout(function(){el.classList.remove('fx-untilt')},520);
+  }
+  d.addEventListener('pointerdown',function(e){
+   var el=e.target.closest&&e.target.closest(SEL);if(!el)return;
+   down=true;cur=el;tilt(el,e);
+  },{passive:true});
+  d.addEventListener('pointermove',function(e){
+   if(e.pointerType==='mouse'){
+    var el=e.target.closest&&e.target.closest(SEL);
+    if(cur&&cur!==el){reset(cur);cur=null}
+    if(el){cur=el;tilt(el,e)}
+   }else if(down&&cur){tilt(cur,e)}
+  },{passive:true});
+  function end(){down=false;if(cur&&!(window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches)){reset(cur);cur=null}}
+  d.addEventListener('pointerup',end,{passive:true});
+  d.addEventListener('pointercancel',end,{passive:true});
+  d.addEventListener('pointerout',function(e){
+   if(e.pointerType==='mouse'&&cur&&!cur.contains(e.relatedTarget)){reset(cur);cur=null}
+  },{passive:true});
+  window.addEventListener('scroll',function(){if(down&&cur){reset(cur);cur=null;down=false}},{passive:true});
+  /* glass cubes behind hero and page headers */
+  function cubes(host,list){
+   if(!host||host.querySelector('.fx-scene'))return;
+   var sc=d.createElement('div');sc.className='fx-scene';
+   list.forEach(function(c){
+    var cu=d.createElement('div');cu.className='fx-cube';
+    cu.style.cssText='--s:'+c[0]+'px;--t:'+c[1]+'s;left:'+c[2]+';top:'+c[3]+';animation-delay:'+(c[4]||0)+'s';
+    cu.innerHTML='<i></i><i></i><i></i><i></i><i></i><i></i>';sc.appendChild(cu);
+   });
+   host.insertBefore(sc,host.firstChild);
+  }
+  function build(){
+   cubes(d.getElementById('hero'),[[64,26,'8%','16%'],[40,20,'82%','28%',-4],[28,17,'70%','74%',-9],[34,23,'14%','78%',-6]]);
+   d.querySelectorAll('.page-header').forEach(function(h){cubes(h,[[46,24,'6%','24%'],[30,19,'88%','48%',-5]])});
+  }
+  if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',build);else build();
  }catch(e){}
 })();

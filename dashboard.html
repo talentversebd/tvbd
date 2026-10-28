@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=68">
+<link rel="stylesheet" href="style.css?v=69">
 <link rel="stylesheet" href="loader.css">
 </head>
 <body>
@@ -158,6 +158,7 @@
       </div>
 
       <div id="db-chal"></div>
+      <div id="db-push"></div>
       <div id="db-ca"></div>
       <div id="db-invite"></div>
 
@@ -294,7 +295,7 @@
 <script type="module" src="firebase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-<script src="data.js?v=12"></script>
+<script src="data.js?v=13"></script>
 <script src="render.js"></script>
 <script src="certificate-render.js"></script>
 <script src="lang.js"></script>
@@ -602,6 +603,13 @@ async function dbRenderChal() {
   const uid = window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.uid;
   if(!uid) return;
   if(dbRenderChal.s === undefined) dbRenderChal.s = await loadMyStreak(uid);
+  try {
+    const code = String((dbProfile && dbProfile.memberCode) || '').toUpperCase();
+    const tops = (typeof loadMonthlyTops === 'function') ? await loadMonthlyTops() : [];
+    const bnl = (typeof getLang === 'function' ? getLang() : 'en') === 'bn';
+    const wins = tops.map(m => ({ m, i: (m.top || []).findIndex(r => code && String(r.code || '').toUpperCase() === code) })).filter(x => x.i > -1 && x.i < 3);
+    dbRenderChal.mt = wins.slice(0, 3).map(w => { const mn = new Date((w.m.month || w.m.id) + '-01T00:00:00Z').toLocaleDateString(bnl ? 'bn-BD' : 'en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }); return `<div style="margin-top:10px;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,201,60,.5);background:rgba(255,201,60,.12);font-size:.84rem;font-weight:700;color:#ffd23f;">${['🥇','🥈','🥉'][w.i]} ${bnl ? 'মাসের সেরা সদস্য' : 'Top Member'} — ${mn} (#${w.i + 1})</div>`; }).join('');
+  } catch(e) { dbRenderChal.mt = ''; }
   const s = dbRenderChal.s, bn = (typeof getLang === 'function' ? getLang() : 'en') === 'bn';
   const cur = (s && s.current) || 0, best = (s && s.best) || 0, pts = (s && s.points) || 0;
   const T = bn ? { sub: 'প্রতিদিন Islamic ও General Knowledge — রোজ খেলে Streak বাড়ান, পয়েন্ট ও ব্যাজ জিতুন।', cur: 'বর্তমান Streak', best: 'সর্বোচ্চ', pts: 'পয়েন্ট', go: '▶ আজকের Challenge খেলুন' }
@@ -614,6 +622,7 @@ async function dbRenderChal() {
       <div><div class="inv-count" style="color:#fcd34d">${best}</div><div style="font-size:.74rem;color:var(--muted)">${T.best}</div></div>
       <div><div class="inv-count" style="color:#86efac">${pts}</div><div style="font-size:.74rem;color:var(--muted)">${T.pts}</div></div>
     </div>
+    ${dbRenderChal.mt || ''}
     <a class="inv-btn" href="challenge.html" style="display:inline-block;margin-top:12px;text-decoration:none;">${T.go}</a>
   </div>`;
 }

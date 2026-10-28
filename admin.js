@@ -192,6 +192,8 @@ function goSec(btn) {
     'ca-adm': 'Campus Ambassadors',
     'm360-adm': 'Member 360',
     'chal-adm': 'Daily Challenge',
+    'push-adm': 'Push Notifications',
+    'monthly-adm': 'Monthly Top Member',
     'log-adm': 'Activity Log',
     'msg-adm': 'Contact Messages',
     'reg-adm': 'Registrations',
@@ -236,6 +238,8 @@ function goSec(btn) {
   if(secId === 'founder-adm' && typeof loadFounderSettingsUI === 'function') loadFounderSettingsUI();
   if(secId === 'users-adm' && typeof loadRegisteredUsersUI === 'function') loadRegisteredUsersUI();
   if(secId === 'ca-adm') loadCaAdminUI();
+  if(secId === 'push-adm') loadPushAdmin();
+  if(secId === 'monthly-adm') initMonthlyAdmin();
   if(secId === 'm360-adm') { const q = document.getElementById('m360-q'); if(q) q.focus(); }
   if(secId === 'chal-adm') loadChalAdminUI();
   if(secId === 'log-adm') loadActivityLogUI();
@@ -3131,3 +3135,90 @@ async function m360Search(forceUid) {
   window.applyAccessToNav = function () { orig.apply(this, arguments); render(); };
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(init, 300)); else setTimeout(init, 300);
 })();
+
+
+/*===== PUSH NOTIFICATIONS (admin) =====*/
+async function loadPushAdmin() {
+  await waitForFirebase();
+  const { doc, getDoc, collection, getDocs } = window.firebaseFunctions;
+  try {
+    const s = await getDoc(doc(window.firebaseDB, 'settings', 'push'));
+    document.getElementById('push-vapid').value = (s.exists() && s.data().vapidKey) || '';
+  } catch(e) {}
+  try {
+    const snap = await getDocs(collection(window.firebaseDB, 'usr_push'));
+    document.getElementById('push-count').textContent = snap.size;
+  } catch(e) { document.getElementById('push-count').textContent = '—'; }
+}
+async function savePushKey() {
+  const key = document.getElementById('push-vapid').value.trim();
+  if(key && !/^[A-Za-z0-9_-]{60,120}$/.test(key)) return toast('Key ঠিক মনে হচ্ছে না — পুরোটা কপি করেছেন?', true);
+  await waitForFirebase();
+  const { doc, setDoc } = window.firebaseFunctions;
+  try { await setDoc(doc(window.firebaseDB, 'settings', 'push'), { vapidKey: key, updatedAt: Date.now() }); toast('Saved! ✅'); }
+  catch(e) { toast('Save failed! Rules/internet চেক করুন।', true); }
+}
+
+
+/*===== MONTHLY TOP MEMBER (admin) =====*/
+let MT_LAST = null;
+function mtPrevMonth() { const d = new Date(Date.now() + 6 * 3600e3); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 7); }
+async function initMonthlyAdmin() {
+  const m = document.getElementById('mt-month');
+  if(m && !m.value) m.value = mtPrevMonth();
+  renderMonthlyPublished();
+}
+async function renderMonthlyPublished() {
+  const box = document.getElementById('mt-published'); if(!box) return;
+  const list = await loadMonthlyTops();
+  box.innerHTML = list.length ? list.map(x => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--bdr);font-size:.88rem;">
+      <span><b>${escUser(x.month || x.id)}</b> — 🥇 ${escUser(((x.top || [])[0] || {}).name)} <span style="color:var(--muted);">(${(x.top || []).length} listed)</span></span>
+      <button class="d-btn" onclick="deleteMonthlyTop('${escUser(x.id)}')">Delete</button></div>`).join('') : '<span style="color:var(--muted);font-size:.85rem;">এখনো কিছু Publish করা হয়নি।</span>';
+}
+async function calcMonthlyTop() {
+  const month = (document.getElementById('mt-month') || {}).value;
+  if(!/^\d{4}-\d{2}$/.test(month || '')) return toast('মাস বেছে নিন!', true);
+  const box = document.getElementById('mt-result');
+  box.innerHTML = '<p style="color:var(--muted);">⏳ হিসাব চলছে…</p>';
+  await waitForFirebase();
+  const { collection, getDocs, query, where } = window.firebaseFunctions;
+  let attempts = [];
+  try {
+    const s = await getDocs(query(collection(window.firebaseDB, 'daily_attempts'), where('day', '>=', month + '-01'), where('day', '<=', month + '-31')));
+    attempts = s.docs.map(d => d.data());
+  } catch(e) { box.innerHTML = ''; return toast('পড়া যায়নি — Rules Publish করা আছে? (Daily Challenge অনুমতি লাগবে)', true); }
+  const users = await loadRegisteredUsers();
+  const by = {};
+  attempts.forEach(a => {
+    const r = by[a.uid] || (by[a.uid] = { uid: a.uid, answered: 0, correct: 0, last: 0 });
+    r.answered++; if(a.correct === true) r.correct++;
+    if((a.at || 0) > r.last) r.last = a.at || 0;
+  });
+  const rows = Object.values(by).map(r => {
+    const u = users.find(x => x.id === r.uid) || {};
+    return { uid: r.uid, name: [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'Member', code: u.memberCode || '', points: r.correct * 10, correct: r.correct, answered: r.answered, last: r.last };
+  }).sort((x, y) => (y.points - x.points) || (y.answered - x.answered) || (x.last - y.last)).slice(0, 10);
+  MT_LAST = { month, rows, participants: Object.keys(by).length };
+  if(!rows.length) { box.innerHTML = '<p style="color:var(--muted);">এই মাসে কেউ উত্তর দেয়নি।</p>'; return; }
+  box.innerHTML = `<p style="font-size:.85rem;color:var(--muted);margin-bottom:8px;">${escUser(month)} — মোট ${MT_LAST.participants}জন অংশ নিয়েছে। সেরা ${rows.length}জন:</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Name</th><th>Member ID</th><th>Points</th><th>Correct / Answered</th></tr></thead><tbody>` +
+    rows.map((r, i) => `<tr><td>${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td><td>${escUser(r.name)}</td><td style="font-family:monospace;">${escUser(r.code)}</td><td><b>${r.points}</b></td><td>${r.correct} / ${r.answered}</td></tr>`).join('') +
+    `</tbody></table></div><button class="save-btn" style="margin-top:14px;" onclick="publishMonthlyTop()">🏅 Publish ${escUser(month)}</button>`;
+}
+async function publishMonthlyTop() {
+  if(!MT_LAST || !MT_LAST.rows.length) return;
+  if(!confirm(MT_LAST.month + ' মাসের তালিকা সবার জন্য Publish করবেন?')) return;
+  await waitForFirebase();
+  const { doc, setDoc } = window.firebaseFunctions;
+  const top = MT_LAST.rows.map(r => ({ name: r.name, code: r.code, points: r.points, correct: r.correct, answered: r.answered }));
+  try {
+    await setDoc(doc(window.firebaseDB, 'pub_monthly', MT_LAST.month), { month: MT_LAST.month, top, participants: MT_LAST.participants, publishedAt: Date.now() });
+    toast('Published! 🏅'); renderMonthlyPublished();
+  } catch(e) { toast('ব্যর্থ! Rules/internet চেক করুন।', true); }
+}
+async function deleteMonthlyTop(id) {
+  if(!confirm(id + ' মুছে ফেলবেন?')) return;
+  await waitForFirebase();
+  const { doc, deleteDoc } = window.firebaseFunctions;
+  try { await deleteDoc(doc(window.firebaseDB, 'pub_monthly', id)); toast('মোছা হয়েছে।'); renderMonthlyPublished(); } catch(e) { toast('ব্যর্থ!', true); }
+}

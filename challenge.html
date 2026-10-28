@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="logo.jpg" as="image">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=68">
+<link rel="stylesheet" href="style.css?v=69">
 <style>
 .dept-group{margin-bottom:44px;}
 .dept-group:last-child{margin-bottom:0;}
@@ -279,6 +279,7 @@
 </div>
 
 <section class="section" style="padding-top:20px;">
+  <div class="ch-wrap" id="ch-monthly"></div>
   <div class="ch-wrap" id="ch-root"><div class="ch-msg">…</div></div>
 </section>
 
@@ -329,7 +330,7 @@
 <!-- Firebase -->
 <script type="module" src="firebase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="data.js?v=12"></script>
+<script src="data.js?v=13"></script>
 <script src="render.js"></script>
 <script src="lang.js"></script>
 <script src="main.js"></script>
@@ -445,6 +446,43 @@ async function chBoard(mode){
    (rows.length?rows.map(function(r,i){return '<div class="ch-row"><span>'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.')+' '+chEsc(r.name)+(r.uid===CH.user.uid?' <b>'+t.you+'</b>':'')+'</span><b>'+(key==='points'?(r.points||0)+' pts':'🔥 '+(r.best||0))+'</b></div>';}).join(''):'<div class="ch-msg">'+t.empty+'</div>');
 }
 </script>
+
+<script>
+/* Top of the Month — published by the admin, visible to everyone */
+var MT_T={en:{h:'🏅 Top of the Month',pts:'pts',more:'Earlier months',none:''},bn:{h:'🏅 মাসের সেরা',pts:'পয়েন্ট',more:'আগের মাসগুলো',none:''}};
+var MT_DATA=null;
+function mtName(m){try{return new Date(m+'-01T00:00:00Z').toLocaleDateString(chalLang()==='bn'?'bn-BD':'en-US',{month:'long',year:'numeric',timeZone:'UTC'})}catch(e){return m}}
+function mtRender(){
+  var box=document.getElementById('ch-monthly'); if(!box||!MT_DATA||!MT_DATA.length) return;
+  var t=MT_T[chalLang()], cur=MT_DATA[0], top=(cur.top||[]).slice(0,10), medals=['🥇','🥈','🥉'];
+  var pod=top.slice(0,3).map(function(r,i){return '<div class="mt-pod mt-p'+i+'"><div class="mt-medal">'+medals[i]+'</div><div class="mt-nm">'+chEsc(r.name)+'</div><div class="mt-pt">'+(r.points||0)+' '+t.pts+'</div></div>';}).join('');
+  var rest=top.slice(3).map(function(r,i){return '<div class="ch-row"><span>'+(i+4)+'. '+chEsc(r.name)+'</span><b>'+(r.points||0)+' '+t.pts+'</b></div>';}).join('');
+  var older=MT_DATA.slice(1,4).map(function(x){var w=(x.top||[])[0]||{};return '<div class="ch-row"><span>'+chEsc(mtName(x.month||x.id))+'</span><b>🥇 '+chEsc(w.name||'')+'</b></div>';}).join('');
+  box.innerHTML='<div class="mt-card"><div class="mt-head"><h3>'+t.h+'</h3><span>'+chEsc(mtName(cur.month||cur.id))+'</span></div><div class="mt-pods">'+pod+'</div>'+rest+(older?'<div class="mt-old">'+t.more+'</div>'+older:'')+'</div>';
+}
+(function(){
+  var go=setInterval(function(){
+    if(typeof loadMonthlyTops==='function'&&window.firebaseDB){
+      clearInterval(go);
+      loadMonthlyTops().then(function(l){MT_DATA=l;mtRender();});
+    }
+  },300);
+  var o2=window.applyLanguage; window.applyLanguage=function(){ if(o2) o2.apply(this,arguments); mtRender(); };
+})();
+</script>
+<style>
+.mt-card{background:linear-gradient(160deg,rgba(255,201,60,.12),rgba(31,107,242,.06));border:1px solid rgba(255,201,60,.4);border-radius:18px;padding:18px;margin-bottom:22px;box-shadow:0 20px 50px -26px rgba(255,190,40,.45)}
+.mt-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.mt-head h3{font-family:var(--display);font-size:1.1rem;margin:0}
+.mt-head span{font-size:.78rem;color:#ffd23f;font-weight:700}
+.mt-pods{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;align-items:end}
+.mt-pod{text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,201,60,.35);border-radius:14px;padding:12px 6px}
+.mt-pod.mt-p0{padding-top:20px;padding-bottom:18px;background:linear-gradient(180deg,rgba(255,201,60,.2),rgba(255,255,255,.04));box-shadow:0 0 26px -6px rgba(255,200,60,.55)}
+.mt-medal{font-size:1.9rem}.mt-pod.mt-p0 .mt-medal{font-size:2.4rem}
+.mt-nm{font-weight:700;font-size:.82rem;margin:4px 0 2px;word-break:break-word}
+.mt-pt{font-size:.74rem;color:#ffd23f}
+.mt-old{margin:14px 0 4px;font-size:.78rem;color:var(--muted);font-weight:700}
+</style>
 <script src="bnav.js"></script>
 <script src="fx.js"></script>
 <script src="pwa.js"></script>

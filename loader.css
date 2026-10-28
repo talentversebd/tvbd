@@ -164,3 +164,51 @@
 #tvbd-loader.tvbd-quick *{animation-duration:.01s !important;animation-delay:0s !important;}
 #tvbd-loader.tvbd-quick .tvbd-loader-estd,#tvbd-loader.tvbd-quick .tvbd-loader-pct{display:none;}
 @media(prefers-reduced-motion:reduce){#tvbd-loader *{animation-duration:.01s !important;animation-delay:0s !important;}}
+
+/* ===== v66 intro redesign: pure logo-blue, cleaner, faster exit ===== */
+#tvbd-loader{
+  background:
+    radial-gradient(50% 38% at 50% 42%, rgba(31,107,242,.30), transparent 72%),
+    radial-gradient(70% 50% at 50% 110%, rgba(56,189,248,.14), transparent 70%),
+    #050a18;
+  gap:30px;
+  transition:opacity .7s ease .05s, visibility .7s ease .05s, transform .8s cubic-bezier(.7,0,.3,1), filter .7s ease;
+}
+#tvbd-loader.tvbd-hide{transform:scale(1.12);filter:blur(6px)}
+#tvbd-loader::before{
+  background-image:radial-gradient(rgba(91,155,255,.35) 1px,transparent 1.5px);
+  background-size:30px 30px;
+  -webkit-mask-image:radial-gradient(circle at 50% 44%,#000 0%,transparent 60%);mask-image:radial-gradient(circle at 50% 44%,#000 0%,transparent 60%);
+  animation:tvbd-grid 16s linear infinite;
+}
+#tvbd-loader::after{display:none}
+
+.tvbd-loader-ring-wrap{width:150px;height:150px;overflow:visible}
+/* sonar ripples behind the logo */
+.tvbd-loader-ring-wrap::after{
+  content:"";position:absolute;inset:14px;border-radius:50%;
+  border:1.5px solid rgba(91,155,255,.7);
+  animation:tvbd-ripple 2.2s cubic-bezier(.2,.6,.3,1) .5s infinite;opacity:0;
+}
+@keyframes tvbd-ripple{0%{transform:scale(.8);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+.tvbd-loader-ring-wrap::before{
+  inset:0;
+  background:conic-gradient(from 0deg,transparent 0deg,#1f6bf2 90deg,#5b9bff 150deg,#38bdf8 190deg,transparent 230deg,transparent 360deg);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+  animation-duration:1.6s;
+}
+#tvbd-loader.tvbd-ring-drawn .tvbd-loader-ring-wrap::before{animation:tvbd-spin 1.6s linear infinite, tvbd-fade-in .3s ease forwards}
+.tvbd-ring-bg{stroke:rgba(91,155,255,.18);stroke-width:1.5}
+.tvbd-ring-fg{stroke:#5b9bff;stroke-width:1.5;filter:drop-shadow(0 0 6px rgba(91,155,255,.9))}
+.tvbd-loader-logo{
+  width:104px;height:104px;border:2px solid rgba(255,255,255,.95);
+  box-shadow:0 0 0 7px rgba(91,155,255,.08),0 14px 44px rgba(31,107,242,.6),0 0 80px rgba(56,189,248,.28);
+}
+.tvbd-loader-text h1{
+  font-weight:700;letter-spacing:.22em;
+  background:linear-gradient(90deg,#fff 0%,#dbeafe 50%,#fff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.tvbd-loader-text h1 span{background:linear-gradient(90deg,#5b9bff,#38bdf8,#5b9bff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:tvbd-text-in .6s ease .65s forwards,fxShine 3s linear infinite}
+.tvbd-loader-estd{color:#8fb4f5}
+.tvbd-loader-fill{background:linear-gradient(90deg,#1f6bf2,#5b9bff,#38bdf8);box-shadow:0 0 14px rgba(91,155,255,.8)}
+.tvbd-loader-pct{color:#8fb4f5;font-weight:600}

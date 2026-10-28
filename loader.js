@@ -25,7 +25,7 @@
   // Ease toward 92% over ~2.2s while real assets load; never claims 100% until actually ready
   var start = Date.now();
   var target = 92;
-  var duration = 2200;
+  var duration = 1500;
   var tick = setInterval(function(){
     var elapsed = Date.now() - start;
     var t = Math.min(elapsed / duration, 1);

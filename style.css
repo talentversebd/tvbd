@@ -1270,3 +1270,7 @@ footer{padding-top:52px}
   .f-col h4{margin-bottom:8px}
   .f-bottom{padding-top:14px}
 }
+
+/* ===== v68 no automatic zoom: nothing may widen the page; inputs never trigger focus-zoom ===== */
+html,body{max-width:100%;overflow-x:hidden;overflow-x:clip}
+@media(max-width:768px){input,select,textarea{font-size:max(16px,1em)}}

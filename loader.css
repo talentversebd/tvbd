@@ -225,3 +225,9 @@
   -webkit-text-fill-color:#5b9bff!important;color:#5b9bff!important;
   text-shadow:0 0 16px rgba(56,189,248,.55);
 }
+
+/* v68: stop the intro from being wider than the screen (caused automatic zoom) */
+#tvbd-loader{width:100%;max-width:100vw;overflow:hidden;contain:paint}
+.tvbd-loader-text{max-width:92vw}
+.tvbd-loader-text h1{font-size:clamp(.8rem,3.6vw,1.2rem)!important;letter-spacing:.14em!important;white-space:normal;overflow-wrap:anywhere}
+.tvbd-loader-estd{letter-spacing:.3em}

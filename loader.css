@@ -212,3 +212,16 @@
 .tvbd-loader-estd{color:#8fb4f5}
 .tvbd-loader-fill{background:linear-gradient(90deg,#1f6bf2,#5b9bff,#38bdf8);box-shadow:0 0 14px rgba(91,155,255,.8)}
 .tvbd-loader-pct{color:#8fb4f5;font-weight:600}
+
+/* v67: fix garbled title on phones — no nested gradient-clipped text, solid colours instead */
+.tvbd-loader-text h1{
+  background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;
+  -webkit-text-fill-color:#fff!important;color:#fff!important;
+  text-shadow:0 0 18px rgba(91,155,255,.35);
+}
+.tvbd-loader-text h1 span{
+  display:inline!important;animation:none!important;opacity:1!important;transform:none!important;
+  background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;
+  -webkit-text-fill-color:#5b9bff!important;color:#5b9bff!important;
+  text-shadow:0 0 16px rgba(56,189,248,.55);
+}

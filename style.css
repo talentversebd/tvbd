@@ -1274,3 +1274,24 @@ footer{padding-top:52px}
 /* ===== v68 no automatic zoom: nothing may widen the page; inputs never trigger focus-zoom ===== */
 html,body{max-width:100%;overflow-x:hidden;overflow-x:clip}
 @media(max-width:768px){input,select,textarea{font-size:max(16px,1em)}}
+
+/* ===== v68 tablet header: keep every button on screen between 701px and 1060px ===== */
+@media(min-width:701px) and (max-width:1060px){
+  #site-header{padding:0 12px;gap:8px}
+  .h-logo-text .sub{display:none}
+  .h-logo-img{width:38px;height:38px}
+  .h-nav{gap:0!important}
+  .h-nav>a,.h-nav .nav-more-btn{padding:6px 7px!important;font-size:.78rem!important}
+  .h-nav .nav-forum-btn{padding:5px 9px!important}
+  .h-nav .nav-signup-btn{padding:6px 11px!important}
+  .h-nav .lang-toggle-btn{padding:5px 8px!important;font-size:.74rem!important}
+}
+@media(min-width:701px) and (max-width:860px){
+  .h-logo-text{display:none}
+  .h-nav .nav-forum-btn svg{display:none}
+}
+
+/* v68 touch targets: modal close buttons easy to tap on phones */
+@media(max-width:768px){
+  .fm-hd button,.fm-box>div>button[onclick^="closeFM"],button[onclick^="closeFM"]{min-width:40px;min-height:40px;font-size:1.1rem;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
+}

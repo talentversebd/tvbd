@@ -2,7 +2,8 @@
 <html lang="bn"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TalentVerse App — Install</title>
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0a0a12">
+<meta name="description" content="Install the TalentVerse Bangladesh app on your phone — no APK, no app store. Events, quizzes and results from your home screen.">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#060b19">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#0a0a12;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
@@ -11,6 +12,22 @@ img{width:84px;height:84px;border-radius:20px;margin-bottom:12px}h1{margin:0 0 6
 button,.b{display:block;width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:#2563eb;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;text-decoration:none}
 .s{display:none;text-align:left;background:#0d0d16;border-radius:12px;padding:12px 14px;margin-top:14px;font-size:.88rem;color:#c8c8dc;line-height:1.6}
 .ok{display:none;color:#4ade80;font-weight:700;margin-top:14px}.safe{font-size:.78rem;margin-top:14px}
+
+body{background:radial-gradient(60% 40% at 50% 0%,rgba(31,107,242,.32),transparent 70%),radial-gradient(60% 40% at 90% 100%,rgba(56,189,248,.16),transparent 70%),#060b19;overflow-x:hidden}
+.c{position:relative;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(91,155,255,.28);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 30px 70px -30px rgba(31,107,242,.6),inset 0 1px 0 rgba(255,255,255,.08);animation:up .7s cubic-bezier(.2,.7,.2,1) both}
+.c::before{content:"";position:absolute;left:12%;right:12%;top:-1px;height:2px;background:linear-gradient(90deg,transparent,#5b9bff,#38bdf8,transparent)}
+img{box-shadow:0 0 0 6px rgba(91,155,255,.1),0 12px 36px rgba(31,107,242,.55);animation:fl 3.4s ease-in-out infinite}
+h1{background:linear-gradient(90deg,#fff,#bcd5ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+button,.b{transition:transform .15s,box-shadow .2s}
+#ib{background:linear-gradient(135deg,#1f6bf2,#3b82f6);box-shadow:0 12px 28px -10px rgba(31,107,242,.9);position:relative;overflow:hidden}
+#ib::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35),transparent 70%);transform:translateX(-120%);animation:sh 3s ease-in-out infinite}
+button:active,.b:active{transform:scale(.97)}
+.b{background:rgba(255,255,255,.06)!important;border:1px solid rgba(91,155,255,.3)}
+.s{background:rgba(31,107,242,.1);border:1px solid rgba(91,155,255,.25)}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes sh{0%,60%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body><div class="c">
 <img src="icon-192.png" alt="TalentVerse"><h1>TalentVerse Bangladesh</h1>
 <p>অ্যাপ হিসেবে ইনস্টল করুন — ফোনের হোম স্ক্রিনে আলাদা আইকন, ফুল-স্ক্রিন, কোনো "Unsafe" সতর্কতা ছাড়াই।</p>

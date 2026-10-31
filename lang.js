@@ -144,6 +144,11 @@ const translations = {
     nav_blog: "Blog & Articles",
     nav_verify: "Verify",
     nav_results: "Results",
+    nav_play: "Play Zone",
+    pz_eyebrow: "Games & Fun",
+    pz_title_1: "Play",
+    pz_title_2: "Zone",
+    pz_desc: "Quick brain games, one leaderboard across the whole TalentVerse Network.",
     nav_contact: "Contact",
     nav_admin: "⚙ Admin",
 
@@ -448,6 +453,11 @@ const translations = {
     nav_blog: "ব্লগ ও আর্টিকেল",
     nav_verify: "ভেরিফাই",
     nav_results: "ফলাফল",
+    nav_play: "খেলার জগৎ",
+    pz_eyebrow: "গেম ও মজা",
+    pz_title_1: "খেলার",
+    pz_title_2: "জগৎ",
+    pz_desc: "দ্রুত মাথা খাটানোর খেলা, আর পুরো TalentVerse Network জুড়ে একটাই লিডারবোর্ড।",
     nav_contact: "যোগাযোগ",
     nav_admin: "⚙ অ্যাডমিন",
 

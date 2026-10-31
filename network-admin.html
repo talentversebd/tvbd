@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Network Admin</title>
+<meta name="theme-color" content="#060b19">
+<style>
+:root{--bg:#060b19;--card:#0d1526;--bdr:rgba(91,155,255,.22);--txt:#eef2ff;--mut:#8da2c8;--blue:#1f6bf2;--br:#5b9bff;--red:#ef4444;--ok:#22c55e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(60% 40% at 50% 0,rgba(31,107,242,.25),transparent 70%),var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:16px;min-height:100vh}
+.w{max-width:760px;margin:0 auto}h1{font-size:1.3rem;margin:6px 0 4px}h2{font-size:1.02rem;margin:0 0 10px}p{color:var(--mut);font-size:.88rem;line-height:1.6;margin:4px 0}
+.c{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:16px;margin:14px 0}
+input,select,textarea{width:100%;background:#0a1222;border:1px solid var(--bdr);border-radius:10px;padding:11px 12px;color:var(--txt);font-size:16px;margin:5px 0 10px;font-family:inherit}
+label{font-size:.78rem;color:var(--mut);font-weight:600}
+button{background:linear-gradient(135deg,#1f6bf2,#3b82f6);color:#fff;border:0;border-radius:10px;padding:11px 16px;font-size:.92rem;font-weight:700;cursor:pointer;min-height:42px}
+button.s{background:rgba(255,255,255,.07);border:1px solid var(--bdr)}button.d{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.5);color:#fca5a5}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:0 0 auto}
+.site{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr)}.site img{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#fff}
+.site b{display:block}.site small{color:var(--mut);word-break:break-all}.dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto}
+.msg{font-size:.85rem;margin-top:8px}.ok{color:var(--ok)}.er{color:#fca5a5}
+.lb{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--bdr);font-size:.86rem;align-items:center}
+.hide{display:none}
+</style></head><body><div class="w">
+<h1>🌐 Network Admin</h1><p>TalentVerse Network — site list &amp; leaderboard moderation.</p>
+
+<div class="c" id="login"><h2>Sign in</h2><p>Only the admin Google account set in the Firestore Rules can edit the network.</p>
+<button id="bLogin">Sign in with Google</button><div class="msg er" id="lmsg"></div></div>
+
+<div id="app" class="hide">
+ <div class="c"><div class="row" style="justify-content:space-between"><span id="who" style="font-size:.85rem;color:var(--mut)"></span><button class="s" id="bOut">Sign out</button></div></div>
+
+ <div class="c"><h2>Sites in the network</h2><div id="list"></div>
+  <div class="row" style="margin-top:12px"><button class="s" id="bSeed">+ Add TVBD &amp; Personal site</button></div></div>
+
+ <div class="c"><h2 id="ftitle">Add / edit a site</h2>
+  <label>Site ID (letters/numbers, e.g. tvbd) — must match <code>window.TVNET_SITE</code> in that site</label><input id="f_id" placeholder="tvbd" autocapitalize="off">
+  <label>Name</label><input id="f_name" placeholder="TalentVerse Bangladesh">
+  <label>Website link</label><input id="f_url" placeholder="https://talentversebd.github.io/tvbd/">
+  <label>Logo image link</label><input id="f_logo" placeholder="https://.../logo.jpg">
+  <label>Short description</label><input id="f_desc" placeholder="Events, quizzes and community">
+  <label>Theme colour</label><input id="f_color" type="color" value="#1f6bf2" style="height:46px;padding:4px">
+  <label>Order (1 = first)</label><input id="f_order" type="number" value="10">
+  <label>Show in network?</label><select id="f_active"><option value="1">Yes</option><option value="0">No (hidden)</option></select>
+  <div class="row"><button id="bSave">Save site</button><button class="s" id="bClear">Clear</button></div><div class="msg" id="fmsg"></div></div>
+
+ <div class="c"><h2>Leaderboard moderation</h2><p>Remove a cheated or inappropriate entry.</p>
+  <select id="m_game"><option value="memory">Memory Match</option><option value="scramble">Word Scramble</option><option value="rush">True/False Rush</option></select>
+  <button class="s" id="bLoadLb">Load top 30</button><div id="lb" style="margin-top:8px"></div></div>
+</div></div>
+
+<script>window.TVNET_SITE='admin';</script>
+<script type="module" src="network.js"></script>
+<script>
+const $=id=>document.getElementById(id);const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function ready(f){if(window.TVNet)f();else addEventListener('tvnet-ready',f,{once:true})}
+ready(()=>{const N=window.TVNet;
+ N.admin.onUser(u=>{const ok=u&&!u.isAnonymous;$('login').classList.toggle('hide',!!ok);$('app').classList.toggle('hide',!ok);if(ok){$('who').textContent=u.email;load()}});
+ $('bLogin').onclick=()=>N.admin.login().catch(e=>$('lmsg').textContent='Sign-in failed: '+(e.code||e.message)+' (add this domain in Firebase → Authentication → Settings → Authorized domains)');
+ $('bOut').onclick=()=>N.admin.logout().then(()=>location.reload());
+ async function load(){const s=await N.getSites(true);$('list').innerHTML=s.length?s.map(x=>`<div class="site"><span class="dot" style="background:${esc(x.color||'#1f6bf2')}"></span>${x.logo?`<img src="${esc(x.logo)}" alt="">`:''}<div style="flex:1"><b>${esc(x.name)} <small>(${esc(x.id)})</small></b><small>${esc(x.url||'')}</small></div><button class="s" data-e="${esc(x.id)}">Edit</button></div>`).join(''):'<p>No sites yet.</p>';
+  $('list').querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const x=s.find(y=>y.id===b.dataset.e);$('f_id').value=x.id;$('f_name').value=x.name||'';$('f_url').value=x.url||'';$('f_logo').value=x.logo||'';$('f_desc').value=x.desc||'';$('f_color').value=x.color||'#1f6bf2';$('f_order').value=x.order||10;$('f_active').value=x.active===false?'0':'1';$('ftitle').textContent='Edit: '+x.id;scrollTo({top:$('ftitle').offsetTop-10,behavior:'smooth'})})}
+ $('bSave').onclick=async()=>{const id=$('f_id').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');if(!id||!$('f_name').value.trim()){$('fmsg').className='msg er';$('fmsg').textContent='ID and Name are required.';return}
+  try{await N.admin.saveSite(id,{name:$('f_name').value.trim(),url:$('f_url').value.trim(),logo:$('f_logo').value.trim(),desc:$('f_desc').value.trim(),color:$('f_color').value,order:parseInt($('f_order').value)||10,active:$('f_active').value==='1'});$('fmsg').className='msg ok';$('fmsg').textContent='Saved ✓';load()}catch(e){$('fmsg').className='msg er';$('fmsg').textContent='Failed: '+(e.code||e.message)}};
+ $('bClear').onclick=()=>{['f_id','f_name','f_url','f_logo','f_desc'].forEach(i=>$(i).value='');$('ftitle').textContent='Add / edit a site'};
+ $('bSeed').onclick=async()=>{try{await N.admin.saveSite('tvbd',{name:'TalentVerse Bangladesh',url:'https://talentversebd.github.io/tvbd/',logo:'https://talentversebd.github.io/tvbd/logo.jpg',desc:'Events, quizzes and community for students',color:'#1f6bf2',order:1,active:true});
+   await N.admin.saveSite('fahad',{name:'Fahad Abdur Rahman',url:'https://fahad-abdur-rahman.github.io/ghost-leader/',logo:'',desc:'Personal website',color:'#287A50',order:2,active:true});$('fmsg').className='msg ok';$('fmsg').textContent='Added ✓ (edit the logo/links as needed)';load()}catch(e){$('fmsg').className='msg er';$('fmsg').textContent='Failed: '+(e.code||e.message)}};
+ $('bLoadLb').onclick=async()=>{const g=$('m_game').value;const r=await N.top(g,30);$('lb').innerHTML=r.length?r.map((x,i)=>`<div class="lb"><span>${i+1}. ${esc(x.name)} <small style="color:var(--mut)">(${esc(x.siteId)})</small></span><span><b>${x.score}</b> <button class="d" data-d="${esc(x.id)}" style="padding:6px 10px;min-height:34px">Delete</button></span></div>`).join(''):'<p>Empty.</p>';
+  $('lb').querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this entry?'))return;try{await N.admin.deleteScore(g,b.dataset.d);b.closest('.lb').remove()}catch(e){alert('Failed: '+(e.code||e.message))}})};
+});
+</script></body></html>

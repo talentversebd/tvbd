@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S7D7S2G08K"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-S7D7S2G08K');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TalentVerse">
+<title>Play Zone — TalentVerse Bangladesh</title>
+<meta name="description" content="Quick brain games with a leaderboard shared across the TalentVerse Network.">
+<link rel="canonical" href="https://talentversebd.github.io/tvbd/playzone.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TalentVerse Bangladesh">
+<meta property="og:title" content="Play Zone — TalentVerse Bangladesh">
+<meta property="og:description" content="Quick brain games with a leaderboard shared across the TalentVerse Network.">
+<meta property="og:url" content="https://talentversebd.github.io/tvbd/playzone.html">
+<meta property="og:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Play Zone — TalentVerse Bangladesh">
+<meta name="twitter:description" content="Quick brain games with a leaderboard shared across the TalentVerse Network.">
+<meta name="twitter:image" content="https://talentversebd.github.io/tvbd/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="logo.jpg" as="image">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=74">
+<link rel="stylesheet" href="loader.css?v=5">
+<link rel="stylesheet" href="playzone.css?v=2">
+<style>:root{--pz-accent:#1f6bf2;--pz-accent2:#5b9bff;--pz-card:#0d1526;--pz-txt:#eef2ff;--pz-mut:#8da2c8;--pz-bdr:rgba(91,155,255,.25)}</style>
+</head>
+<body>
+<div id="tvbd-loader" class="tvbd-loader">
+  <div class="tvbd-loader-ring-wrap">
+    <svg class="tvbd-ring-svg" viewBox="0 0 160 160">
+      <circle class="tvbd-ring-bg" cx="80" cy="80" r="72"></circle>
+      <circle class="tvbd-ring-fg" cx="80" cy="80" r="72"></circle>
+    </svg>
+    <img src="logo.jpg" class="tvbd-loader-logo" alt="TalentVerse Bangladesh">
+  </div>
+  <div class="tvbd-loader-text">
+    <h1>TALENTVERSE <span>BANGLADESH</span></h1>
+    <p class="tvbd-loader-estd">ESTD 2026</p>
+  </div>
+  <div class="tvbd-loader-progress">
+    <div class="tvbd-loader-bar"><div class="tvbd-loader-fill" id="tvbd-loader-fill"></div></div>
+    <span class="tvbd-loader-pct" id="tvbd-loader-pct">Loading... 0%</span>
+  </div>
+</div>
+<script src="loader.js?v=3"></script>
+
+
+<!-- HEADER -->
+<header id="site-header">
+  <a class="h-logo" href="index.html">
+    <img class="h-logo-img" src="logo.jpg" alt="TalentVerse Logo">
+    <div class="h-logo-text">
+      <div class="name">Talent<span>Verse</span></div>
+      <div class="sub">Bangladesh</div>
+    </div>
+  </a>
+  <nav class="h-nav" id="hnav">
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <a href="events.html" data-i18n="nav_olympiads">Events &amp; Quiz</a>
+    <a href="team.html" data-i18n="nav_team">Team</a>
+    <a href="news.html" data-i18n="nav_news">News</a>
+    <a href="playzone.html" data-i18n="nav_contact">Contact</a>
+    <div class="nav-more" id="nav-more">
+      <button type="button" class="nav-more-btn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_more">More</span> <span class="nav-more-caret">▾</span></button>
+      <div class="nav-more-menu">
+        <a href="resources.html" data-i18n="nav_resources">Resources</a>
+        <a href="register.html" data-i18n="nav_register">Register</a>
+        <a href="leaderboard.html" data-i18n="nav_results">Results</a>
+        <a href="playzone.html" data-i18n="nav_play">Play Zone</a>
+        <a href="verify.html" data-i18n="nav_verify">Verify</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
+      </div>
+    </div>
+    <a href="forum.html" class="nav-forum-btn"><svg class="nav-forum-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg> <span data-i18n="nav_forum">Forum</span></a>
+    <a href="account.html" id="nav-account-link">🔐 Account</a>
+    <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
+      🌐 <span class="lang-toggle-label">বাং</span>
+    </button>
+  </nav>
+  <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <span class="eyebrow" data-i18n="pz_eyebrow">Games &amp; Fun</span>
+  <h1><span data-i18n="pz_title_1">Play</span> <span data-i18n="pz_title_2">Zone</span></h1>
+  <p data-i18n="pz_desc">Quick brain games, one leaderboard across the whole TalentVerse Network.</p>
+</div>
+
+<section class="section" style="padding-top:28px"><div id="pz"></div></section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-grid">
+    <div class="f-brand">
+      <a class="h-logo" href="index.html" style="text-decoration:none;">
+        <img class="h-logo-img" src="logo.jpg" alt="Logo">
+        <div class="h-logo-text">
+          <div class="name">Talent<span>Verse</span></div>
+          <div class="sub">Bangladesh</div>
+        </div>
+      </a>
+      <p id="f-desc" data-i18n="f_desc">TalentVerse Bangladesh is the country's most dedicated platform for event information, resources, and community.</p>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_quicklinks">Quick Links</h4>
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
+      <a href="team.html" data-i18n="nav_team">Team</a>
+      <a href="news.html" data-i18n="nav_news">News</a>
+      <a href="resources.html" data-i18n="nav_resources">Resources</a>
+      <a href="playzone.html" data-i18n="nav_play">Play Zone</a>
+      <a href="forum.html" data-i18n="nav_forum">Forum</a>
+      <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
+      <a href="register.html" data-i18n="nav_register">Register</a>
+      <a href="verify.html" data-i18n="nav_verify">Verify Certificate</a>
+      <a href="playzone.html" data-i18n="nav_contact">Contact</a>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_contact">Contact</h4>
+      <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
+      <a id="f-phone" href="#">+880 1634-428536</a>
+      <a id="f-addr" href="#">Dhaka, Bangladesh</a>
+    </div>
+  </div>
+  <div class="f-bottom">
+    <p data-i18n="f_bottom">© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Samin & <a class="dev-link" href="https://fahad-abdur-rahman.github.io/ghost-leader/" target="_blank" rel="noopener">Fahad</a>.</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<!-- Firebase & EmailJS -->
+<script type="module" src="firebase-config.js"></script>
+
+<script src="data.js?v=10"></script>
+<script src="render.js"></script>
+<script src="lang.js"></script>
+<script src="main.js"></script>
+<script>window.TVNET_SITE="tvbd";</script>
+<script type="module" src="network.js?v=1"></script>
+<script src="playzone-data.js?v=1"></script>
+<script src="playzone.js?v=2"></script>
+  <!-- ═══════════════════════════════════ -->
+<!-- 🔔 NOTICE BAR (Top) -->
+<!-- ═══════════════════════════════════ -->
+<div class="notice-bar" id="notice-bar">
+  <span class="nb-dot" id="nb-dot"></span>
+  <span id="nb-text">Registration is Open Now!</span>
+  <span class="nb-count" id="nb-count" style="display:none;"></span>
+</div>
+
+<!-- ═══════════════════════════════════ -->
+<!-- 📢 POPUP NOTICE -->
+<!-- ═══════════════════════════════════ -->
+<div class="popup-ov" id="popup-notice">
+  <div class="popup-box">
+    <button class="popup-close" onclick="closePopup()">✕</button>
+    <div class="popup-icon">📢</div>
+    <h2 class="popup-title" id="popup-title">Important Notice</h2>
+    <p class="popup-msg" id="popup-msg">Registration is now open!</p>
+    
+    <div class="popup-countdown" id="popup-countdown">
+      <div class="popup-count-item">
+        <div class="popup-count-num" id="pc-days">00</div>
+        <div class="popup-count-label" data-i18n="days">Days</div>
+      </div>
+      <div class="popup-count-item">
+        <div class="popup-count-num" id="pc-hours">00</div>
+        <div class="popup-count-label" data-i18n="hours">Hours</div>
+      </div>
+      <div class="popup-count-item">
+        <div class="popup-count-num" id="pc-mins">00</div>
+        <div class="popup-count-label" data-i18n="mins">Mins</div>
+      </div>
+      <div class="popup-count-item">
+        <div class="popup-count-num" id="pc-secs">00</div>
+        <div class="popup-count-label" data-i18n="secs">Secs</div>
+      </div>
+    </div>
+    
+    <div class="popup-closed" id="popup-closed" style="display:none;">
+      🔴 Registration Closed
+    </div>
+    
+    <a href="#" id="popup-btn" class="popup-btn" target="_blank" rel="noopener">
+      <span id="popup-btn-text">Apply Now</span>
+      <span>→</span>
+    </a>
+    
+    <label class="popup-dontshow">
+      <input type="checkbox" id="popup-dontshow">
+      <span data-i18n="popup_dontshow">Don't show again today</span>
+    </label>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ -->
+<!-- 🚀 POPUP + COUNTDOWN SCRIPT -->
+<!-- ═══════════════════════════════════ -->
+<script>
+let popupSettings = null;
+let countdownInterval = null;
+
+// Wait for Firebase and Load Popup Settings
+document.addEventListener('DOMContentLoaded', () => {
+  const check = setInterval(async () => {
+    if(typeof getPopupSettings === 'function' && window.firebaseDB) {
+      clearInterval(check);
+      try {
+        popupSettings = await getPopupSettings();
+        initPopupAndNoticeBar();
+      } catch(err) {
+        console.error("Popup load error:", err);
+      }
+    }
+  }, 200);
+});
+
+function initPopupAndNoticeBar() {
+  if(!popupSettings || !popupSettings.active) return;
+  
+  // Setup Notice Bar
+  if(popupSettings.showNoticeBar && popupSettings.noticeBarText) {
+    setupNoticeBar();
+  }
+  
+  // Setup Popup (check if user closed it today)
+  const today = new Date().toDateString();
+  const dismissedDate = localStorage.getItem('tvbd_popup_dismissed');
+  
+  if(dismissedDate !== today) {
+    setTimeout(() => {
+      showPopup();
+    }, 1500); // Show after 1.5 seconds
+  }
+}
+
+function setupNoticeBar() {
+  const bar = document.getElementById('notice-bar');
+  const text = document.getElementById('nb-text');
+  const dot = document.getElementById('nb-dot');
+  const count = document.getElementById('nb-count');
+  
+  if(!bar || !text) return;
+  
+  text.textContent = popupSettings.noticeBarText;
+  bar.classList.add('show');
+  document.body.classList.add('has-notice');
+  
+  // Update countdown in notice bar if deadline exists
+  if(popupSettings.deadline) {
+    updateNoticeBarCountdown();
+    setInterval(updateNoticeBarCountdown, 1000);
+  }
+}
+
+function updateNoticeBarCountdown() {
+  const dot = document.getElementById('nb-dot');
+  const count = document.getElementById('nb-count');
+  if(!dot || !count) return;
+  
+  const now = new Date().getTime();
+  const deadline = new Date(popupSettings.deadline).getTime();
+  const diff = deadline - now;
+  
+  if(diff <= 0) {
+    dot.classList.add('closed');
+    count.textContent = '🔴 Closed';
+    count.style.display = 'inline-block';
+    return;
+  }
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  
+  let text = '';
+  if(days > 0) text = `${days}d ${hours}h left`;
+  else if(hours > 0) text = `${hours}h ${mins}m left`;
+  else text = `${mins}m left`;
+  
+  count.textContent = `⏰ ${text}`;
+  count.style.display = 'inline-block';
+}
+
+function showPopup() {
+  const popup = document.getElementById('popup-notice');
+  if(!popup || !popupSettings) return;
+  
+  // Set content
+  document.getElementById('popup-title').textContent = popupSettings.title || translations[getLang()].popup_title_default;
+  document.getElementById('popup-msg').textContent = popupSettings.message || '';
+  
+  const btn = document.getElementById('popup-btn');
+  const btnText = document.getElementById('popup-btn-text');
+  
+  if(popupSettings.buttonLink) {
+    btn.href = popupSettings.buttonLink;
+    btnText.textContent = popupSettings.buttonText || 'Apply Now';
+    btn.style.display = 'inline-flex';
+  } else {
+    btn.style.display = 'none';
+  }
+  
+  // Show popup
+  popup.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  
+  // Start countdown
+  if(popupSettings.deadline) {
+    updatePopupCountdown();
+    countdownInterval = setInterval(updatePopupCountdown, 1000);
+  } else {
+    document.getElementById('popup-countdown').style.display = 'none';
+  }
+}
+
+function updatePopupCountdown() {
+  const now = new Date().getTime();
+  const deadline = new Date(popupSettings.deadline).getTime();
+  const diff = deadline - now;
+  
+  if(diff <= 0) {
+    // Registration closed
+    document.getElementById('popup-countdown').style.display = 'none';
+    const closedEl = document.getElementById('popup-closed');
+    closedEl.style.display = 'block';
+    closedEl.textContent = translations[getLang()].popup_closed;
+    const btn = document.getElementById('popup-btn');
+    btn.classList.add('disabled');
+    btn.onclick = (e) => e.preventDefault();
+    document.getElementById('popup-btn-text').textContent = 'Registration Closed';
+    clearInterval(countdownInterval);
+    return;
+  }
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const secs = Math.floor((diff % (1000 * 60)) / 1000);
+  
+  document.getElementById('pc-days').textContent = String(days).padStart(2, '0');
+  document.getElementById('pc-hours').textContent = String(hours).padStart(2, '0');
+  document.getElementById('pc-mins').textContent = String(mins).padStart(2, '0');
+  document.getElementById('pc-secs').textContent = String(secs).padStart(2, '0');
+}
+
+function closePopup() {
+  const popup = document.getElementById('popup-notice');
+  const dontShow = document.getElementById('popup-dontshow');
+  
+  if(popup) popup.classList.remove('show');
+  document.body.style.overflow = '';
+  
+  if(dontShow && dontShow.checked) {
+    const today = new Date().toDateString();
+    localStorage.setItem('tvbd_popup_dismissed', today);
+  }
+  
+  if(countdownInterval) clearInterval(countdownInterval);
+}
+
+// Close on outside click
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('popup-notice');
+  if(popup && e.target === popup) {
+    closePopup();
+  }
+});
+
+// Close on ESC key
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') {
+    const popup = document.getElementById('popup-notice');
+    if(popup && popup.classList.contains('show')) {
+      closePopup();
+    }
+  }
+});
+</script>
+<script src="bnav.js"></script>
+<script src="fx.js"></script>
+<script src="pwa.js"></script>
+</body>
+</html>

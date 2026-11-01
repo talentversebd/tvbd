@@ -9,7 +9,7 @@ button.s{background:#1b2540}pre{white-space:pre-wrap;word-break:break-word;backg
 </style></head><body>
 <h1>🔧 Network connection test</h1>
 <small>This page checks each step and shows the exact error code.</small><br>
-<button id="run">▶ Run test</button><button class="s" id="save">💾 Test saving a score</button><button class="s" id="copy">📋 Copy result</button>
+<button id="run">▶ Run test</button><button class="s" id="save">💾 Test saving (all 3 games)</button><button class="s" id="copy">📋 Copy result</button>
 <pre id="out">Press “Run test”.</pre>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -24,10 +24,14 @@ async function run(){log=[];say('Page: '+location.href);say('Project: '+cfg.proj
  let ids=[];try{const s=await getDocs(collection(db,'sites'));ids=s.docs.map(d=>d.id);say('✅ 2. Reading site list OK: ['+ids.join(', ')+']')}catch(e){say('❌ 2. Reading site list FAILED: '+(e.code||e.message));say('   → Firestore Database not created, or Rules not published (Rules must contain “match /sites/{siteId}”).');return}
  if(!ids.length)say('❌ 3. The site list is EMPTY → open network-admin.html and add your sites.');
  else{say(ids.includes('tvbd')?'✅ 3a. site “tvbd” exists':'❌ 3a. site “tvbd” is MISSING (add it in network-admin.html)');say(ids.includes('vya')?'✅ 3b. site “vya” exists':'❌ 3b. site “vya” is MISSING (add it in network-admin.html)')}
- say('Now press “Test saving a score”.')}
+ say('Now press “Test saving (all 3 games)”.')}
 async function save(){if(!user){await run();if(!user)return}
- const siteId=(log.join(' ').includes('“tvbd” exists'))?'tvbd':'vya';
- try{await setDoc(doc(db,'lb_rush',siteId+'_'+user.uid),{uid:user.uid,siteId,name:'Test',score:1,updatedAt:Date.now()});say('✅ 4. Saving a score OK (site '+siteId+'). Everything works!')}catch(e){say('❌ 4. Saving FAILED: '+(e.code||e.message));say('   → permission-denied: Rules not the latest, or the site “'+siteId+'” is missing from the site list.')}}
+ const siteId='tvbd';say('--- Save test on site "'+siteId+'" from '+location.host+' ---');
+ for(const g of ['memory','scramble','rush']){const ref=doc(db,'lb_'+g,siteId+'_'+user.uid);let step='read';
+  try{const sn=await getDoc(ref);const old=sn.exists()?(sn.data().score||0):0;step=sn.exists()?'update':'create';
+   await setDoc(ref,{uid:user.uid,siteId,name:'Test',score:old+1,updatedAt:Date.now()});say('✅ lb_'+g+': '+step+' OK')}
+  catch(e){say('❌ lb_'+g+': FAILED at '+step+' → '+(e.code||e.message))}}
+ say('Done. Press “Copy result” and send it to me.')}
 document.getElementById('run').onclick=run;document.getElementById('save').onclick=save;
 document.getElementById('copy').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(log.join('\n'));};
 </script></body></html>

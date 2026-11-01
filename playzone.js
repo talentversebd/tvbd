@@ -38,11 +38,12 @@
   function shell() {
     var n = N(), name = n ? n.getName() : (store.g('tvnet_name') || '');
     root.innerHTML =
-      '<div class="pz-top"><button class="pz-chip" id="pzName">👤 <span>' + (name ? '<b>' + esc(name) + '</b> · ' + t('change') : t('nick')) + '</span></button></div>' +
+      '<div class="pz-top"><button class="pz-chip" id="pzName">👤 <span>' + (name ? '<b>' + esc(name) + '</b> · ' + t('change') : t('nick')) + '</span></button>' + (typeof getLang === 'function' ? '' : '<button class="pz-chip" id="pzLang">🌐 ' + (lang() === 'bn' ? 'English' : 'বাংলা') + '</button>') + '</div>' +
       '<div class="pz-tabs" id="pzTabs">' +
       ['home', 'lb', 'net'].map(function (k) { return '<button class="pz-tab' + (cur === k || (k === 'home' && ['memory', 'scramble', 'rush'].indexOf(cur) > -1) ? ' on' : '') + '" data-t="' + k + '">' + (k === 'home' ? '🎮 ' + t('tabGames') : k === 'lb' ? '🏆 ' + t('tabRank') : '🌐 ' + t('tabNet')) + '</button>'; }).join('') +
       '</div><div id="pzBody"></div>';
     $('#pzName').onclick = function () { askName(function () { go(cur); }); };
+    var lb = $('#pzLang'); if (lb) lb.onclick = function () { store.s('pz_lang', lang() === 'bn' ? 'en' : 'bn'); go(cur); };
     $('#pzTabs').onclick = function (e) { var b = e.target.closest('[data-t]'); if (b) go(b.dataset.t); };
   }
   function go(view) { clearTimers(); cur = view; shell(); var b = $('#pzBody'); ({ home: home, memory: memory, scramble: scramble, rush: rush, lb: board, net: network }[view] || home)(b); window.scrollTo && 0; }
@@ -82,7 +83,7 @@
     var sv = $('#pzSv');
     if (!n) { sv.className = 'pz-msg er'; sv.textContent = t('offline'); return; }
     if (!n.getName()) { sv.textContent = t('nonick'); n.submit(game, score); return; }
-    n.submit(game, score).then(function (r) { sv.className = 'pz-msg ' + (r.online ? 'ok' : 'er'); sv.textContent = r.online ? t('saved') : t('offline'); });
+    n.submit(game, score).then(function (r) { sv.className = 'pz-msg ' + (r.online ? 'ok' : 'er'); sv.textContent = r.online ? t('saved') : t('offline') + (r.error ? ' [' + r.error + ']' : ''); });
   }
 
   /* ---------- Memory Match ---------- */

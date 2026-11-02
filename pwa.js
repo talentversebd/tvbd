@@ -18,5 +18,6 @@ if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostn
     if(!admin){add('share.js');}
     if(!admin){add('seo.js');}
     if(!admin){add('push.js');}
+    if(!admin){window.TVNET_SITE=window.TVNET_SITE||'tvbd';add('netbar.js');}
   }catch(e){}
 })();

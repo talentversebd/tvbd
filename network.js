@@ -27,10 +27,11 @@ let sitesCache = null, userP = null;
 
 function user() {
   if (userP) return userP;
-  userP = new Promise((res, rej) => {
-    const off = onAuthStateChanged(auth, u => { if (u) { off(); res(u); } });
-    signInAnonymously(auth).catch(e => { userP = null; rej(e); });
-  });
+  userP = (async () => {
+    try { await auth.authStateReady(); } catch (e) {}
+    if (auth.currentUser) return auth.currentUser;   /* keep an existing login (e.g. the admin's Google sign-in) */
+    try { return (await signInAnonymously(auth)).user; } catch (e) { userP = null; throw e; }
+  })();
   return userP;
 }
 async function getSites(force) {

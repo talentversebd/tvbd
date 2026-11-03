@@ -73,6 +73,17 @@ function renderHome() {
 }
 
 /*===== RENDER OLYMPIADS =====*/
+/*===== SEMINAR HELPERS (a seminar is an olympiads document with type:'seminar') =====*/
+window.__evType = window.__evType || 'all';
+function isSeminar(o) { return !!o && o.type === 'seminar'; }
+function evTypeOk(o) { const t = window.__evType || 'all'; return t === 'all' || (t === 'seminar' ? isSeminar(o) : !isSeminar(o)); }
+function evIcon(o) { return isSeminar(o) ? '🎤' : '🏆'; }
+function evEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function evChips(o) {
+  if(isSeminar(o)) return `<span class="chip">📅 ${o.date || 'TBA'}</span>${o.time ? `<span class="chip">🕒 ${evEsc(o.time)}</span>` : ''}<span class="chip">🎤 Seminar</span>${o.speaker ? `<span class="chip">👤 ${evEsc(o.speaker)}</span>` : ''}${o.venue ? `<span class="chip">📍 ${evEsc(o.venue)}</span>` : ''}`;
+  return `<span class="chip">📅 ${o.date || 'TBA'}</span><span class="chip">🏷️ ${o.cat}</span>${o.venue ? `<span class="chip">📍 ${o.venue}</span>` : ''}`;
+}
+
 function renderOlympiads() {
   const grid = document.getElementById('olymp-grid');
   if(!grid) return;
@@ -82,7 +93,7 @@ function renderOlympiads() {
   const page = window.location.pathname.split('/').pop() || 'index.html';
   const isHome = (page === 'index.html' || page === '');
   const all = getOlympiads();
-  const olympiads = isHome ? all.slice(0, 2) : all;
+  const olympiads = isHome ? all.slice(0, 2) : all.filter(evTypeOk);
 
   grid.innerHTML = '';
 
@@ -103,15 +114,11 @@ function renderOlympiads() {
     card.innerHTML = `
       ${o.img
         ? `<img loading="lazy" decoding="async" src="${o.img}" class="o-card-img" alt="${o.title}">`
-        : `<div class="o-card-noimg">🏆</div>`}
+        : `<div class="o-card-noimg">${evIcon(o)}</div>`}
       <div class="o-card-badge">${o.status}</div>
       <div class="o-card-body">
         <h3 class="o-card-title">${o.title}</h3>
-        <div class="o-chips">
-          <span class="chip">📅 ${o.date || 'TBA'}</span>
-          <span class="chip">🏷️ ${o.cat}</span>
-          ${o.venue ? `<span class="chip">📍 ${o.venue}</span>` : ''}
-        </div>
+        <div class="o-chips">${evChips(o)}</div>
         <p class="o-card-desc">${o.desc}</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="rm-btn">Read More</button>
@@ -196,13 +203,20 @@ function openModal(i) {
 
   if(media) media.innerHTML = o.img
     ? `<img src="${o.img}" class="modal-img" alt="${o.title}">`
-    : `<div class="modal-noimg">🏆</div>`;
+    : `<div class="modal-noimg">${evIcon(o)}</div>`;
 
-  if(cat) cat.textContent = o.cat;
+  if(cat) cat.textContent = isSeminar(o) ? '🎤 Seminar' : o.cat;
   if(title) title.textContent = o.title;
   if(desc) desc.textContent = o.fullDesc || o.desc;
 
-  if(details) details.innerHTML = `
+  if(details) details.innerHTML = isSeminar(o) ? `
+    <div class="md-box"><div class="md-lbl">Date</div><div class="md-val">${o.date || 'TBA'}</div></div>
+    <div class="md-box"><div class="md-lbl">Time</div><div class="md-val">${evEsc(o.time) || 'TBA'}</div></div>
+    <div class="md-box"><div class="md-lbl">Speaker</div><div class="md-val">${evEsc(o.speaker) || 'TBA'}</div></div>
+    <div class="md-box"><div class="md-lbl">Venue / Link</div><div class="md-val">${evEsc(o.venue) || 'Online / TBA'}</div></div>
+    <div class="md-box"><div class="md-lbl">Reg. Deadline</div><div class="md-val">${o.deadline || 'TBA'}</div></div>
+    <div class="md-box"><div class="md-lbl">Who can join</div><div class="md-val">${evEsc(o.eligibility) || 'Everyone'}</div></div>
+    <div class="md-box"><div class="md-lbl">Fee</div><div class="md-val">${evEsc(o.fee) || 'Free'}</div></div>` : `
     <div class="md-box">
       <div class="md-lbl">Event Date</div>
       <div class="md-val">${o.date || 'TBA'}</div>

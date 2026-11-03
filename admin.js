@@ -337,7 +337,7 @@ function renderOlympiadTable() {
   data.forEach(o => {
     tbody.innerHTML += `<tr>
       <td>${o.img ? `<img src="${o.img}" class="thumb">` : '🏆'}</td>
-      <td>${o.title}</td><td>${o.cat}</td><td>${o.date || 'TBA'}</td>
+      <td>${o.type==='seminar' ? '🎤 ' : ''}${o.title}</td><td>${o.type==='seminar' ? 'Seminar' : o.cat}</td><td>${o.date || 'TBA'}</td>
       <td><span class="bs bs-${o.status}">${o.status}</span></td>
       <td class="tbl-acts"><button class="e-btn" onclick="editOlympiad('${o.id}')">Edit</button><button class="d-btn" onclick="deleteOlympiad('${o.id}')">Delete</button></td></tr>`;
   });
@@ -396,7 +396,8 @@ function regStatus(r) { return r.approval === 'approved' ? 'approved' : r.approv
 function regFiltered() {
   const ev = (document.getElementById('reg-event-filter') || {}).value || '';
   const st = (document.getElementById('reg-status-filter') || {}).value || '';
-  return getRegistrations().filter(r => (!ev || r.olympiad === ev) && (!st || regStatus(r) === st));
+  const at = (document.getElementById('reg-att-filter') || {}).value || '';
+  return getRegistrations().filter(r => (!ev || r.olympiad === ev) && (!st || regStatus(r) === st) && (!at || (at === 'yes' ? r.attended === true : r.attended !== true)));
 }
 
 function renderRegistrationsTable() {
@@ -415,24 +416,51 @@ function renderRegistrationsTable() {
   const count = st => data.filter(r => regStatus(r) === st).length;
   const sum = document.getElementById('reg-summary');
   if(sum) sum.innerHTML = data.length
-    ? `দেখানো হচ্ছে <strong>${data.length}</strong> জন · ⏳ Pending <strong>${count('pending')}</strong> · ✅ Approved <strong>${count('approved')}</strong> · ❌ Rejected <strong>${count('rejected')}</strong>`
+    ? `দেখানো হচ্ছে <strong>${data.length}</strong> জন · ⏳ Pending <strong>${count('pending')}</strong> · ✅ Approved <strong>${count('approved')}</strong> · ❌ Rejected <strong>${count('rejected')}</strong> · 🟢 উপস্থিত <strong>${data.filter(r => r.attended === true).length}</strong>`
     : '';
 
-  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="10">${all.length ? 'এই ফিল্টারে কোনো রেজিস্ট্রেশন নেই।' : 'No registrations yet.'}</td></tr>`; return; }
+  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="11">${all.length ? 'এই ফিল্টারে কোনো রেজিস্ট্রেশন নেই।' : 'No registrations yet.'}</td></tr>`; return; }
   const badge = st => st === 'approved' ? '<span class="bs bs-active">✅ Approved</span>'
                     : st === 'rejected' ? '<span class="bs bs-past">❌ Rejected</span>'
                     : '<span class="bs bs-upcoming">⏳ Pending</span>';
   tbody.innerHTML = data.map(r => {
     const date = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'N/A';
     const st = regStatus(r);
-    return `<tr><td>${bcEsc(r.name)}</td><td>${bcEsc(r.email)}</td><td>${bcEsc(r.phone)}</td><td>${bcEsc(r.olympiad)}</td><td>${bcEsc(r.segment || '—')}</td><td>${bcEsc(r.transactionId || '—')}</td><td style="font-family:monospace;">${bcEsc(r.refCode || '—')}</td><td>${badge(st)}</td><td>${date}</td>
+    return `<tr><td>${bcEsc(r.name)}</td><td>${bcEsc(r.email)}</td><td>${bcEsc(r.phone)}</td><td>${bcEsc(r.olympiad)}</td><td>${bcEsc(r.segment || '—')}</td><td>${bcEsc(r.transactionId || '—')}</td><td style="font-family:monospace;">${bcEsc(r.refCode || '—')}</td><td>${badge(st)}</td><td>${r.attended === true ? '<span class="bs bs-active">🟢 Present</span>' : '<span class="bs bs-past" style="opacity:.7">—</span>'}</td><td>${date}</td>
       <td class="tbl-acts">
+        <button class="e-btn" onclick="setRegAttended('${r.id}',${r.attended === true ? 'false' : 'true'})">${r.attended === true ? '↩ Undo' : '🟢 Present'}</button>
         ${st !== 'approved' ? `<button class="e-btn" onclick="setRegApproval('${r.id}','approved')">✅ Approve</button>` : ''}
         ${st !== 'rejected' ? `<button class="d-btn" onclick="setRegApproval('${r.id}','rejected')">❌ Reject</button>` : ''}
         <button class="e-btn" onclick="viewRegistration('${r.id}')">View</button><button class="d-btn" onclick="deleteRegistrationAction('${r.id}')">Delete</button>
       </td></tr>`;
   }).join('');
   }
+async function setRegAttended(id, val) {
+  try {
+    await waitForFirebase();
+    const { doc, updateDoc } = window.firebaseFunctions;
+    await updateDoc(doc(window.firebaseDB, 'registrations', id), { attended: !!val, attendedAt: val ? Date.now() : null });
+    const r = getRegistrations().find(x => x.id === id);
+    if(r) { r.attended = !!val; r.attendedAt = val ? Date.now() : null; }
+    toast(val ? 'Present মার্ক হয়েছে 🟢' : 'Undo হয়েছে');
+    renderRegistrationsTable();
+  } catch(e) { console.error(e); toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true); }
+}
+async function markShownAttended() {
+  const ids = regFiltered().filter(r => r.attended !== true && regStatus(r) !== 'rejected').map(r => r.id);
+  if(!ids.length) return toast('মার্ক করার মতো কেউ নেই।', true);
+  if(!confirm(`দেখানো ${ids.length} জনকেই Present মার্ক করবেন? (শুধু একটা ইভেন্ট ফিল্টার করে করুন)`)) return;
+  try {
+    await waitForFirebase();
+    const { doc, updateDoc } = window.firebaseFunctions;
+    for(const id of ids) {
+      await updateDoc(doc(window.firebaseDB, 'registrations', id), { attended: true, attendedAt: Date.now() });
+      const r = getRegistrations().find(x => x.id === id); if(r) { r.attended = true; r.attendedAt = Date.now(); }
+    }
+    toast(`${ids.length} জন Present ✅`); renderRegistrationsTable();
+  } catch(e) { console.error(e); toast('ব্যর্থ!', true); }
+}
+
 async function setRegApproval(id, status) {
   const ok = await setRegistrationApproval(id, status);
   if(!ok) return toast('ব্যর্থ! Rules Publish করা আছে কি না দেখুন।', true);
@@ -461,9 +489,9 @@ async function deleteRegistrationAction(id) {
 function downloadRegistrationsCSV() {
   const regs = getRegistrations();
   if(!regs.length) return toast("No data!", true);
-  let csv = "Name,Email,Phone,Olympiad,Segment,Transaction ID,Status,Class,School,Date,CA Code\n";
+  let csv = "Name,Email,Phone,Olympiad,Segment,Transaction ID,Status,Attended,Class,School,Date,CA Code\n";
   regs.forEach(r => {
-    csv += [r.name,r.email,r.phone,r.olympiad,r.segment,r.transactionId,regStatus(r),r.class,r.school,r.createdAt?new Date(r.createdAt).toLocaleString():'',r.refCode].map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')+"\n";
+    csv += [r.name,r.email,r.phone,r.olympiad,r.segment,r.transactionId,regStatus(r),r.attended === true ? 'Present' : '',r.class,r.school,r.createdAt?new Date(r.createdAt).toLocaleString():'',r.refCode].map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')+"\n";
   });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
@@ -540,6 +568,7 @@ function openOlympiadForm() {
   ['of-t','of-dt','of-rd','of-v','of-pr','of-el','of-fe','of-segments','of-ds','of-fd','of-iu'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('of-cat').value = 'Mathematics';
   document.getElementById('of-st').value = 'upcoming';
+  { const ty=document.getElementById('of-type'); if(ty) ty.value='event'; ['of-speaker','of-time'].forEach(i=>{const e=document.getElementById(i); if(e) e.value='';}); toggleSeminarFields(); }
   const chk = document.getElementById('of-reg-enabled'); if(chk) chk.checked = false;
   const qr = document.getElementById('of-qreg'); if(qr) qr.checked = true;
   const ap = document.getElementById('of-approve'); if(ap) ap.checked = true;
@@ -562,6 +591,7 @@ function editOlympiad(id) {
   document.getElementById('ofm-title').textContent = "Edit Olympiad";
   document.getElementById('of-eid').value = id;
   document.getElementById('of-t').value = o.title||'';
+  { const ty=document.getElementById('of-type'); if(ty) ty.value = o.type==='seminar' ? 'seminar' : 'event'; const sp=document.getElementById('of-speaker'); if(sp) sp.value=o.speaker||''; const tm=document.getElementById('of-time'); if(tm) tm.value=o.time||''; toggleSeminarFields(); }
   document.getElementById('of-cat').value = o.cat||'Mathematics';
   document.getElementById('of-st').value = o.status||'upcoming';
   document.getElementById('of-dt').value = o.date||'';
@@ -582,12 +612,18 @@ function editOlympiad(id) {
   populateRegFormDropdown(o.registrationFormId || '');
   openFM('ofm');
 }
+function toggleSeminarFields() {
+  const sem = document.getElementById('of-type')?.value === 'seminar';
+  const b = document.getElementById('of-sem-box'); if(b) b.style.display = sem ? '' : 'none';
+  const c = document.getElementById('of-cat-box'); if(c) c.style.display = sem ? 'none' : '';
+}
 async function saveOlympiad() {
   const title = document.getElementById('of-t').value.trim();
   const desc = document.getElementById('of-ds').value.trim();
   if(!title || !desc) return toast("Title & description required!", true);
   const segments = document.getElementById('of-segments').value.split(',').map(s => s.trim()).filter(Boolean);
-  const o = { title, desc, cat:document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '', registrationFormId:document.getElementById('of-regform')?.value || '', quizRegisteredOnly:(document.getElementById('of-qreg')?.checked ?? true), approvalRequired:(document.getElementById('of-approve')?.checked ?? false) };
+  const isSem = (document.getElementById('of-type')?.value === 'seminar');
+  const o = { title, desc, type: isSem ? 'seminar' : 'event', speaker: isSem ? (document.getElementById('of-speaker')?.value || '').trim() : '', time: isSem ? (document.getElementById('of-time')?.value || '').trim() : '', cat: isSem ? 'Seminar' : document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '', registrationFormId:document.getElementById('of-regform')?.value || '', quizRegisteredOnly:(document.getElementById('of-qreg')?.checked ?? true), approvalRequired:(document.getElementById('of-approve')?.checked ?? false) };
   const eid = document.getElementById('of-eid').value;
   const groupUrl = (document.getElementById('of-group')?.value || '').trim();
   if(groupUrl && !/^https?:\/\//i.test(groupUrl)) return toast("Group link must start with http:// or https://", true);
@@ -1521,7 +1557,7 @@ function bcEsc(v) {
   return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function bcNorm(v) { return String(v || '').trim().toLowerCase(); }
-function bulkEligible(r) { return !!(!bulkExamOnly || r.hasQuiz || !(bulkEvent && bulkEvent.quizId)); }
+function bulkEligible(r) { if(bulkEvent && bulkEvent.type === 'seminar') return r.attended === true; return !!(!bulkExamOnly || r.hasQuiz || !(bulkEvent && bulkEvent.quizId)); }
 function bcIsWinner(pos) { return /champion|winner|runner|1st|2nd|3rd|first|second|third/i.test(String(pos || '')); }
 function bulkSelect(mode) {
   document.querySelectorAll('.bc-chk').forEach(c => {
@@ -1594,7 +1630,8 @@ async function bulkLoadEvent() {
   const tplSetting = evTpl || await loadCertTemplate(true);
   bulkExamOnly = !tplSetting || tplSetting.examOnly !== false;
   const note = document.getElementById('bc-note');
-  if(note) note.innerHTML = bulkExamOnly
+  if(bulkEvent.type === 'seminar') { if(note) note.innerHTML = '🎤 সেমিনার: শুধু যাদের Registrations থেকে <strong>Present</strong> মার্ক করা হয়েছে তারাই সার্টিফিকেট পাবে। Position সাধারণত Participant।'; }
+  else if(note) note.innerHTML = bulkExamOnly
     ? '📝 শুধু যারা এই ইভেন্টের Exam (কুইজ) দিয়েছে তারাই সার্টিফিকেট পাবে। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন।'
     : '📝 Exam-এর নিয়ম এখন বন্ধ আছে, তাই রেজিস্টার করা সবাইকে বাছা যাবে।';
 
@@ -1615,6 +1652,7 @@ async function bulkLoadEvent() {
       name: r.name || '',
       email: r.email || '',
       segment: r.segment || '',
+      attended: r.attended === true,
       hasQuiz: !!sub,
       pending: !!sub && !hasScore,
       score: hasScore ? Number(sub.totalScore) : null,
@@ -1656,13 +1694,14 @@ function bulkRender() {
   }
   const sorted = [...bulkRows].sort((a, b) => ((b.score ?? -1) - (a.score ?? -1)) || a.name.localeCompare(b.name));
   list.innerHTML = sorted.map(r => {
-    const score = r.pending ? '⏳ Review pending' : r.score != null ? `${r.score}/${r.possible}` : (r.hasQuiz ? '—' : 'No quiz');
+    const isSem = bulkEvent && bulkEvent.type === 'seminar';
+    const score = isSem ? (r.attended ? '🟢 Present' : '⚪ Absent') : r.pending ? '⏳ Review pending' : r.score != null ? `${r.score}/${r.possible}` : (r.hasQuiz ? '—' : 'No quiz');
     return `
     <div style="display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;${(r.issued || !bulkEligible(r)) ? 'opacity:.55;' : ''}">
       <input type="checkbox" class="bc-chk" data-i="${r.i}" ${(r.issued || !bulkEligible(r)) ? 'disabled' : (bcIsWinner(r.position) ? '' : 'checked')} style="width:18px;height:18px;" onchange="bulkUpdateCount()">
       <div style="flex:1;min-width:150px;">
         <div style="font-weight:700;font-size:.88rem;">${bcEsc(r.name)}</div>
-        <div style="font-size:.72rem;color:var(--muted);">${bcEsc(r.segment)}${r.segment ? ' · ' : ''}Score: ${score}${!bulkEligible(r) ? ' · 📝 Exam দেননি' : ''}${r.issued ? ' · ✅ Already issued' : (bcIsWinner(r.position) ? ' · 🏆 Winner' : '')}</div>
+        <div style="font-size:.72rem;color:var(--muted);">${bcEsc(r.segment)}${r.segment ? ' · ' : ''}${isSem ? '' : 'Score: '}${score}${!bulkEligible(r) ? (isSem ? ' · উপস্থিতি মার্ক হয়নি' : ' · 📝 Exam দেননি') : ''}${r.issued ? ' · ✅ Already issued' : (bcIsWinner(r.position) ? ' · 🏆 Winner' : '')}</div>
       </div>
       <input class="fi bc-pos" data-i="${r.i}" list="bc-pos-list" value="${bcEsc(r.position)}" ${r.issued ? 'disabled' : ''} style="width:150px;">
     </div>`;
@@ -1690,7 +1729,7 @@ function bulkUpdateCount() {
   if(!bulkRows.length || !prefix) { el.textContent = ''; return; }
   const first = prefix + String(bulkNextNumber(prefix)).padStart(3, '0');
   const elig = bulkRows.filter(bulkEligible).length;
-  el.textContent = `${n} জন নির্বাচিত (Exam দিয়েছেন ${elig}/${bulkRows.length} জন) · প্রথম Certificate ID: ${first}`;
+  el.textContent = `${n} জন নির্বাচিত (${bulkEvent && bulkEvent.type === 'seminar' ? 'উপস্থিত' : 'Exam দিয়েছেন'} ${elig}/${bulkRows.length} জন) · প্রথম Certificate ID: ${first}`;
 }
 
 async function bulkGenerate() {

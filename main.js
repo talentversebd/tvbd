@@ -654,7 +654,7 @@ function filterOlympiads(query, status) {
       (o.cat && o.cat.toLowerCase().includes(query.toLowerCase())) ||
       (o.desc && o.desc.toLowerCase().includes(query.toLowerCase()));
     const matchStatus = !status || status === 'all' || o.status === status;
-    return matchQuery && matchStatus;
+    return matchQuery && matchStatus && (typeof evTypeOk === 'function' ? evTypeOk(o) : true);
   });
 
   if(filtered.length === 0) {
@@ -672,15 +672,11 @@ function filterOlympiads(query, status) {
     card.className = 'o-card';
     card.onclick = () => openModal(idx);
     card.innerHTML = `
-      ${o.img ? `<img src="${o.img}" class="o-card-img" alt="${o.title}">` : `<div class="o-card-noimg">🏆</div>`}
+      ${o.img ? `<img src="${o.img}" class="o-card-img" alt="${o.title}">` : `<div class="o-card-noimg">${evIcon(o)}</div>`}
       <div class="o-card-badge">${o.status}</div>
       <div class="o-card-body">
         <h3 class="o-card-title">${o.title}</h3>
-        <div class="o-chips">
-          <span class="chip">📅 ${o.date || 'TBA'}</span>
-          <span class="chip">🏷️ ${o.cat}</span>
-          ${o.venue ? `<span class="chip">📍 ${o.venue}</span>` : ''}
-        </div>
+        <div class="o-chips">${evChips(o)}</div>
         <p class="o-card-desc">${o.desc}</p>
         <button class="rm-btn">Read More</button>
         ${(typeof quizTakeButtonHtml === 'function') ? quizTakeButtonHtml(o) : ''}

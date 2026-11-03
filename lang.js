@@ -131,7 +131,7 @@ const translations = {
     explore_eyebrow: "Everything in one place",
     explore_title_1: "Explore",
     explore_title_2: "TalentVerse",
-    explore_events: "Events & Quiz", explore_events_d: "Join olympiads and competitions, and take exams online.",
+    explore_events: "Events & Quiz", explore_events_d: "Join olympiads, competitions and seminars, and take exams online.",
     explore_res: "Resources", explore_res_d: "Free notes, question banks and study guides.",
     explore_forum: "Forum", explore_forum_d: "Ask questions and talk with other members.",
     explore_results: "Results", explore_results_d: "See published results and the leaderboard.",
@@ -226,6 +226,7 @@ const translations = {
     op_status_upcoming: "Upcoming",
     op_status_past: "Past",
     op_cat_all: "All Categories",
+    op_tab_all: "All", op_tab_event: "🏆 Events & Quiz", op_tab_sem: "🎤 Seminars",
     o_readmore: "Read More",
 
     // Team page
@@ -535,6 +536,7 @@ const translations = {
     op_status_upcoming: "আসন্ন",
     op_status_past: "সমাপ্ত",
     op_cat_all: "সব ক্যাটাগরি",
+    op_tab_all: "সব", op_tab_event: "🏆 ইভেন্ট ও কুইজ", op_tab_sem: "🎤 সেমিনার",
     o_readmore: "বিস্তারিত দেখুন",
 
     // Team page

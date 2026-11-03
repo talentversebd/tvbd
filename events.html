@@ -44,6 +44,11 @@
 .filter-bar select:focus{border-color:var(--blue-br);}
 </style>
 <link rel="stylesheet" href="loader.css?v=5">
+<style>
+.ev-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 16px}
+.ev-tabs button{min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--bdr,rgba(91,155,255,.25));color:var(--txt,#eef2ff);border-radius:99px;padding:10px 6px;font-weight:700;font-size:.82rem;white-space:nowrap;cursor:pointer;min-height:44px;font-family:inherit}
+.ev-tabs button.on{background:linear-gradient(135deg,#1f6bf2,#3b82f6);border-color:transparent;color:#fff;box-shadow:0 6px 18px rgba(31,107,242,.35)}
+</style>
 </head>
 <body>
 <div id="tvbd-loader" class="tvbd-loader">
@@ -113,6 +118,11 @@
 
 <!-- OLYMPIADS SECTION -->
 <section class="section">
+  <div class="ev-tabs" id="ev-tabs">
+    <button class="on" data-t="all" onclick="setEvType('all')" data-i18n="op_tab_all">All</button>
+    <button data-t="event" onclick="setEvType('event')" data-i18n="op_tab_event">🏆 Events &amp; Quiz</button>
+    <button data-t="seminar" onclick="setEvType('seminar')" data-i18n="op_tab_sem">🎤 Seminars</button>
+  </div>
   <div class="filter-bar">
     <input type="text" id="search-input" data-i18n-ph="op_search_ph" placeholder="🔍 Search events..."
       oninput="filterOlympiads(this.value, document.getElementById('status-filter').value)">
@@ -220,8 +230,8 @@ function filterByCategory(cat) {
   const filtered = olympiads.filter(o => {
     const matchQuery = !query || o.title.toLowerCase().includes(query.toLowerCase()) || o.desc.toLowerCase().includes(query.toLowerCase());
     const matchStatus = !status || status === 'all' || o.status === status;
-    const matchCat = !cat || cat === 'all' || o.cat === cat;
-    return matchQuery && matchStatus && matchCat;
+    const matchCat = !cat || cat === 'all' || (!isSeminar(o) && o.cat === cat);
+    return matchQuery && matchStatus && matchCat && evTypeOk(o);
   });
   const readMoreTxt = translations[getLang()].o_readmore;
   if(filtered.length === 0) {
@@ -234,15 +244,11 @@ function filterByCategory(cat) {
     card.className = 'o-card';
     card.onclick = () => openModal(idx);
     card.innerHTML = `
-      ${o.img ? `<img src="${o.img}" class="o-card-img" alt="${o.title}">` : `<div class="o-card-noimg">🏆</div>`}
+      ${o.img ? `<img src="${o.img}" class="o-card-img" alt="${o.title}">` : `<div class="o-card-noimg">${evIcon(o)}</div>`}
       <div class="o-card-badge">${o.status}</div>
       <div class="o-card-body">
         <h3 class="o-card-title">${o.title}</h3>
-        <div class="o-chips">
-          <span class="chip">📅 ${o.date || 'TBA'}</span>
-          <span class="chip">🏷️ ${o.cat}</span>
-          ${o.venue ? `<span class="chip">📍 ${o.venue}</span>` : ''}
-        </div>
+        <div class="o-chips">${evChips(o)}</div>
         <p class="o-card-desc">${o.desc}</p>
         <button class="rm-btn">${readMoreTxt}</button>
         ${(typeof quizTakeButtonHtml === 'function') ? quizTakeButtonHtml(o) : ''}
@@ -488,6 +494,23 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
+</script>
+<script>
+function setEvType(t) {
+  window.__evType = t;
+  document.querySelectorAll('#ev-tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  try { history.replaceState(null, '', t === 'all' ? 'events.html' : 'events.html?type=' + t); } catch (e) {}
+  const cat = document.getElementById('cat-filter');
+  if (cat) cat.style.display = t === 'seminar' ? 'none' : '';
+  filterByCategory(t === 'seminar' ? 'all' : (cat ? cat.value : 'all'));
+}
+(function () {
+  const t = new URLSearchParams(location.search).get('type');
+  if (t !== 'seminar' && t !== 'event') return;
+  let n = 0; const iv = setInterval(() => {
+    if (typeof getOlympiads === 'function' && getOlympiads().length || ++n > 40) { clearInterval(iv); setEvType(t); }
+  }, 250);
+})();
 </script>
 <script>
 // coming from the dashboard "View Details": open that event's popup

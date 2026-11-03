@@ -552,13 +552,17 @@ select.fi{cursor:pointer}
           <select class="fi" id="reg-status-filter" style="width:auto;min-width:140px;" onchange="renderRegistrationsTable()">
             <option value="">সব স্ট্যাটাস</option><option value="pending">⏳ Pending</option><option value="approved">✅ Approved</option><option value="rejected">❌ Rejected</option>
           </select>
+          <select class="fi" id="reg-att-filter" style="width:auto;min-width:140px;" onchange="renderRegistrationsTable()">
+            <option value="">সব উপস্থিতি</option><option value="yes">🟢 উপস্থিত</option><option value="no">⚪ অনুপস্থিত/মার্ক হয়নি</option>
+          </select>
           <button class="add-btn" onclick="approveAllShown()">✅ দেখানো Pending সবাইকে Approve</button>
+          <button class="add-btn" onclick="markShownAttended()">🟢 দেখানো সবাইকে Present</button>
         </div>
         <p id="reg-summary" style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.7;"></p>
         <p style="font-size:.74rem;color:var(--muted);margin-bottom:12px;line-height:1.7;">যে ইভেন্টে "অ্যাডমিনের অনুমোদন লাগবে" টিক দেওয়া আছে, সেখানে শুধু <strong>Approved</strong> ব্যক্তিরাই পরীক্ষা দিতে পারবে।</p>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Olympiad</th><th>Segment</th><th>Transaction ID</th><th>CA</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Olympiad</th><th>Segment</th><th>Transaction ID</th><th>CA</th><th>Status</th><th>Attended</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody id="rtbl"></tbody>
           </table>
         </div>
@@ -916,8 +920,17 @@ select.fi{cursor:pointer}
     </div>
     <input type="hidden" id="of-eid">
     <div class="fg"><label>Title *</label><input class="fi" id="of-t" placeholder="e.g. Bangladesh Mathematical Olympiad 2026"></div>
+    <div class="fg"><label>🗂️ Type</label>
+      <select class="fi" id="of-type" onchange="toggleSeminarFields()">
+        <option value="event">🏆 Event / Olympiad / Quiz</option>
+        <option value="seminar">🎤 Seminar</option>
+      </select></div>
+    <div class="f-row" id="of-sem-box" style="display:none;">
+      <div class="fg"><label>🎤 Speaker / Guest</label><input class="fi" id="of-speaker" placeholder="e.g. Dr. Rahim, BUET"></div>
+      <div class="fg"><label>🕒 Time</label><input class="fi" id="of-time" placeholder="e.g. 4:00 PM – 5:30 PM"></div>
+    </div>
     <div class="f-row">
-      <div class="fg">
+      <div class="fg" id="of-cat-box">
         <label>Category</label>
         <select class="fi" id="of-cat">
           <option>Mathematics</option><option>Science</option><option>Physics</option>
@@ -1313,7 +1326,7 @@ select.fi{cursor:pointer}
 <script src="certificate-render.js"></script>
 <script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
-<script src="admin.js?v=7"></script>
+<script src="admin.js?v=8"></script>
 <script src="main.js"></script>
 
 <script src="fx.js"></script>

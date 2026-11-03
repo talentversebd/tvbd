@@ -87,7 +87,11 @@ const $=id=>document.getElementById(id);const esc=s=>String(s==null?'':s).replac
 function ready(f){if(window.TVNet)f();else addEventListener('tvnet-ready',f,{once:true})}
 ready(()=>{const N=window.TVNet;
  N.admin.onUser(u=>{const ok=u&&!u.isAnonymous;$('login').classList.toggle('hide',!!ok);$('app').classList.toggle('hide',!ok);if(ok){$('who').textContent=u.email;load()}});
- $('bLogin').onclick=()=>N.admin.login().catch(e=>$('lmsg').textContent='Sign-in failed: '+(e.code||e.message)+' (add this domain in Firebase → Authentication → Settings → Authorized domains)');
+ let busy=false;
+ $('bLogin').onclick=async()=>{if(busy)return;busy=true;const b=$('bLogin');b.disabled=true;b.textContent='Opening Google…';$('lmsg').textContent='';
+  try{await N.admin.login()}catch(e){const c=e.code||e.message;
+   $('lmsg').textContent=c==='auth/cancelled-popup-request'||c==='auth/popup-closed-by-user'?'Sign-in window was closed or cancelled. Tap the button ONCE, wait for the Google window, then choose your account.':c==='auth/popup-blocked'?'Your browser blocked the Google window. Allow pop-ups for this site, then try again.':c==='auth/unauthorized-domain'?'Add this domain in Firebase → Authentication → Settings → Authorized domains.':'Sign-in failed: '+c}
+  b.disabled=false;b.textContent='Sign in with Google';busy=false};
  $('bOut').onclick=()=>N.admin.logout().then(()=>location.reload());
  async function load(){loadAll();const s=await N.getSites(true);$('list').innerHTML=s.length?s.map(x=>`<div class="site"><span class="dot" style="background:${esc(x.color||'#1f6bf2')}"></span>${x.logo?`<img src="${esc(x.logo)}" alt="">`:''}<div style="flex:1"><b>${esc(x.name)} <small>(${esc(x.id)})</small></b><small>${esc(x.url||'')}</small></div><button class="s" data-e="${esc(x.id)}">Edit</button></div>`).join(''):'<p>No sites yet.</p>';
   $('list').querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const x=s.find(y=>y.id===b.dataset.e);$('f_id').value=x.id;$('f_name').value=x.name||'';$('f_url').value=x.url||'';$('f_logo').value=x.logo||'';$('f_desc').value=x.desc||'';$('f_color').value=x.color||'#1f6bf2';$('f_order').value=x.order||10;$('f_active').value=x.active===false?'0':'1';$('ftitle').textContent='Edit: '+x.id;scrollTo({top:$('ftitle').offsetTop-70,behavior:'smooth'})})}

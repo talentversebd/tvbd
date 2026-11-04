@@ -1,3 +1,10 @@
+/* safety net: if an older cached render.js is loaded, these keep the event lists working */
+if(typeof evTypeOk !== 'function') {
+  window.isSeminar = o => !!o && o.type === 'seminar';
+  window.evTypeOk = () => true;
+  window.evIcon = o => (o && o.type === 'seminar') ? '🎤' : '🏆';
+  window.evChips = o => `<span class="chip">📅 ${o.date || 'TBA'}</span><span class="chip">🏷️ ${o.cat}</span>${o.venue ? `<span class="chip">📍 ${o.venue}</span>` : ''}`;
+}
 /*===== SCROLL HEADER =====*/
 window.addEventListener('scroll', () => {
   const header = document.getElementById('site-header');
@@ -417,6 +424,7 @@ async function submitInlineRegistration(olympiadId) {
   const caCode = await caReadInput('im-ca');
   if(caCode === false) return;
 
+  if(!confirm('"' + o.title + '" এ রেজিস্ট্রেশন নিশ্চিত করবে?\n\nOK চাপলে তোমার নাম অ্যাডমিনের তালিকায় যাবে।')) return;
   const btn = document.querySelector('.im-submit-btn');
   const originalText = btn ? btn.textContent : '';
   if(btn) { btn.textContent = '⏳ Submitting...'; btn.disabled = true; }
@@ -509,6 +517,7 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
   const caCode = await caReadInput('im-ca');
   if(caCode === false) return;
 
+  if(!confirm('"' + o.title + '" এ রেজিস্ট্রেশন নিশ্চিত করবে?\n\nOK চাপলে তোমার নাম অ্যাডমিনের তালিকায় যাবে।')) return;
   const btn = document.querySelector('.im-submit-btn');
   const originalText = btn ? btn.textContent : '';
   if(btn) { btn.textContent = '⏳ Submitting...'; btn.disabled = true; }

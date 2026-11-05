@@ -511,7 +511,7 @@ function renderCertificatesTable() {
     tbody.innerHTML += `<tr>
       <td><strong style="color:var(--blue-br)">${c.certId}</strong></td>
       <td>${c.name}</td><td>${c.event}</td>
-      <td><span class="bs bs-active">${c.position}</span></td>
+      <td><span class="bs bs-active">${certBadge(c)}</span></td>
       <td>${c.issueDate || 'N/A'}</td>
       <td class="tbl-acts">
         <button class="e-btn" onclick="previewCertificate('${c.id}')" title="Download certificate">🎓</button>
@@ -888,7 +888,9 @@ function openCertificateForm() {
   document.getElementById('cf-email').value = '';
   document.getElementById('cf-event').value = '';
   document.getElementById('cf-position').value = '';
+  document.getElementById('cf-kind').value = 'event'; document.getElementById('cf-month').value = '';
   document.getElementById('cf-date').value = new Date().toISOString().split('T')[0];
+  toggleCertKind();
   openFM('cfm');
 }
 async function editCertificate(id) {
@@ -902,18 +904,39 @@ async function editCertificate(id) {
   document.getElementById('cf-email').value = getCertificateOwnerEmail(id) || c.email || '';
   document.getElementById('cf-event').value = c.event||'';
   document.getElementById('cf-position').value = c.position||'';
+  document.getElementById('cf-kind').value = c.kind === 'seminar' || c.kind === 'motm' ? c.kind : 'event';
+  { const d = c.month ? new Date(String(c.month).replace(' ', ' 1, ')) : null; document.getElementById('cf-month').value = d && !isNaN(d) ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') : ''; }
   document.getElementById('cf-date').value = c.issueDate||'';
+  toggleCertKind();
   openFM('cfm');
 }
+function toggleCertKind() {
+  const k = document.getElementById('cf-kind').value;
+  document.getElementById('cf-ev-box').style.display = k === 'motm' ? 'none' : '';
+  document.getElementById('cf-month-box').style.display = k === 'motm' ? '' : 'none';
+  document.getElementById('cf-pos-box').style.display = k === 'event' ? '' : 'none';
+  const l = document.getElementById('cf-ev-label'); if(l) l.textContent = k === 'seminar' ? '🎤 Seminar Name *' : '🏆 Event Name *';
+}
+function certMonthText(v) { const d = new Date(v + '-01T00:00:00'); return isNaN(d) ? '' : d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); }
+function certBadge(c) { return c.kind === 'seminar' ? '🎤 Seminar' : c.kind === 'motm' ? '⭐ Member of the Month' : (c.position || '—'); }
 async function saveCertificate() {
+  const kind = document.getElementById('cf-kind').value;
   const certId = document.getElementById('cf-certid').value.trim();
   const name = document.getElementById('cf-name').value.trim();
   const email = document.getElementById('cf-email').value.trim().toLowerCase();
-  const event = document.getElementById('cf-event').value.trim();
-  const position = document.getElementById('cf-position').value.trim();
   const issueDate = document.getElementById('cf-date').value;
-  if(!certId||!name||!event||!position||!issueDate) return toast("All fields required!", true);
-  const cert = { certId, name, email, event, position, issueDate };
+  let event = document.getElementById('cf-event').value.trim();
+  let position = document.getElementById('cf-position').value.trim();
+  let month = '';
+  if(kind === 'motm') {
+    month = certMonthText(document.getElementById('cf-month').value);
+    if(!month) return toast("Month বেছে নিন!", true);
+    event = 'Member of the Month — ' + month;
+    position = '';
+  } else if(kind === 'seminar') position = '';
+  if(!certId||!name||!event||!issueDate||(kind === 'event' && !position)) return toast("All fields required!", true);
+  const cert = { certId, name, email, event, position, issueDate, kind };
+  if(kind === 'motm') cert.month = month;
   const eid = document.getElementById('cf-eid').value;
   const result = eid === '' ? await addCertificate(cert) : await updateCertificate(eid, cert);
   if(result.success) { renderCertificatesTable(); renderDashboard(); closeFM('cfm'); toast("Saved! ✅"); }
@@ -971,7 +994,7 @@ function viewCertificate(id) {
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);"><span style="color:var(--muted);">🆔 ID</span><strong style="color:var(--blue-br);font-family:monospace;">${c.certId}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);"><span style="color:var(--muted);">👤 Name</span><strong>${c.name}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);"><span style="color:var(--muted);">🏆 Event</span><strong>${c.event}</strong></div>
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);"><span style="color:var(--muted);">🥇 Position</span><strong style="color:#4ade80;">${c.position}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);"><span style="color:var(--muted);">🥇 Position</span><strong style="color:#4ade80;">${certBadge(c)}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;"><span style="color:var(--muted);">📅 Date</span><strong>${c.issueDate}</strong></div>
       </div>
       <h4 style="font-family:var(--display);margin-bottom:12px;">📱 QR Code</h4>
@@ -1557,7 +1580,7 @@ function bcEsc(v) {
   return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function bcNorm(v) { return String(v || '').trim().toLowerCase(); }
-function bulkEligible(r) { if(bulkEvent && bulkEvent.type === 'seminar') return r.attended === true; return !!(!bulkExamOnly || r.hasQuiz || !(bulkEvent && bulkEvent.quizId)); }
+function bulkEligible(r) { if(bulkEvent && bulkEvent.type === 'seminar') return r.status === 'approved'; return !!(!bulkExamOnly || r.hasQuiz || !(bulkEvent && bulkEvent.quizId)); }
 function bcIsWinner(pos) { return /champion|winner|runner|1st|2nd|3rd|first|second|third/i.test(String(pos || '')); }
 function bulkSelect(mode) {
   document.querySelectorAll('.bc-chk').forEach(c => {
@@ -1590,16 +1613,16 @@ function openBulkCert() {
         <div class="fg"><label>Certificate ID prefix</label><input class="fi" id="bc-prefix" value="TVBD-${year}-" style="font-family:monospace;text-transform:uppercase;" oninput="bulkUpdateCount()"></div>
         <div class="fg"><label>Issue date</label><input class="fi" type="date" id="bc-date" value="${today}"></div>
       </div>
-      <div class="f-row">
+      <div class="f-row bc-evonly">
         <div class="fg"><label>Merit হবে কত % বা তার বেশি স্কোরে (ফাঁকা = সবাই Participant)</label><input class="fi" type="number" min="1" max="100" id="bc-merit" placeholder="e.g. 60"></div>
         <div class="fg" style="display:flex;align-items:flex-end;"><div class="chk-wrap"><input type="checkbox" id="bc-seg"><label for="bc-seg"> প্রতিটি Segment আলাদা র‍্যাংক</label></div></div>
       </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px;">
-        <button class="e-btn" onclick="bulkSelect('participants')">Quiz দিয়েছে এমন সবাই (Winners বাদে)</button>
+        <button class="e-btn bc-evonly" onclick="bulkSelect('participants')">Quiz দিয়েছে এমন সবাই (Winners বাদে)</button>
         <button class="e-btn" onclick="bulkSelect('all')">Select all</button>
         <button class="e-btn" onclick="document.querySelectorAll('.bc-chk').forEach(c=>c.checked=false);bulkUpdateCount()">Clear</button>
-        <button class="e-btn" onclick="bulkRecalc()">🔄 Positions আবার হিসাব</button>
+        <button class="e-btn bc-evonly" onclick="bulkRecalc()">🔄 Positions আবার হিসাব</button>
       </div>
 
       <p id="bc-note" style="font-size:.76rem;color:var(--muted);line-height:1.7;margin:4px 0 8px;">📝 শুধু যারা এই ইভেন্টের Exam (কুইজ) দিয়েছে তারাই সার্টিফিকেট পাবে। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন।</p>
@@ -1618,6 +1641,7 @@ async function bulkLoadEvent() {
   const list = document.getElementById('bc-list');
   bulkEvent = getOlympiads().find(o => o.id === id) || null;
   bulkRows = [];
+  document.querySelectorAll('.bc-evonly').forEach(e => { e.style.display = (bulkEvent && bulkEvent.type === 'seminar') ? 'none' : ''; });
   if(!bulkEvent) { list.innerHTML = ''; return bulkUpdateCount(); }
   list.innerHTML = '<p style="color:var(--muted);font-size:.85rem;padding:14px 4px;">Loading…</p>';
 
@@ -1630,7 +1654,7 @@ async function bulkLoadEvent() {
   const tplSetting = evTpl || await loadCertTemplate(true);
   bulkExamOnly = !tplSetting || tplSetting.examOnly !== false;
   const note = document.getElementById('bc-note');
-  if(bulkEvent.type === 'seminar') { if(note) note.innerHTML = '🎤 সেমিনার: শুধু যাদের Registrations থেকে <strong>Present</strong> মার্ক করা হয়েছে তারাই সার্টিফিকেট পাবে। Position সাধারণত Participant।'; }
+  if(bulkEvent.type === 'seminar') { if(note) note.innerHTML = '🎤 সেমিনার: শুধু যাদের Registrations থেকে <strong>✅ Approved</strong> করা হয়েছে তারাই সার্টিফিকেট পাবে। সেমিনারে Position/Award থাকে না।'; }
   else if(note) note.innerHTML = bulkExamOnly
     ? '📝 শুধু যারা এই ইভেন্টের Exam (কুইজ) দিয়েছে তারাই সার্টিফিকেট পাবে। 🏆 Champion / Runner Up (বিজয়ী)-দের টিক ডিফল্টে বন্ধ থাকে, কারণ তাদের সার্টিফিকেট আপনি নিজে মেইল করবেন।'
     : '📝 Exam-এর নিয়ম এখন বন্ধ আছে, তাই রেজিস্টার করা সবাইকে বাছা যাবে।';
@@ -1653,6 +1677,7 @@ async function bulkLoadEvent() {
       email: r.email || '',
       segment: r.segment || '',
       attended: r.attended === true,
+      status: regStatus(r),
       hasQuiz: !!sub,
       pending: !!sub && !hasScore,
       score: hasScore ? Number(sub.totalScore) : null,
@@ -1695,15 +1720,15 @@ function bulkRender() {
   const sorted = [...bulkRows].sort((a, b) => ((b.score ?? -1) - (a.score ?? -1)) || a.name.localeCompare(b.name));
   list.innerHTML = sorted.map(r => {
     const isSem = bulkEvent && bulkEvent.type === 'seminar';
-    const score = isSem ? (r.attended ? '🟢 Present' : '⚪ Absent') : r.pending ? '⏳ Review pending' : r.score != null ? `${r.score}/${r.possible}` : (r.hasQuiz ? '—' : 'No quiz');
+    const score = isSem ? (r.status === 'approved' ? '✅ Approved' : r.status === 'rejected' ? '❌ Rejected' : '⏳ Pending') : r.pending ? '⏳ Review pending' : r.score != null ? `${r.score}/${r.possible}` : (r.hasQuiz ? '—' : 'No quiz');
     return `
     <div style="display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;${(r.issued || !bulkEligible(r)) ? 'opacity:.55;' : ''}">
       <input type="checkbox" class="bc-chk" data-i="${r.i}" ${(r.issued || !bulkEligible(r)) ? 'disabled' : (bcIsWinner(r.position) ? '' : 'checked')} style="width:18px;height:18px;" onchange="bulkUpdateCount()">
       <div style="flex:1;min-width:150px;">
         <div style="font-weight:700;font-size:.88rem;">${bcEsc(r.name)}</div>
-        <div style="font-size:.72rem;color:var(--muted);">${bcEsc(r.segment)}${r.segment ? ' · ' : ''}${isSem ? '' : 'Score: '}${score}${!bulkEligible(r) ? (isSem ? ' · উপস্থিতি মার্ক হয়নি' : ' · 📝 Exam দেননি') : ''}${r.issued ? ' · ✅ Already issued' : (bcIsWinner(r.position) ? ' · 🏆 Winner' : '')}</div>
+        <div style="font-size:.72rem;color:var(--muted);">${bcEsc(r.segment)}${r.segment ? ' · ' : ''}${isSem ? '' : 'Score: '}${score}${!bulkEligible(r) ? (isSem ? ' · Approve করা হয়নি' : ' · 📝 Exam দেননি') : ''}${r.issued ? ' · ✅ Already issued' : (!isSem && bcIsWinner(r.position) ? ' · 🏆 Winner' : '')}</div>
       </div>
-      <input class="fi bc-pos" data-i="${r.i}" list="bc-pos-list" value="${bcEsc(r.position)}" ${r.issued ? 'disabled' : ''} style="width:150px;">
+      ${isSem ? '<span style="font-size:.78rem;color:var(--muted);">🎤 Seminar</span>' : `<input class="fi bc-pos" data-i="${r.i}" list="bc-pos-list" value="${bcEsc(r.position)}" ${r.issued ? 'disabled' : ''} style="width:150px;">`}
     </div>`;
   }).join('');
   bulkUpdateCount();
@@ -1729,7 +1754,7 @@ function bulkUpdateCount() {
   if(!bulkRows.length || !prefix) { el.textContent = ''; return; }
   const first = prefix + String(bulkNextNumber(prefix)).padStart(3, '0');
   const elig = bulkRows.filter(bulkEligible).length;
-  el.textContent = `${n} জন নির্বাচিত (${bulkEvent && bulkEvent.type === 'seminar' ? 'উপস্থিত' : 'Exam দিয়েছেন'} ${elig}/${bulkRows.length} জন) · প্রথম Certificate ID: ${first}`;
+  el.textContent = `${n} জন নির্বাচিত (${bulkEvent && bulkEvent.type === 'seminar' ? 'Approved' : 'Exam দিয়েছেন'} ${elig}/${bulkRows.length} জন) · প্রথম Certificate ID: ${first}`;
 }
 
 async function bulkGenerate() {
@@ -1744,13 +1769,14 @@ async function bulkGenerate() {
 
   const pos = {};
   document.querySelectorAll('.bc-pos').forEach(el => { pos[el.dataset.i] = el.value.trim(); });
-  if(picked.some(i => !pos[i])) return toast('সবার Position লিখুন।', true);
+  const isSemGen = bulkEvent.type === 'seminar';
+  if(!isSemGen && picked.some(i => !pos[i])) return toast('সবার Position লিখুন।', true);
   if(!confirm(`${picked.length}টা সার্টিফিকেট তৈরি হবে। নিশ্চিত?`)) return;
 
   let n = bulkNextNumber(prefix);
   const list = picked.map(i => {
     const r = bulkRows.find(x => x.i === i);
-    return { certId: prefix + String(n++).padStart(3, '0'), name: r.name, email: r.email || '', event: bulkEvent.title, eventId: bulkEvent.id, position: pos[i], issueDate: date };
+    return { certId: prefix + String(n++).padStart(3, '0'), name: r.name, email: r.email || '', event: bulkEvent.title, eventId: bulkEvent.id, position: isSemGen ? '' : pos[i], issueDate: date, kind: isSemGen ? 'seminar' : 'event' };
   });
 
   const btn = document.getElementById('bc-go');
@@ -3115,7 +3141,7 @@ async function m360Search(forceUid) {
     ${card('⭐ Official & Access', kv('Official ID', acc.officialId) + kv('Role label', acc.label) + kv('Admin pages', perms.join(', ') || 'None') + (perms.length ? kv('Meet room limit', acc.meetLimit || 1) : ''))}
     ${card('🎓 Campus Ambassador', ca ? kv('Status', ca.active ? 'Active' : 'Inactive') + kv('CA code', ca.code) + kv('Registrations brought', cc.count || 0) + kv('Last registration', cc.lastAt ? fmtUserDate(cc.lastAt) : '') : '<span style="color:var(--muted);font-size:.84rem;">CA নয়</span>')}
     ${card('📝 Event Registrations (' + myRegs.length + ')', li(myRegs.map(r => `<strong>${escUser(r.olympiad)}</strong>${r.segment ? ' · ' + escUser(r.segment) : ''} — ${badge(escUser(r.approval || 'pending'), r.approval === 'approved' ? 'bs-active' : 'bs-past')} <span style="color:var(--muted);">${fmtUserDate(r.createdAt)}</span>`)))}
-    ${card('📜 Certificates (' + myCerts.length + ')', li(myCerts.map(c => `<strong>${escUser(c.event)}</strong> — ${escUser(c.position)} · <span style="font-family:monospace;">${escUser(c.certId || c.id)}</span> <span style="color:var(--muted);">${escUser(c.issueDate)}</span>`)))}
+    ${card('📜 Certificates (' + myCerts.length + ')', li(myCerts.map(c => `<strong>${escUser(c.event)}</strong> — ${escUser(certBadge(c))} · <span style="font-family:monospace;">${escUser(c.certId || c.id)}</span> <span style="color:var(--muted);">${escUser(c.issueDate)}</span>`)))}
     ${card('🧠 Quiz Submissions (' + mySubs.length + ')', li(mySubs.map(s => `<strong>${escUser((qMap[s.quizId] || {}).title || s.quizId)}</strong> — ${s.totalScore == null ? 'pending' : s.totalScore + '/' + s.totalPossible} <span style="color:var(--muted);">${fmtUserDate(s.submittedAt)}</span>`)))}
     ${card('🔥 Daily Challenge', streak ? kv('Current streak', streak.current) + kv('Best streak', streak.best) + kv('Points', streak.points) + kv('Questions answered', streak.done) + kv('Correct', streak.right) : '<span style="color:var(--muted);font-size:.84rem;">এখনো অংশ নেয়নি</span>')}
     ${card('🔗 Share & Invite', kv('Shares', sh.count || 0) + kv('People invited', invited.length) + kv('Verified joins', invited.filter(x => x.refCounted).length))}
@@ -3235,14 +3261,28 @@ async function calcMonthlyTop() {
   });
   const rows = Object.values(by).map(r => {
     const u = users.find(x => x.id === r.uid) || {};
-    return { uid: r.uid, name: [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'Member', code: u.memberCode || '', points: r.correct * 10, correct: r.correct, answered: r.answered, last: r.last };
+    return { uid: r.uid, email: u.email || '', name: [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'Member', code: u.memberCode || '', points: r.correct * 10, correct: r.correct, answered: r.answered, last: r.last };
   }).sort((x, y) => (y.points - x.points) || (y.answered - x.answered) || (x.last - y.last)).slice(0, 10);
   MT_LAST = { month, rows, participants: Object.keys(by).length };
   if(!rows.length) { box.innerHTML = '<p style="color:var(--muted);">এই মাসে কেউ উত্তর দেয়নি।</p>'; return; }
   box.innerHTML = `<p style="font-size:.85rem;color:var(--muted);margin-bottom:8px;">${escUser(month)} — মোট ${MT_LAST.participants}জন অংশ নিয়েছে। সেরা ${rows.length}জন:</p>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Name</th><th>Member ID</th><th>Points</th><th>Correct / Answered</th></tr></thead><tbody>` +
-    rows.map((r, i) => `<tr><td>${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td><td>${escUser(r.name)}</td><td style="font-family:monospace;">${escUser(r.code)}</td><td><b>${r.points}</b></td><td>${r.correct} / ${r.answered}</td></tr>`).join('') +
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Name</th><th>Member ID</th><th>Points</th><th>Correct / Answered</th><th></th></tr></thead><tbody>` +
+    rows.map((r, i) => `<tr><td>${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td><td>${escUser(r.name)}</td><td style="font-family:monospace;">${escUser(r.code)}</td><td><b>${r.points}</b></td><td>${r.correct} / ${r.answered}</td><td><button class="e-btn" onclick="issueMotmCert(${i})" title="Member of the Month certificate">🎓</button></td></tr>`).join('') +
     `</tbody></table></div><button class="save-btn" style="margin-top:14px;" onclick="publishMonthlyTop()">🏅 Publish ${escUser(month)}</button>`;
+}
+async function issueMotmCert(i) {
+  const r = MT_LAST && MT_LAST.rows[i]; if(!r) return;
+  try { if(typeof loadCertificates === "function") await loadCertificates(); } catch(e) {}
+  openCertificateForm();
+  document.getElementById('cf-kind').value = 'motm';
+  document.getElementById('cf-name').value = r.name || '';
+  document.getElementById('cf-email').value = r.email || '';
+  document.getElementById('cf-month').value = MT_LAST.month;
+  const base = 'TVBD-MOTM-' + MT_LAST.month.replace('-', '') + '-';
+  let n = 1; const taken = new Set(getCertificates().map(c => String(c.certId || '').toUpperCase()));
+  while(taken.has(base + String(n).padStart(2, '0'))) n++;
+  document.getElementById('cf-certid').value = base + String(n).padStart(2, '0');
+  toggleCertKind();
 }
 async function publishMonthlyTop() {
   if(!MT_LAST || !MT_LAST.rows.length) return;

@@ -1204,9 +1204,16 @@ select.fi{cursor:pointer}
       <label>✉️ Participant Email</label>
       <input class="fi" id="cf-email" type="email" placeholder="e.g. rahim@example.com">
     </div>
-    <div class="fg"><label>🏆 Event Name *</label><input class="fi" id="cf-event" placeholder="e.g. Bangladesh Math Olympiad 2026"></div>
+    <div class="fg"><label>🗂️ Certificate Type</label>
+      <select class="fi" id="cf-kind" onchange="toggleCertKind()">
+        <option value="event">🏆 Event / Olympiad / Quiz</option>
+        <option value="seminar">🎤 Seminar (Participation)</option>
+        <option value="motm">⭐ Member of the Month</option>
+      </select></div>
+    <div class="fg" id="cf-ev-box"><label id="cf-ev-label">🏆 Event Name *</label><input class="fi" id="cf-event" placeholder="e.g. Bangladesh Math Olympiad 2026"></div>
+    <div class="fg" id="cf-month-box" style="display:none;"><label>🗓️ Month *</label><input class="fi" type="month" id="cf-month"></div>
     <div class="f-row">
-      <div class="fg"><label>🥇 Position / Award *</label><input class="fi" id="cf-position" placeholder="e.g. 1st Runner Up, Champion"></div>
+      <div class="fg" id="cf-pos-box"><label>🥇 Position / Award *</label><input class="fi" id="cf-position" placeholder="e.g. 1st Runner Up, Champion"></div>
       <div class="fg"><label>📅 Issue Date *</label><input class="fi" type="date" id="cf-date"></div>
     </div>
     <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;margin-bottom:16px;">
@@ -1323,10 +1330,10 @@ select.fi{cursor:pointer}
 <!-- Site Scripts -->
 <script src="data.js?v=13"></script>
 <script src="render.js?v=3"></script>
-<script src="certificate-render.js"></script>
+<script src="certificate-render.js?v=2"></script>
 <script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
-<script src="admin.js?v=8"></script>
+<script src="admin.js?v=9"></script>
 <script src="main.js?v=3"></script>
 
 <script src="fx.js"></script>

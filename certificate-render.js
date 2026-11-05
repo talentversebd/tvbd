@@ -72,6 +72,32 @@
     for (const ch of text) { ctx.fillText(ch, x, y); x += ctx.measureText(ch).width + sp; }
     ctx.textAlign = 'center';
   }
+  function goldGrad(ctx, x1, x2) {
+    const g = ctx.createLinearGradient(x1, 0, x2, 0);
+    g.addColorStop(0, '#7d5f16'); g.addColorStop(0.35, '#b8902f'); g.addColorStop(0.5, '#dcb94d'); g.addColorStop(0.65, '#b8902f'); g.addColorStop(1, '#7d5f16');
+    return g;
+  }
+  function star(ctx, x, y, r, color) {
+    ctx.fillStyle = color; ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.42 : r;
+      ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+    }
+    ctx.closePath(); ctx.fill();
+  }
+  function flourish(ctx, cx, y, half, color) {      // ——— ◆ ——— with small end curls
+    hline(ctx, cx - half, cx - 22, y, color, 2); hline(ctx, cx + 22, cx + half, y, color, 2);
+    diamond(ctx, cx, y, 9, color); diamond(ctx, cx - 34, y, 4, color); diamond(ctx, cx + 34, y, 4, color);
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
+    [[cx - half, -1], [cx + half, 1]].forEach(p => { ctx.beginPath(); ctx.arc(p[0] + p[1] * 10, y, 10, 0, Math.PI * 2); ctx.stroke(); });
+  }
+  function pill(ctx, text, cx, y, color) {
+    ctx.font = `bold 22px ${SANS}`;
+    const w = spacedWidth(ctx, text, 5) + 56;
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(cx - w / 2, y - 24, w, 44, 22) : ctx.rect(cx - w / 2, y - 24, w, 44); ctx.stroke();
+    ctx.fillStyle = color; drawSpaced(ctx, text, cx, y + 8, 5);
+  }
   function diamond(ctx, x, y, r, color) {
     ctx.fillStyle = color; ctx.beginPath();
     ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y); ctx.closePath(); ctx.fill();
@@ -86,7 +112,7 @@
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
     const cx = W / 2;
-    const kind = kindOf(cert.position);
+    const kind = cert.kind === 'seminar' ? 'seminar' : cert.kind === 'motm' ? 'motm' : kindOf(cert.position);
 
     // paper + borders
     ctx.fillStyle = PAPER; ctx.fillRect(0, 0, W, H);
@@ -94,6 +120,12 @@
     ctx.strokeStyle = GOLD; ctx.lineWidth = 4; ctx.strokeRect(68, 68, W - 136, H - 136);
     ctx.lineWidth = 1.5; ctx.strokeRect(80, 80, W - 160, H - 160);
     [[68, 68], [W - 68, 68], [68, H - 68], [W - 68, H - 68]].forEach(p => diamond(ctx, p[0], p[1], 16, GOLD));
+    // soft watermark rings + corner arcs
+    ctx.save(); ctx.globalAlpha = 0.05; ctx.strokeStyle = NAVY; ctx.lineWidth = 3;
+    [330, 280, 230].forEach(r => { ctx.beginPath(); ctx.arc(W / 2, H / 2 + 20, r, 0, Math.PI * 2); ctx.stroke(); });
+    ctx.restore();
+    ctx.strokeStyle = GOLD; ctx.lineWidth = 2;
+    [[104, 104, 0], [W - 104, 104, 1], [104, H - 104, 3], [W - 104, H - 104, 2]].forEach(p => { ctx.beginPath(); ctx.arc(p[0], p[1], 34, p[2] * Math.PI / 2, p[2] * Math.PI / 2 + Math.PI / 2); ctx.stroke(); });
 
     // logo
     const logo = await loadImage('logo.jpg');
@@ -111,7 +143,7 @@
     ctx.fillStyle = NAVY; ctx.font = `bold 26px ${SANS}`;
     drawSpaced(ctx, 'TALENTVERSE BANGLADESH', cx, 292, 8);
 
-    const title = kind === 'participant' ? 'CERTIFICATE OF PARTICIPATION' : kind === 'merit' ? 'CERTIFICATE OF MERIT' : 'CERTIFICATE OF ACHIEVEMENT';
+    const title = kind === 'seminar' ? 'CERTIFICATE OF PARTICIPATION' : kind === 'motm' ? 'CERTIFICATE OF APPRECIATION' : kind === 'participant' ? 'CERTIFICATE OF PARTICIPATION' : kind === 'merit' ? 'CERTIFICATE OF MERIT' : 'CERTIFICATE OF ACHIEVEMENT';
     let tsize = 58; ctx.font = `bold ${tsize}px ${SERIF}`;
     while (spacedWidth(ctx, title, 6) > W - 360 && tsize > 30) { tsize -= 2; ctx.font = `bold ${tsize}px ${SERIF}`; }
     ctx.fillStyle = NAVY; drawSpaced(ctx, title, cx, 372, 6);
@@ -133,7 +165,31 @@
     // body
     ctx.fillStyle = MUTED; ctx.font = `italic 30px ${SERIF}`;
     const event = String(cert.event || '').trim();
-    if (kind === 'participant') {
+    if (kind === 'seminar') {
+      ctx.fillStyle = MUTED; ctx.font = `italic 30px ${SERIF}`;
+      ctx.fillText('for actively participating in the seminar', cx, 654);
+      ctx.fillStyle = NAVY;
+      let sz = fitFont(ctx, event, 1400, 58, 38, s => `bold ${s}px ${SERIF}`);
+      const lines = ctx.measureText(event).width > 1400 ? wrapText(ctx, event, 1400) : [event];
+      lines.slice(0, 2).forEach((ln, i) => ctx.fillText(ln, cx, 738 + i * (sz + 12)));
+      const yb = 738 + Math.min(lines.length, 2) * (sz + 12) + 12;
+      flourish(ctx, cx, yb, 170, GOLD);
+      ctx.fillStyle = MUTED; ctx.font = `italic 28px ${SERIF}`;
+      ctx.fillText('organised by TalentVerse Bangladesh', cx, yb + 52);
+    } else if (kind === 'motm') {
+      ctx.fillText('in grateful recognition of outstanding dedication, active involvement', cx, 648);
+      ctx.fillText('and valuable contribution to the TalentVerse community as', cx, 690);
+      const head = 'MEMBER OF THE MONTH';
+      ctx.font = `bold 78px ${SERIF}`;
+      const hw = spacedWidth(ctx, head, 8);
+      ctx.fillStyle = goldGrad(ctx, cx - hw / 2, cx + hw / 2);
+      drawSpaced(ctx, head, cx, 790, 8);
+      star(ctx, cx - hw / 2 - 70, 768, 28, GOLD); star(ctx, cx + hw / 2 + 70, 768, 28, GOLD);
+      const month = String(cert.month || '').trim() || String(cert.event || '').split('—').pop().trim();
+      ctx.fillStyle = NAVY; ctx.font = `italic bold 46px ${SERIF}`;
+      ctx.fillText(month, cx, 850);
+      flourish(ctx, cx, 878, 190, GOLD);
+    } else if (kind === 'participant') {
       ctx.fillText('for successfully participating in', cx, 650);
       ctx.fillStyle = NAVY;
       let sz = fitFont(ctx, event, 1400, 54, 38, s => `bold ${s}px ${SERIF}`);
@@ -141,8 +197,8 @@
       lines.slice(0, 2).forEach((ln, i) => ctx.fillText(ln, cx, 732 + i * (sz + 12)));
     } else {
       ctx.fillText('for outstanding performance and achieving', cx, 650);
-      ctx.fillStyle = GOLD;
       fitFont(ctx, String(cert.position || ''), 1300, 70, 36, s => `bold ${s}px ${SERIF}`);
+      { const pw = ctx.measureText(String(cert.position || '')).width; ctx.fillStyle = goldGrad(ctx, cx - pw / 2, cx + pw / 2); }
       ctx.fillText(String(cert.position || ''), cx, 734);
       ctx.fillStyle = MUTED; ctx.font = `italic 30px ${SERIF}`; ctx.fillText('in', cx, 786);
       ctx.fillStyle = NAVY;
@@ -281,6 +337,11 @@
         if (own && own.url) return own;
       }
     } catch (e) { console.error('Event template lookup failed', e); }
+    if (cert.kind === 'motm') {
+      try { const own = await window.loadCertTemplate(false, 'motm'); if (own && own.url) return own; } catch (e) {}
+      return null;                                   // Member of the Month: built-in design unless a 'motm' design was saved
+    }
+    if (cert.kind === 'seminar') return null;        // seminars: built-in design unless that seminar has its own design
     return window.loadCertTemplate(false);
   }
 

@@ -156,8 +156,10 @@
     <div class="verify-card" style="padding:24px 20px;margin-bottom:20px;">
       <div class="search-box" style="margin-bottom:0;">
         <h3 data-i18n="v_search_title">🔍 Search Certificate</h3>
-        <div class="search-input-wrap">
-          <input type="text" id="cert-search" class="search-input" data-i18n-ph="v_search_ph" placeholder="Enter Certificate ID (e.g. TVBD-2026-001)" onkeydown="if(event.key==='Enter')searchCertificate()">
+        <p id="vf-hint" style="font-size:.82rem;color:var(--muted);line-height:1.6;margin:0 0 12px;">সার্টিফিকেটে যে নাম ও Certificate ID আছে, দুটোই দিন। / Enter both the name and the Certificate ID printed on the certificate.</p>
+        <div class="search-input-wrap" style="flex-direction:column;">
+          <input type="text" id="cert-name" class="search-input" style="text-transform:none;font-family:inherit;width:100%;" autocomplete="off" placeholder="Name on the certificate / সার্টিফিকেটে যে নাম আছে" onkeydown="if(event.key==='Enter')document.getElementById('cert-search').focus()">
+          <input type="text" id="cert-search" class="search-input" style="width:100%;" autocomplete="off" autocapitalize="characters" placeholder="Certificate ID (e.g. TVBD-2026-001)" onkeydown="if(event.key==='Enter')searchCertificate()">
           <button onclick="searchCertificate()" class="search-btn" data-i18n="v_search_btn">🔍 Verify</button>
         </div>
       </div>
@@ -292,16 +294,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const certId = urlParams.get('id');
   
   if(certId) {
+    // coming from a QR code / shared link: the ID is filled in, but the person must still type the name
     document.getElementById('cert-search').value = certId.toUpperCase();
-    setTimeout(() => searchCertificate(), 500);
+    const h = document.getElementById('vf-hint');
+    if(h) h.innerHTML = '✅ ID পেয়ে গেছি। এবার সার্টিফিকেটের <b>নাম</b> লিখে Verify চাপুন। / ID filled in — now type the <b>name</b> and press Verify.';
+    setTimeout(() => document.getElementById('cert-name').focus(), 300);
   }
 });
 
 async function searchCertificate() {
   const certId = document.getElementById('cert-search').value.trim().toUpperCase();
-  
-  if(!certId) {
-    toast(translations[getLang()].v_toast_enter_id, true);
+  const typedName = document.getElementById('cert-name').value;
+
+  if(!typedName.trim() || !certId) {
+    toast(getLang() === 'bn' ? 'নাম এবং Certificate ID — দুটোই দিতে হবে।' : 'Please enter both the name and the Certificate ID.', true);
     return;
   }
 
@@ -319,11 +325,11 @@ async function searchCertificate() {
         const cert = await getCertificateById(certId);
         document.getElementById('v-loading').style.display = 'none';
         
-        if(cert) {
+        if(cert && sameName(cert.name, typedName)) {
           currentCert = cert;
           showVerified(cert);
         } else {
-          showNotFound();
+          showNotFound(!!cert);
         }
       } catch(err) {
         console.error("Verify error:", err);
@@ -346,7 +352,11 @@ function showVerified(cert) {
   document.getElementById('v-certid').textContent = cert.certId;
   document.getElementById('v-name').textContent = cert.name;
   document.getElementById('v-event').textContent = cert.event;
-  document.getElementById('v-position').textContent = cert.position;
+  { const ev = document.getElementById('v-event'), el = ev && ev.previousElementSibling; if(el && (cert.kind === 'seminar' || cert.kind === 'motm')) { el.removeAttribute('data-i18n'); el.textContent = cert.kind === 'seminar' ? '🎤 Seminar' : '⭐ Recognition'; } }
+  { const pv = document.getElementById('v-position'); const lab = pv && pv.previousElementSibling;
+    if(cert.kind === 'seminar') { if(lab) { lab.removeAttribute('data-i18n'); lab.textContent = '🎤 Certificate for'; } pv.textContent = 'Seminar Participation'; }
+    else if(cert.kind === 'motm') { if(lab) { lab.removeAttribute('data-i18n'); lab.textContent = '⭐ Award'; } pv.textContent = 'Member of the Month' + (cert.month ? ' — ' + cert.month : ''); }
+    else pv.textContent = cert.position; }
   
   // Format date
   const dateStr = cert.issueDate ? new Date(cert.issueDate).toLocaleDateString(getLang() === 'bn' ? 'bn-BD' : 'en-US', { 
@@ -361,7 +371,18 @@ function showVerified(cert) {
   window.history.replaceState({}, '', newUrl);
 }
 
-function showNotFound() {
+// compare names ignoring case, extra spaces, dots, commas and dashes
+function normName(v) { return String(v || '').toLowerCase().replace(/[.,\-_'"]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function sameName(a, b) { const x = normName(a), y = normName(b); return !!x && x === y; }
+
+function showNotFound(nameMismatch) {
+  const d = document.querySelector('#v-notfound p[data-i18n="v_notfound_d"], #v-notfound p.nf-d');
+  if(d) {
+    d.removeAttribute('data-i18n'); d.classList.add('nf-d');
+    d.textContent = getLang() === 'bn'
+      ? 'এই নাম ও Certificate ID-র সাথে মিলে এমন কোনো সার্টিফিকেট পাওয়া যায়নি। সার্টিফিকেটে যেভাবে লেখা আছে ঠিক সেভাবে নাম ও ID লিখুন।'
+      : 'No certificate matches this name and Certificate ID. Please type them exactly as printed on the certificate.';
+  }
   document.getElementById('v-notfound').style.display = 'block';
 }
 

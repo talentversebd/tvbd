@@ -1299,6 +1299,15 @@ async function migrateCertEmailsUI() {
   if(typeof renderCertificatesTable === 'function') renderCertificatesTable();
 }
 
+/*===== ONE-TIME: build the protected verify records =====*/
+async function syncCertPublicUI() {
+  if(!confirm('সব সার্টিফিকেটের জন্য সুরক্ষিত Verify রেকর্ড তৈরি হবে (নাম + ID ছাড়া কেউ দেখতে পারবে না)। শুরু করবেন?')) return;
+  toast('কাজ চলছে…');
+  const n = await syncAllCertificatesPublic();
+  if(n < 0) return toast('ব্যর্থ! নতুন Rules Publish করা আছে কি না দেখুন।', true);
+  toast(`${n}টা সার্টিফিকেট সুরক্ষিত হয়েছে ✅`);
+}
+
 /*===== SECURE QUIZZES: one-click helpers =====*/
 async function secureAllQuizzesUI() {
   if(!confirm('সব পুরোনো কুইজের সঠিক উত্তর খোলা ডাটাবেস থেকে সরিয়ে বন্ধ জায়গায় রাখা হবে। এরপর সেগুলোর নতুন জমা সাথে সাথে স্কোর দেখাবে না (আপনি অটো-গ্রেড করবেন)। শুরু করবেন?')) return;

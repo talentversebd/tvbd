@@ -72,9 +72,17 @@ service cloud.firestore {
     // certificates are public (the verify page needs them) but must NEVER contain an email;
     // the owner's email lives in certificate_owners (private)
     match /certificates/{id} {
-      allow read: if true;
+      allow get: if true;                                   // single document by its random id (My Certificates)
+      allow list: if isMain() || hasPerm('certificates');   // nobody else can list/download all certificates
       allow create, update: if (isMain() || hasPerm('certificates')) && !('email' in request.resource.data);
       allow delete: if isMain() || hasPerm('certificates');
+    }
+    // Verify page: one document per certificate, id = CERTID__hash(name). Anyone can get ONE document
+    // but only if they know both the Certificate ID and the exact name; nobody can list them.
+    match /cert_public/{id} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update, delete: if (isMain() || hasPerm('certificates')) && !('email' in request.resource.data);
     }
     match /certificate_owners/{id} {
       allow create, update, delete: if isMain() || hasPerm('certificates');

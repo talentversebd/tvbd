@@ -658,6 +658,57 @@ async function getCertificatesByEmail(email) {
   }
 }
 
+/*===== PUBLIC VERIFY RECORDS (cert_public) =====
+   The verify page must not be able to LIST all certificates. Each certificate is therefore also stored as
+   cert_public/{CERTID}__{hash of the normalised name}. Rules allow single-document reads but no listing, so
+   a visitor has to know BOTH the Certificate ID and the exact name to fetch anything. */
+function certNorm(v) { return String(v || '').normalize('NFC').toLowerCase().replace(/[.,\-_'"]/g, ' ').replace(/\s+/g, ' ').trim(); }
+async function certKey(certId, name) {
+  const data = new TextEncoder().encode(certNorm(name));
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 24);
+  return String(certId || '').trim().toUpperCase() + '__' + hex;
+}
+async function certPublicRef(certId, name) {
+  const { doc } = window.firebaseFunctions;
+  return doc(window.firebaseDB, "cert_public", await certKey(certId, name));
+}
+function certPublicData(c) { const x = { ...c }; delete x.email; delete x.id; return x; }
+async function publishCertPublic(c) {
+  const { setDoc } = window.firebaseFunctions;
+  await setDoc(await certPublicRef(c.certId, c.name), certPublicData(c));
+}
+async function removeCertPublic(c) {
+  if(!c || !c.certId) return;
+  const { deleteDoc } = window.firebaseFunctions;
+  try { await deleteDoc(await certPublicRef(c.certId, c.name)); } catch(e) {}
+}
+// Verify page: needs the exact ID + name. Returns the certificate or null.
+async function getCertificateVerified(certId, name) {
+  await waitForFirebase();
+  const { getDoc } = window.firebaseFunctions;
+  try {
+    const snap = await getDoc(await certPublicRef(certId, name));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  } catch(err) { console.error("Verify certificate error:", err); return null; }
+}
+// Admin, one-time: build cert_public for every existing certificate
+async function syncAllCertificatesPublic() {
+  await waitForFirebase();
+  const { collection, getDocs, writeBatch } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  try {
+    const snap = await getDocs(collection(db, "certificates"));
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => c.certId && c.name);
+    for(let i = 0; i < list.length; i += 400) {
+      const batch = writeBatch(db);
+      for(const c of list.slice(i, i + 400)) batch.set(await certPublicRef(c.certId, c.name), certPublicData(c));
+      await batch.commit();
+    }
+    return list.length;
+  } catch(err) { console.error("Sync cert_public error:", err); return -1; }
+}
+
 // Get single certificate by Certificate ID (not Firestore ID)
 async function getCertificateById(certId) {
   await waitForFirebase();
@@ -718,6 +769,7 @@ async function addCertificate(cert) {
 
     if(!cache.certificates) cache.certificates = [];
     cache.certificates.unshift({ id: ref.id, ...pub });
+    try { await publishCertPublic(pub); } catch(e) { console.warn('cert_public sync failed', e); }
     
     return { success: true, id: ref.id };
   } catch(err) {
@@ -1066,20 +1118,24 @@ async function addCertificatesBulk(list) {
 
     const added = [];
     cache.certOwners = cache.certOwners || {};
-    for(let i = 0; i < list.length; i += 200) {          // 2 writes per certificate -> 400 per batch
+    const pubJobs = [];
+    for(let i = 0; i < list.length; i += 150) {          // 3 writes per certificate -> 450 per batch
       const batch = writeBatch(db);
-      list.slice(i, i + 200).forEach(c => {
+      pubJobs.length = 0;
+      list.slice(i, i + 150).forEach(c => {
         const email = String(c.email || '').trim().toLowerCase();
         const pub = { ...c }; delete pub.email;            // email is stored privately, never in the public document
         const ref = doc(collection(db, "certificates"));
         const data = { ...pub, createdAt: Date.now(), status: "Verified" };
         batch.set(ref, data);
+        pubJobs.push([data]);
         if(email) {
           batch.set(doc(db, "certificate_owners", ref.id), { email, certId: pub.certId, createdAt: Date.now() });
           cache.certOwners[ref.id] = email;
         }
         added.push({ id: ref.id, ...data });
       });
+      for(const [data] of pubJobs) batch.set(await certPublicRef(data.certId, data.name), certPublicData(data));
       await batch.commit();
     }
     cache.certificates = [...added.reverse(), ...(cache.certificates || [])];
@@ -1101,6 +1157,12 @@ async function updateCertificate(id, cert) {
     pub.updatedAt = Date.now();
     // email: deleteField() also scrubs any old public copy of the email
     await updateDoc(doc(db, "certificates", id), { ...pub, email: deleteField() });
+    try {
+      const old = (cache.certificates || []).find(x => x.id === id);
+      if(old) await removeCertPublic(old);
+      const merged = { ...(old || {}), ...pub }; delete merged.id;
+      await publishCertPublic(merged);
+    } catch(e) { console.warn('cert_public sync failed', e); }
 
     cache.certOwners = cache.certOwners || {};
     if(email) {
@@ -1129,6 +1191,8 @@ async function deleteCertificate(id) {
   const { doc, deleteDoc } = window.firebaseFunctions;
   const db = window.firebaseDB;
   try {
+    const old = (cache.certificates || []).find(x => x.id === id);
+    if(old) await removeCertPublic(old);
     await deleteDoc(doc(db, "certificates", id));
     await deleteDoc(doc(db, "certificate_owners", id)).catch(() => {});
     if(cache.certOwners) delete cache.certOwners[id];

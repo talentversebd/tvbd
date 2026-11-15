@@ -159,7 +159,10 @@
         <p id="vf-hint" style="font-size:.82rem;color:var(--muted);line-height:1.6;margin:0 0 12px;">সার্টিফিকেটে যে নাম ও Certificate ID আছে, দুটোই দিন। / Enter both the name and the Certificate ID printed on the certificate.</p>
         <div class="search-input-wrap" style="flex-direction:column;">
           <input type="text" id="cert-name" class="search-input" style="text-transform:none;font-family:inherit;width:100%;" autocomplete="off" placeholder="Name on the certificate / সার্টিফিকেটে যে নাম আছে" onkeydown="if(event.key==='Enter')document.getElementById('cert-search').focus()">
-          <input type="text" id="cert-search" class="search-input" style="width:100%;" autocomplete="off" autocapitalize="characters" placeholder="Certificate ID (e.g. TVBD-2026-001)" onkeydown="if(event.key==='Enter')searchCertificate()">
+          <div style="display:flex;align-items:stretch;width:100%;border:1px solid var(--bdr,#2a3a5c);border-radius:12px;overflow:hidden;background:var(--card2,#0f1b33)">
+            <span style="display:flex;align-items:center;padding:0 12px 0 16px;font-weight:800;letter-spacing:1px;color:var(--blue-br,#5b9bff);user-select:none">TVBD-</span>
+            <input type="text" id="cert-search" class="search-input" style="flex:1;min-width:0;border:0;border-radius:0;background:transparent;padding-left:0" autocomplete="off" autocapitalize="characters" inputmode="text" placeholder="2026-001" onkeydown="if(event.key==='Enter')searchCertificate()">
+          </div>
           <button onclick="searchCertificate()" class="search-btn" data-i18n="v_search_btn">🔍 Verify</button>
         </div>
       </div>
@@ -281,7 +284,7 @@
 
 <!-- Firebase -->
 <script type="module" src="firebase-config.js"></script>
-<script src="data.js?v=10"></script>
+<script src="data.js?v=14"></script>
 <script src="lang.js"></script>
 <script src="main.js"></script>
 
@@ -295,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if(certId) {
     // coming from a QR code / shared link: the ID is filled in, but the person must still type the name
-    document.getElementById('cert-search').value = certId.toUpperCase();
+    document.getElementById('cert-search').value = idTail(certId);
     const h = document.getElementById('vf-hint');
     if(h) h.innerHTML = '✅ ID পেয়ে গেছি। এবার সার্টিফিকেটের <b>নাম</b> লিখে Verify চাপুন। / ID filled in — now type the <b>name</b> and press Verify.';
     setTimeout(() => document.getElementById('cert-name').focus(), 300);
@@ -303,7 +306,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function searchCertificate() {
-  const certId = document.getElementById('cert-search').value.trim().toUpperCase();
+  const tail = idTail(document.getElementById('cert-search').value);
+  const certId = tail ? 'TVBD-' + tail : '';
   const typedName = document.getElementById('cert-name').value;
 
   if(!typedName.trim() || !certId) {
@@ -318,18 +322,19 @@ async function searchCertificate() {
 
   // Wait for Firebase
   const check = setInterval(async () => {
-    if(typeof getCertificateById === 'function' && window.firebaseDB) {
+    if(typeof getCertificateVerified === 'function' && window.firebaseDB) {
       clearInterval(check);
       
       try {
-        const cert = await getCertificateById(certId);
+        // the record can only be fetched with the exact ID + name (see cert_public rules)
+        const cert = await getCertificateVerified(certId, typedName);
         document.getElementById('v-loading').style.display = 'none';
         
-        if(cert && sameName(cert.name, typedName)) {
+        if(cert) {
           currentCert = cert;
           showVerified(cert);
         } else {
-          showNotFound(!!cert);
+          showNotFound();
         }
       } catch(err) {
         console.error("Verify error:", err);
@@ -372,6 +377,8 @@ function showVerified(cert) {
 }
 
 // compare names ignoring case, extra spaces, dots, commas and dashes
+// the box already shows a fixed "TVBD-" — accept it typed or not
+function idTail(v) { return String(v || '').trim().toUpperCase().replace(/^\s*TVBD\s*[-_ ]?\s*/, '').replace(/\s+/g, ''); }
 function normName(v) { return String(v || '').toLowerCase().replace(/[.,\-_'"]/g, ' ').replace(/\s+/g, ' ').trim(); }
 function sameName(a, b) { const x = normName(a), y = normName(b); return !!x && x === y; }
 

@@ -645,6 +645,7 @@ select.fi{cursor:pointer}
         </div>
         <div style="margin-bottom:16px;">
           <button class="e-btn" onclick="migrateCertEmailsUI()" style="margin-right:8px;padding:9px 14px;">🔒 ইমেইল সুরক্ষিত করুন</button>
+          <button class="e-btn" onclick="syncCertPublicUI()" style="margin-right:8px;padding:9px 14px;">🔐 Verify সুরক্ষিত করুন</button>
           <button class="add-btn" onclick="openCertTemplate()" style="margin-right:8px;">🖼 Certificate Template</button>
           <button class="add-btn" onclick="openBulkCert()">⚡ Bulk Generate from Event</button>
           <span style="font-size:.76rem;color:var(--muted);margin-left:10px;display:block;margin-top:8px;line-height:1.7;">১) সার্টিফিকেটের ছবি আপলোড করে Name / Verify ID / QR-এর জায়গা ঠিক করুন · ২) Bulk Generate দিয়ে অংশগ্রহণকারীদের সার্টিফিকেট তৈরি করুন।</span>
@@ -1328,12 +1329,12 @@ select.fi{cursor:pointer}
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <!-- Site Scripts -->
-<script src="data.js?v=13"></script>
+<script src="data.js?v=14"></script>
 <script src="render.js?v=3"></script>
 <script src="certificate-render.js?v=2"></script>
 <script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
-<script src="admin.js?v=9"></script>
+<script src="admin.js?v=10"></script>
 <script src="main.js?v=3"></script>
 
 <script src="fx.js"></script>

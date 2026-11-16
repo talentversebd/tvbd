@@ -166,11 +166,37 @@
     <div class="divider"></div>
     <p data-i18n="vid_sub" style="max-width:520px;margin:12px auto 0;opacity:.8">A 30-second look at who we are and what you can do here.</p>
   </div>
-  <div style="display:flex;justify-content:center;margin-top:28px">
-    <video id="intro-vid" controls playsinline preload="none" poster="tvbd-intro-poster.jpg" style="width:100%;max-width:340px;aspect-ratio:9/16;border-radius:22px;background:#050a1c;box-shadow:0 20px 60px rgba(0,0,0,.35);border:1px solid var(--bdr)">
-      <source src="tvbd-intro.mp4" type="video/mp4">
-    </video>
+  <div id="vid-tabs" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:24px">
+    <button type="button" class="vid-tab active" data-mode="intro" data-i18n="vid_t_intro">🎬 Intro</button>
+    <button type="button" class="vid-tab" data-mode="how" data-i18n="vid_t_how">📖 How to start</button>
   </div>
+  <div style="display:flex;justify-content:center;margin-top:20px">
+    <video id="intro-vid" controls playsinline preload="none" poster="poster-english.jpg?v=4" src="vid-english.mp4?v=4" style="width:100%;max-width:340px;aspect-ratio:9/16;border-radius:22px;background:#050a1c;box-shadow:0 20px 60px rgba(0,0,0,.35);border:1px solid var(--bdr)"></video>
+  </div>
+  <style>.vid-tab{font:inherit;font-weight:600;font-size:.85rem;padding:9px 16px;border-radius:999px;border:1px solid var(--bdr);background:transparent;color:inherit;cursor:pointer;opacity:.8}.vid-tab.active{background:linear-gradient(135deg,#2f6bff,#1233a8);color:#fff;border-color:transparent;opacity:1}</style>
+  <script>
+  /* Intro video follows the site language (Bangla site -> Bangla video, English site -> English video).
+     The "How to start" tutorial is in Bangla only. */
+  (function(){
+    var v=document.getElementById('intro-vid'),tabs=document.querySelectorAll('#vid-tabs .vid-tab'),mode='intro',cur='';
+    function lang(){try{return localStorage.getItem('tvbd_lang')==='bn'?'bn':'en';}catch(e){return 'en';}}
+    function pick(){
+      if(mode==='how') return ['vid-tutorial.mp4?v=4','poster-tutorial.jpg?v=4'];
+      return lang()==='bn' ? ['vid-intro.mp4?v=4','poster-intro.jpg?v=4'] : ['vid-english.mp4?v=4','poster-english.jpg?v=4'];
+    }
+    function sync(play){
+      var p=pick();if(cur===p[0])return;cur=p[0];
+      v.pause();v.poster=p[1];v.src=p[0];v.load();
+      if(play){var r=v.play();if(r&&r.catch)r.catch(function(){});}
+    }
+    tabs.forEach(function(t){t.addEventListener('click',function(){
+      tabs.forEach(function(x){x.classList.remove('active')});t.classList.add('active');
+      mode=t.dataset.mode;sync(true);
+    });});
+    sync(false);
+    new MutationObserver(function(){sync(false);}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+  })();
+  </script>
 </section>
 
 <!-- EXPLORE -->

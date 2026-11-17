@@ -251,6 +251,14 @@
       <img class="av-logo" src="logo.jpg" alt="Logo">
       <div class="av-name">Talent<span>Verse</span> Bangladesh</div>
       <div class="av-quote" id="av-quote" data-i18n="about_quote">"Every child in Bangladesh deserves to know about the opportunity that awaits their talent."</div>
+      <video id="about-vid" controls playsinline preload="none" poster="about-poster-en.jpg?v=1" src="about-en.mp4?v=1" style="display:block;width:100%;max-width:260px;aspect-ratio:9/16;margin:22px auto 0;border-radius:20px;background:#050a1c;box-shadow:0 16px 50px rgba(0,0,0,.35);border:1px solid var(--bdr)"></video>
+      <script>
+      /* About video follows the site language (Bangla site -> Bangla video, English site -> English video) */
+      (function(){var v=document.getElementById('about-vid'),cur='';
+        function lang(){try{return localStorage.getItem('tvbd_lang')==='bn'?'bn':'en';}catch(e){return 'en';}}
+        function sync(){var l=lang();if(cur===l)return;cur=l;var was=!v.paused;v.pause();v.poster='about-poster-'+l+'.jpg?v=1';v.src='about-'+l+'.mp4?v=1';v.load();}
+        sync();new MutationObserver(sync).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});})();
+      </script>
     </div>
   </div>
 </section>

@@ -14,6 +14,7 @@ const translations = {
   en: {
     // Nav
     nav_home: "Home",
+    nav_about: "About",
     nav_olympiads: "Events & Quiz",
     nav_team: "Exclusive Members",
     nav_news: "News",
@@ -326,6 +327,7 @@ const translations = {
   bn: {
     // Nav
     nav_home: "হোম",
+    nav_about: "আমাদের সম্পর্কে",
     nav_olympiads: "ইভেন্ট & কুইজ",
     nav_team: "এক্সক্লুসিভ মেম্বার",
     nav_news: "নিউজ",

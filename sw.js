@@ -1,5 +1,5 @@
 // TalentVerse PWA service worker (v1)
-const CACHE='tvbd-shell-v3';
+const CACHE='tvbd-shell-v5';
 const SHELL=['./','index.html','style.css','logo.jpg','icon-192.png','offline.html'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>Promise.all(SHELL.map(u=>c.add(u).catch(()=>{})))).then(()=>self.skipWaiting()));
@@ -13,6 +13,8 @@ self.addEventListener('fetch',e=>{
   const u=new URL(r.url);
   if(u.origin!==location.origin)return; // Firebase, ImgBB, EmailJS etc. go straight to network
   if(/firebase-config\.js$/.test(u.pathname))return;
+  // video/audio and any Range request go straight to the browser (the cache-first rewrite below breaks media playback)
+  if(r.headers.has('range')||/\.(mp4|webm|ogg|mp3|m4a|wav)$/i.test(u.pathname))return;
   // network-first: always fresh when online, cached copy when offline
   e.respondWith(fetch(new Request(r,{cache:'no-cache'})).then(res=>{
     if(res&&res.ok&&res.type==='basic'){const cp=res.clone();caches.open(CACHE).then(c=>c.put(r,cp));}

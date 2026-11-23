@@ -299,11 +299,11 @@
 <script type="module" src="firebase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-<script src="data.js?v=13"></script>
-<script src="render.js"></script>
+<script src="data.js?v=17"></script>
+<script src="render.js?v=5"></script>
 <script src="certificate-render.js?v=2"></script>
 <script src="lang.js"></script>
-<script src="main.js"></script>
+<script src="main.js?v=5"></script>
   <!-- ═══════════════════════════════════ -->
 <!-- 🔔 NOTICE BAR (Top) -->
 <!-- ═══════════════════════════════════ -->
@@ -793,12 +793,14 @@ async function dbLoadDashboard(user) {
             ${dateTxt ? `<span style="${chip}">📅 ${dateTxt}</span>` : ''}
             ${r._certOnly ? '' : apChip}
             ${r.segment ? `<span style="${chip}">${esc(r.segment)}</span>` : ''}
+            ${r.regCode ? `<span style="${chip}font-family:monospace;letter-spacing:1px;">🆔 ${esc(r.regCode)}</span>` : ''}
           </div>
           ${cert ? `
           <div style="display:flex;gap:10px;margin-bottom:10px;">
             <button onclick="dbDownloadCert('${cert.id}','img',this)" style="flex:1;background:#f59e0b;color:#fff;border:none;border-radius:999px;padding:13px 10px;font-size:.92rem;font-weight:700;cursor:pointer;">🏅 Certificate</button>
             <button onclick="dbDownloadCert('${cert.id}','pdf',this)" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:999px;padding:13px 20px;font-size:.88rem;font-weight:700;cursor:pointer;">PDF</button>
           </div>` : ''}
+          ${(o && !r._certOnly && typeof segQuizSlotHtml === 'function') ? segQuizSlotHtml(o, 'card', r.segment) : ''}
           ${(o && !r._certOnly && (!needAp || ap === 'approved')) ? `<div class="db-group" data-eid="${esc(o.id)}"></div>` : ''}
           <a href="events.html${o ? '?event=' + encodeURIComponent(o.id) : ''}" style="display:block;text-align:center;background:#fff;color:#111827;border-radius:999px;padding:14px;font-size:.95rem;font-weight:800;text-decoration:none;">View Details</a>
         </div>

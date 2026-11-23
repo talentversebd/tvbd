@@ -276,10 +276,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <!-- Site Scripts -->
-<script src="data.js?v=10"></script>
-<script src="render.js"></script>
+<script src="data.js?v=17"></script>
+<script src="render.js?v=5"></script>
 <script src="lang.js"></script>
-<script src="main.js"></script>
+<script src="main.js?v=5"></script>
 
 <script>
 let qzCurrentQuiz = null;
@@ -407,6 +407,11 @@ async function showQuizEntry(id) {
         `এই পরীক্ষায় শুধু <strong>${names}</strong> ইভেন্টে রেজিস্ট্রেশন করা অংশগ্রহণকারীরা অংশ নিতে পারবেন। আগে আপনার অ্যাকাউন্টে Log In করুন।`,
         `<a href="account.html?redirect=${encodeURIComponent(location.href)}" class="qz-btn" style="display:inline-flex;width:auto;padding:10px 24px;margin-top:14px;">Log In / Sign Up</a>`);
     }
+    if(gate.reason === 'wrongseg') {
+      return qzShowBlockedScreen('🚫', 'এটা তোমার সেগমেন্টের কুইজ না',
+        'তুমি রেজিস্ট্রেশনের সময় যে সেগমেন্ট বেছেছিলে, এই কুইজ সেই সেগমেন্টের জন্য নয়। Dashboard থেকে তোমার নিজের সেগমেন্টের কুইজ খুলে নাও।',
+        '<a href="dashboard.html" class="qz-btn" style="display:inline-flex;width:auto;padding:10px 24px;margin-top:14px;">Dashboard</a>');
+    }
     if(gate.reason === 'pending') {
       return qzShowBlockedScreen('⏳', 'Awaiting approval',
         "Your registration is waiting for the admin's approval. Once it is approved you can take the exam from here.");
@@ -470,7 +475,7 @@ function qzGetUser() {
 async function qzCheckRegistration(quiz) {
   try { if(typeof loadAllData === 'function') await loadAllData(); } catch(e) {}
   const events = (typeof getOlympiads === 'function' ? getOlympiads() : [])
-    .filter(o => o.quizId === quiz.id && o.regEnabled && o.quizRegisteredOnly !== false);
+    .filter(o => (o.quizId === quiz.id || Object.values(o.segQuiz || {}).includes(quiz.id)) && o.regEnabled && o.quizRegisteredOnly !== false);
   if(!events.length) return { required: false };
 
   const user = await qzGetUser();
@@ -478,7 +483,16 @@ async function qzCheckRegistration(quiz) {
 
   const regs = await getMyRegistrations(user.email);
   const titles = events.map(o => (o.title || '').trim().toLowerCase());
-  const mine = regs.filter(r => titles.includes((r.olympiad || '').trim().toLowerCase()));
+  // a segment-wise quiz opens only for people who registered in that segment
+  const segOk = r => {
+    const o = events.find(x => (x.title || '').trim().toLowerCase() === (r.olympiad || '').trim().toLowerCase());
+    if(!o || o.quizId === quiz.id) return true;
+    const segs = Object.keys(o.segQuiz || {}).filter(k => o.segQuiz[k] === quiz.id);
+    return segs.includes(String(r.segment || '').trim());
+  };
+  const inEvent = regs.filter(r => titles.includes((r.olympiad || '').trim().toLowerCase()));
+  const mine = inEvent.filter(segOk);
+  if(inEvent.length && !mine.length) return { required: true, ok: false, reason: 'wrongseg', user, events };
   // an event can require the admin's approval: then only 'approved' people may sit the exam
   const needsApproval = r => { const o = events.find(x => (x.title || '').trim().toLowerCase() === (r.olympiad || '').trim().toLowerCase()); return !!o && o.approvalRequired === true; };
   const okReg = mine.find(r => !needsApproval(r) || r.approval === 'approved');

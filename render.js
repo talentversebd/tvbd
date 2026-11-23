@@ -10,9 +10,63 @@ function getLinkedQuizFor(o) {
   return (q && q.status === 'published') ? q : null;
 }
 
+/*===== SEGMENT-WISE QUIZ (each segment of an event has its own quiz) =====*/
+function hasSegQuiz(o) { return !!(o && o.segQuiz && Object.keys(o.segQuiz).length); }
+function segQuizSlotHtml(o, style, seg) { return hasSegQuiz(o) ? `<div class="seg-quiz-slot" data-eid="${o.id}" data-style="${style || 'card'}"${seg ? ` data-seg="${String(seg).replace(/"/g, '&quot;')}"` : ''}></div>` : ''; }
+
+function segQuizUser() {
+  return new Promise(res => {
+    let n = 0;
+    const t = setInterval(() => {
+      const u = window.firebaseAuth && window.firebaseAuth.currentUser;
+      if(u && u.email) { clearInterval(t); res(u); }
+      else if(++n > 40) { clearInterval(t); res(null); }
+    }, 100);
+  });
+}
+async function fillSegQuizSlots() {
+  const slots = Array.from(document.querySelectorAll('.seg-quiz-slot:not([data-done])'));
+  if(!slots.length) return;
+  slots.forEach(s => s.dataset.done = '1');
+  const user = await segQuizUser();
+  if(user && !window._sqRegs && typeof getMyRegistrations === 'function') window._sqRegs = getMyRegistrations(user.email);
+  const regs = user && window._sqRegs ? await window._sqRegs : [];
+  const evs = typeof getOlympiads === 'function' ? getOlympiads() : [];
+  slots.forEach(el => {
+    const o = evs.find(x => x.id === el.dataset.eid);
+    if(!o) return;
+    const modal = el.dataset.style === 'modal';
+    const note = t => { el.innerHTML = modal ? `<p style="font-size:.8rem;opacity:.8;margin:6px 0 10px;line-height:1.6;">${t}</p>` : ''; };
+    if(!user) return note('🔐 নিজের সেগমেন্টের কুইজ দেখতে Log In করো।');
+    const t = String(o.title || '').trim().toLowerCase();
+    let mine = regs.filter(r => String(r.olympiad || '').trim().toLowerCase() === t);
+    if(el.dataset.seg) mine = mine.filter(r => String(r.segment || '').trim() === el.dataset.seg);
+    if(!mine.length) return note('📝 রেজিস্ট্রেশন করলে তোমার সেগমেন্টের কুইজ এখানে আসবে।');
+    const ok = mine.filter(r => !o.approvalRequired || r.approval === 'approved');
+    if(!ok.length) return note('⏳ অ্যাডমিনের অনুমোদনের পর তোমার কুইজ এখানে আসবে।');
+    const seen = new Set(); let html = '';
+    ok.forEach(reg => {
+      const sg = String(reg.segment || '').trim();
+      const qid = (o.segQuiz || {})[sg];
+      const q = qid && typeof getQuizzes === 'function' ? getQuizzes().find(x => x.id === qid && x.status === 'published') : null;
+      if(!q || seen.has(q.id)) return;
+      seen.add(q.id);
+      html += modal
+        ? `<a href="quiz.html?id=${q.id}" class="modal-reg-btn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-bottom:10px;">📝 ${sg}: কুইজ দাও</a>`
+        : `<a href="quiz.html?id=${q.id}" onclick="event.stopPropagation()" style="display:block;text-align:center;margin-top:8px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;text-decoration:none;padding:10px;border-radius:8px;font-weight:700;font-size:.85rem;">📝 ${sg}: কুইজ দাও</a>`;
+    });
+    if(!html) return note('তোমার সেগমেন্টের কুইজ এখনো দেওয়া হয়নি।');
+    el.innerHTML = html;
+  });
+}
+try {
+  let _sqT = null;
+  new MutationObserver(() => { clearTimeout(_sqT); _sqT = setTimeout(fillSegQuizSlots, 120); }).observe(document.documentElement, { childList: true, subtree: true });
+} catch(e) {}
+
 function quizTakeButtonHtml(o) {
   const q = getLinkedQuizFor(o);
-  if(!q) return '';
+  if(!q) return segQuizSlotHtml(o, 'card');
   return `<a href="quiz.html?id=${q.id}" onclick="event.stopPropagation()"
     style="display:block;text-align:center;margin-top:8px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;text-decoration:none;padding:10px;border-radius:8px;font-weight:700;font-size:.85rem;">
     📝 Take Quiz Now
@@ -249,6 +303,7 @@ function openModal(i) {
       extraHtml += `<a href="quiz.html?id=${linkedQuiz.id}" class="modal-reg-btn"
         style="background:linear-gradient(135deg,#16a34a,#15803d);margin-bottom:10px;">📝 Take Quiz Now</a>`;
     }
+    extraHtml += segQuizSlotHtml(o, 'modal');
     reg.innerHTML = extraHtml;
     renderInlineRegistration(o, extraHtml);
   }

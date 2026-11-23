@@ -295,7 +295,7 @@ async function submitRegistration(e) {
   if(isPaid && !txnId) return toast("Transaction ID দিতে হবে — এটা Paid Event!", true);
 
   if(selectedOlympiad && isRegDeadlinePassed(selectedOlympiad)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
-  if(await alreadyRegistered(olympiad, email)) return toast("তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+  if(await alreadyRegistered(olympiad, email, needsSegment ? segment : '')) return toast(needsSegment ? "তুমি এই সেগমেন্টে আগেই রেজিস্ট্রেশন করেছো। অন্য সেগমেন্ট বেছে নাও।" : "তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
   const caCode = await caReadInput('rf-ca');
   if(caCode === false) return;
 
@@ -349,6 +349,7 @@ Segment: ${segment || 'N/A'}
 Transaction ID: ${txnId || 'N/A'}
 Class: ${profile.classLevel || 'N/A'}
 School: ${profile.institution || 'N/A'}
+Registration ID: ${window.lastRegCode || 'N/A'}
 
 Message: ${msg || 'N/A'}
           `.trim()
@@ -377,9 +378,14 @@ Message: ${msg || 'N/A'}
       const success = document.getElementById('reg-success');
       const formWrap = document.getElementById('reg-form-wrap') || document.getElementById('reg-form');
       if(success) {
+        if(!document.getElementById('reg-code-box')) success.insertAdjacentHTML('beforeend', regCodeBoxHtml(window.lastRegCode));
         if(groupUrl && !document.getElementById('reg-group-link')) success.insertAdjacentHTML('beforeend', '<div id="reg-group-link">' + groupLinkHtml(groupUrl) + '</div>');
         success.style.display = 'block';
-        if(formWrap) formWrap.style.display = 'none';
+        if(formWrap) formWrap.style.display = 'none';      } else {
+        // standalone register page has no success panel: show the ID right under the button
+        const b = document.querySelector('.rf-btn');
+        if(b && !document.getElementById('reg-code-box')) b.insertAdjacentHTML('afterend', regCodeBoxHtml(window.lastRegCode));
+        toast('তোমার Registration ID: ' + (window.lastRegCode || ''));
       }
     }, 1000);
 
@@ -390,6 +396,20 @@ Message: ${msg || 'N/A'}
     btn.textContent = originalText;
     btn.disabled = false;
   }
+}
+
+/*===== Registration ID box (shown to the participant after registering) =====*/
+function regCodeBoxHtml(code) {
+  if(!code) return '';
+  return '<div id="reg-code-box" style="margin:14px auto 4px;max-width:320px;background:rgba(37,99,235,.10);border:1.5px dashed #3b82f6;border-radius:14px;padding:12px 14px;text-align:center;">'
+    + '<div style="font-size:.74rem;opacity:.8;margin-bottom:4px;">তোমার Registration ID</div>'
+    + '<div style="font-family:monospace;font-size:1.35rem;font-weight:800;letter-spacing:2px;">' + code + '</div>'
+    + '<button type="button" onclick="copyRegCode(\'' + code + '\')" style="margin-top:8px;background:#2563eb;color:#fff;border:none;border-radius:999px;padding:7px 16px;font-size:.8rem;font-weight:700;cursor:pointer;">📋 Copy</button>'
+    + '<div style="font-size:.7rem;opacity:.7;margin-top:6px;">এই ID টা সেভ করে রাখো। Dashboard-এও দেখতে পাবে।</div></div>';
+}
+function copyRegCode(c) {
+  try { navigator.clipboard.writeText(c).then(() => toast('Copied: ' + c)); }
+  catch(e) { toast(c); }
 }
 
 /*===== INLINE REGISTRATION SUBMIT (from the event modal) =====*/
@@ -420,7 +440,7 @@ async function submitInlineRegistration(olympiadId) {
   if(isPaid && !txnId) return toast("Transaction ID দিতে হবে — এটা Paid Event!", true);
 
   if(isRegDeadlinePassed(o)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
-  if(await alreadyRegistered(o.title, email)) return toast("তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+  if(await alreadyRegistered(o.title, email, needsSegment ? segment : '')) return toast(needsSegment ? "তুমি এই সেগমেন্টে আগেই রেজিস্ট্রেশন করেছো। অন্য সেগমেন্ট বেছে নাও।" : "তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
   const caCode = await caReadInput('im-ca');
   if(caCode === false) return;
 
@@ -452,7 +472,7 @@ async function submitInlineRegistration(olympiadId) {
             from_name: fullName,
             from_email: email,
             subject: `New Registration: ${o.title}`,
-            message: `New Registration Received!\n\nName: ${fullName}\nEmail: ${email}\nPhone: ${profile.phone}\nOlympiad: ${o.title}\nSegment: ${segment || 'N/A'}\nTransaction ID: ${txnId || 'N/A'}\nClass: ${profile.classLevel || 'N/A'}\nSchool: ${profile.institution || 'N/A'}\n\nMessage: ${msg || 'N/A'}`
+            message: `New Registration Received!\n\nName: ${fullName}\nEmail: ${email}\nPhone: ${profile.phone}\nOlympiad: ${o.title}\nSegment: ${segment || 'N/A'}\nTransaction ID: ${txnId || 'N/A'}\nClass: ${profile.classLevel || 'N/A'}\nSchool: ${profile.institution || 'N/A'}\nRegistration ID: ${window.lastRegCode || 'N/A'}\n\nMessage: ${msg || 'N/A'}`
           },
           window.EMAILJS_CONFIG.publicKey
         );
@@ -471,6 +491,7 @@ async function submitInlineRegistration(olympiadId) {
           <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
           <h4 style="font-family:var(--display);font-weight:600;margin-bottom:6px;">Registered!</h4>
           <p style="color:var(--muted);font-size:.85rem;">তোমার registration পেয়েছি। Dashboard-এ গিয়ে পরে এটা দেখতে পারবে।</p>
+          ${regCodeBoxHtml(window.lastRegCode)}
           ${o.approvalRequired ? '<p style="color:#fbbf24;font-size:.85rem;margin-top:10px;">⏳ Your registration is waiting for admin approval. You will be able to take the exam once it is approved.</p>' : ''}
           <div id="m-group-link"></div>
         </div>`;
@@ -554,6 +575,7 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
           <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
           <h4 style="font-family:var(--display);font-weight:600;margin-bottom:6px;">Registered!</h4>
           <p style="color:var(--muted);font-size:.85rem;">তোমার registration পেয়েছি। Dashboard-এ গিয়ে পরে এটা দেখতে পারবে।</p>
+          ${regCodeBoxHtml(window.lastRegCode)}
           ${o.approvalRequired ? '<p style="color:#fbbf24;font-size:.85rem;margin-top:10px;">⏳ Your registration is waiting for admin approval. You will be able to take the exam once it is approved.</p>' : ''}
           <div id="m-group-link"></div>
         </div>`;

@@ -397,7 +397,9 @@ function regFiltered() {
   const ev = (document.getElementById('reg-event-filter') || {}).value || '';
   const st = (document.getElementById('reg-status-filter') || {}).value || '';
   const at = (document.getElementById('reg-att-filter') || {}).value || '';
-  return getRegistrations().filter(r => (!ev || r.olympiad === ev) && (!st || regStatus(r) === st) && (!at || (at === 'yes' ? r.attended === true : r.attended !== true)));
+  const q = String((document.getElementById('reg-search') || {}).value || '').trim().toLowerCase();
+  const hit = r => !q || [r.regCode, r.name, r.email, r.phone].some(v => String(v || '').toLowerCase().includes(q));
+  return getRegistrations().filter(r => hit(r) && (!ev || r.olympiad === ev) && (!st || regStatus(r) === st) && (!at || (at === 'yes' ? r.attended === true : r.attended !== true)));
 }
 
 function renderRegistrationsTable() {
@@ -419,14 +421,14 @@ function renderRegistrationsTable() {
     ? `দেখানো হচ্ছে <strong>${data.length}</strong> জন · ⏳ Pending <strong>${count('pending')}</strong> · ✅ Approved <strong>${count('approved')}</strong> · ❌ Rejected <strong>${count('rejected')}</strong> · 🟢 উপস্থিত <strong>${data.filter(r => r.attended === true).length}</strong>`
     : '';
 
-  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="11">${all.length ? 'এই ফিল্টারে কোনো রেজিস্ট্রেশন নেই।' : 'No registrations yet.'}</td></tr>`; return; }
+  if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="12">${all.length ? 'এই ফিল্টারে কোনো রেজিস্ট্রেশন নেই।' : 'No registrations yet.'}</td></tr>`; return; }
   const badge = st => st === 'approved' ? '<span class="bs bs-active">✅ Approved</span>'
                     : st === 'rejected' ? '<span class="bs bs-past">❌ Rejected</span>'
                     : '<span class="bs bs-upcoming">⏳ Pending</span>';
   tbody.innerHTML = data.map(r => {
     const date = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'N/A';
     const st = regStatus(r);
-    return `<tr><td>${bcEsc(r.name)}</td><td>${bcEsc(r.email)}</td><td>${bcEsc(r.phone)}</td><td>${bcEsc(r.olympiad)}</td><td>${bcEsc(r.segment || '—')}</td><td>${bcEsc(r.transactionId || '—')}</td><td style="font-family:monospace;">${bcEsc(r.refCode || '—')}</td><td>${badge(st)}</td><td>${r.attended === true ? '<span class="bs bs-active">🟢 Present</span>' : '<span class="bs bs-past" style="opacity:.7">—</span>'}</td><td>${date}</td>
+    return `<tr><td style="font-family:monospace;font-weight:700;white-space:nowrap;">${bcEsc(r.regCode || '—')}</td><td>${bcEsc(r.name)}</td><td>${bcEsc(r.email)}</td><td>${bcEsc(r.phone)}</td><td>${bcEsc(r.olympiad)}</td><td>${bcEsc(r.segment || '—')}</td><td>${bcEsc(r.transactionId || '—')}</td><td style="font-family:monospace;">${bcEsc(r.refCode || '—')}</td><td>${badge(st)}</td><td>${r.attended === true ? '<span class="bs bs-active">🟢 Present</span>' : '<span class="bs bs-past" style="opacity:.7">—</span>'}</td><td>${date}</td>
       <td class="tbl-acts">
         <button class="e-btn" onclick="setRegAttended('${r.id}',${r.attended === true ? 'false' : 'true'})">${r.attended === true ? '↩ Undo' : '🟢 Present'}</button>
         ${st !== 'approved' ? `<button class="e-btn" onclick="setRegApproval('${r.id}','approved')">✅ Approve</button>` : ''}
@@ -479,19 +481,28 @@ async function approveAllShown() {
 }
 function viewRegistration(id) {
   const r = getRegistrations().find(x => x.id === id);
-  if(r) alert(`Name: ${r.name}\nEmail: ${r.email}\nPhone: ${r.phone}\nOlympiad: ${r.olympiad}\nSegment: ${r.segment||'N/A'}\nTransaction ID: ${r.transactionId||'N/A'}\nClass: ${r.class||'N/A'}\nSchool: ${r.school||'N/A'}\nAddress: ${r.address||'N/A'}\nMessage: ${r.message||'N/A'}\nCA Code: ${r.refCode||'N/A'}`);
+  if(r) alert(`Reg ID: ${r.regCode||'N/A'}\nName: ${r.name}\nEmail: ${r.email}\nPhone: ${r.phone}\nOlympiad: ${r.olympiad}\nSegment: ${r.segment||'N/A'}\nTransaction ID: ${r.transactionId||'N/A'}\nClass: ${r.class||'N/A'}\nSchool: ${r.school||'N/A'}\nAddress: ${r.address||'N/A'}\nMessage: ${r.message||'N/A'}\nCA Code: ${r.refCode||'N/A'}`);
 }
 async function deleteRegistrationAction(id) {
   if(!confirm("Delete?")) return;
   if(await deleteRegistration(id)) { renderRegistrationsTable(); renderDashboard(); toast("Deleted."); }
 }
 
+async function backfillRegCodesAction() {
+  if(!confirm('যাদের এখনো Registration ID নেই, সবাইকে ID দেওয়া হবে। চালাবে?')) return;
+  try {
+    const n = await backfillRegCodes();
+    renderRegistrationsTable();
+    toast(n ? n + ' জনকে ID দেওয়া হয়েছে ✅' : 'সবার ID আগে থেকেই আছে ✅');
+  } catch(e) { console.error(e); toast('ID দিতে সমস্যা হয়েছে: ' + (e.message || e), true); }
+}
+
 function downloadRegistrationsCSV() {
   const regs = getRegistrations();
   if(!regs.length) return toast("No data!", true);
-  let csv = "Name,Email,Phone,Olympiad,Segment,Transaction ID,Status,Attended,Class,School,Date,CA Code\n";
+  let csv = "Reg ID,Name,Email,Phone,Olympiad,Segment,Transaction ID,Status,Attended,Class,School,Date,CA Code\n";
   regs.forEach(r => {
-    csv += [r.name,r.email,r.phone,r.olympiad,r.segment,r.transactionId,regStatus(r),r.attended === true ? 'Present' : '',r.class,r.school,r.createdAt?new Date(r.createdAt).toLocaleString():'',r.refCode].map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')+"\n";
+    csv += [r.regCode,r.name,r.email,r.phone,r.olympiad,r.segment,r.transactionId,regStatus(r),r.attended === true ? 'Present' : '',r.class,r.school,r.createdAt?new Date(r.createdAt).toLocaleString():'',r.refCode].map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')+"\n";
   });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
@@ -543,6 +554,28 @@ function openFM(id) { document.getElementById(id)?.classList.add('open'); }
 function closeFM(id) { document.getElementById(id)?.classList.remove('open'); }
 
 /*===== QUIZ DROPDOWN HELPER (used by Olympiad form) =====*/
+/*===== Segment -> Quiz mapping (event form) =====*/
+window._ofSegQ = window._ofSegQ || {};
+function ofSegList() {
+  return (document.getElementById('of-segments').value || '').split(',').map(s => s.trim()).filter(Boolean);
+}
+function ofSegQSet(seg, qid) { if(qid) window._ofSegQ[seg] = qid; else delete window._ofSegQ[seg]; }
+function ofRenderSegQuiz() {
+  const box = document.getElementById('of-segq');
+  if(!box) return;
+  const segs = ofSegList();
+  if(!segs.length) { box.innerHTML = ''; return; }
+  const quizzes = (typeof getQuizzes === 'function') ? getQuizzes() : [];
+  box.innerHTML = '<label>📝 সেগমেন্ট অনুযায়ী কুইজ (প্রতিটা সেগমেন্টের জন্য আলাদা কুইজ বেছে নিন)</label>'
+    + '<div style="font-size:.74rem;color:var(--muted);margin-bottom:8px;line-height:1.6;">ইউজার যে সেগমেন্টে রেজিস্টার করবে, শুধু সেই সেগমেন্টের কুইজই তার কাছে দেখাবে ও খুলবে। কুইজ না বাছলে ওই সেগমেন্টের কোনো কুইজ থাকবে না।</div>'
+    + segs.map((s, i) => `<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+        <span style="flex:0 0 38%;font-weight:700;font-size:.84rem;word-break:break-word;">${bcEsc(s)}</span>
+        <select class="fi" style="flex:1;" data-seg="${bcEsc(s)}" onchange="ofSegQSet(this.dataset.seg,this.value)">
+          <option value="">-- কুইজ নেই --</option>
+          ${quizzes.map(q => `<option value="${q.id}" ${window._ofSegQ[s] === q.id ? 'selected' : ''}>${bcEsc(q.title)}${q.status === 'published' ? '' : ' (Draft)'}</option>`).join('')}
+        </select></div>`).join('');
+}
+
 function populateQuizDropdown(selectedId) {
   const sel = document.getElementById('of-quiz');
   if(!sel) return;
@@ -575,6 +608,7 @@ function openOlympiadForm() {
   document.getElementById('of-iprev').innerHTML = '';
   const gl = document.getElementById('of-group'); if(gl) gl.value = '';
   window._ofGroupLoaded = true;
+  window._ofSegQ = {}; ofRenderSegQuiz();
   populateQuizDropdown('');
   populateRegFormDropdown('');
   openFM('ofm');
@@ -608,6 +642,7 @@ function editOlympiad(id) {
   const qr = document.getElementById('of-qreg'); if(qr) qr.checked = o.quizRegisteredOnly !== false;
   const ap = document.getElementById('of-approve'); if(ap) ap.checked = o.approvalRequired === true;
   document.getElementById('of-iprev').innerHTML = o.img ? `<img src="${o.img}">` : '';
+  window._ofSegQ = Object.assign({}, o.segQuiz || {}); ofRenderSegQuiz();
   populateQuizDropdown(o.quizId || '');
   populateRegFormDropdown(o.registrationFormId || '');
   openFM('ofm');
@@ -623,7 +658,7 @@ async function saveOlympiad() {
   if(!title || !desc) return toast("Title & description required!", true);
   const segments = document.getElementById('of-segments').value.split(',').map(s => s.trim()).filter(Boolean);
   const isSem = (document.getElementById('of-type')?.value === 'seminar');
-  const o = { title, desc, type: isSem ? 'seminar' : 'event', speaker: isSem ? (document.getElementById('of-speaker')?.value || '').trim() : '', time: isSem ? (document.getElementById('of-time')?.value || '').trim() : '', cat: isSem ? 'Seminar' : document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '', registrationFormId:document.getElementById('of-regform')?.value || '', quizRegisteredOnly:(document.getElementById('of-qreg')?.checked ?? true), approvalRequired:(document.getElementById('of-approve')?.checked ?? false) };
+  const o = { title, desc, type: isSem ? 'seminar' : 'event', speaker: isSem ? (document.getElementById('of-speaker')?.value || '').trim() : '', time: isSem ? (document.getElementById('of-time')?.value || '').trim() : '', cat: isSem ? 'Seminar' : document.getElementById('of-cat').value, status:document.getElementById('of-st').value, date:document.getElementById('of-dt').value, deadline:document.getElementById('of-rd').value, venue:document.getElementById('of-v').value, prize:document.getElementById('of-pr').value, eligibility:document.getElementById('of-el').value, fee:document.getElementById('of-fe').value, segments, fullDesc:document.getElementById('of-fd').value, img:document.getElementById('of-iu').value, regEnabled:document.getElementById('of-reg-enabled')?.checked||false, quizId:document.getElementById('of-quiz')?.value || '', segQuiz:(() => { const m = {}; segments.forEach(s => { if(window._ofSegQ[s]) m[s] = window._ofSegQ[s]; }); return m; })(), registrationFormId:document.getElementById('of-regform')?.value || '', quizRegisteredOnly:(document.getElementById('of-qreg')?.checked ?? true), approvalRequired:(document.getElementById('of-approve')?.checked ?? false) };
   const eid = document.getElementById('of-eid').value;
   const groupUrl = (document.getElementById('of-group')?.value || '').trim();
   if(groupUrl && !/^https?:\/\//i.test(groupUrl)) return toast("Group link must start with http:// or https://", true);
@@ -1360,7 +1395,7 @@ function prRefresh() {
   const subs = getQuizSubmissions().filter(s => s.quizId === id);
   const graded = subs.filter(s => s.totalScore != null).length;
   const published = subs.filter(s => s.resultPublished).length;
-  const segs = getOlympiads().some(o => o.quizId === id && (o.segments || []).length > 0);
+  const segs = getOlympiads().some(o => (o.quizId === id || Object.values(o.segQuiz || {}).includes(id)) && (o.segments || []).length > 0);
   document.getElementById('pr-seg').checked = segs;
   document.getElementById('pr-status').innerHTML =
     `মোট সাবমিশন: <strong>${subs.length}</strong><br>গ্রেড হয়েছে: <strong>${graded}</strong>` +
@@ -1589,7 +1624,8 @@ function bcEsc(v) {
   return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function bcNorm(v) { return String(v || '').trim().toLowerCase(); }
-function bulkEligible(r) { if(bulkEvent && bulkEvent.type === 'seminar') return r.status === 'approved'; return !!(!bulkExamOnly || r.hasQuiz || !(bulkEvent && bulkEvent.quizId)); }
+function bulkEligible(r) { if(bulkEvent && bulkEvent.type === 'seminar') return r.status === 'approved'; return !!(!bulkExamOnly || r.hasQuiz || !(bulkEvent && evQuizIds(bulkEvent).length)); }
+function evQuizIds(o) { return [...new Set([o && o.quizId, ...Object.values((o && o.segQuiz) || {})].filter(Boolean))]; }
 function bcIsWinner(pos) { return /champion|winner|runner|1st|2nd|3rd|first|second|third/i.test(String(pos || '')); }
 function bulkSelect(mode) {
   document.querySelectorAll('.bc-chk').forEach(c => {
@@ -1670,7 +1706,7 @@ async function bulkLoadEvent() {
 
   const title = bcNorm(bulkEvent.title);
   const regs = getRegistrations().filter(r => bcNorm(r.olympiad) === title);
-  const subs = getQuizSubmissions().filter(s => bulkEvent.quizId && s.quizId === bulkEvent.quizId);
+  const subs = getQuizSubmissions().filter(s => evQuizIds(bulkEvent).includes(s.quizId));
   const issued = new Set(getCertificates().filter(c => bcNorm(c.event) === title).map(c => bcNorm(c.name)));
 
   const seen = new Set();

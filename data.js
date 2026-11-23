@@ -302,15 +302,48 @@ function isRegOpen(o) {
   return !!(o && o.regEnabled && o.status !== 'past' && !isRegDeadlinePassed(o));
 }
 // Has this account already registered for this event? (matches by event title + account email)
-async function alreadyRegistered(olympiadTitle, email) {
+// With a segment: only the SAME segment counts as a duplicate (one person may join several segments of one event).
+async function alreadyRegistered(olympiadTitle, email, segment) {
   if(!olympiadTitle || !email) return false;
   await waitForFirebase();
   const { collection, getDocs, query, where } = window.firebaseFunctions;
   try {
     const snap = await getDocs(query(collection(window.firebaseDB, "registrations"), where("email", "==", email)));
     const t = String(olympiadTitle).trim().toLowerCase();
-    return snap.docs.some(x => String(x.data().olympiad || '').trim().toLowerCase() === t);
+    const sg = String(segment || '').trim().toLowerCase();
+    return snap.docs.some(x => String(x.data().olympiad || '').trim().toLowerCase() === t
+      && (!sg || String(x.data().segment || '').trim().toLowerCase() === sg));
   } catch(err) { console.error("Duplicate check error:", err); return false; }
+}
+
+/* Automatic registration ID: TVR-XXXXXX (no confusing 0/O/1/I) */
+function genRegCode() {
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let out = '';
+  try {
+    const b = new Uint8Array(6); (window.crypto || window.msCrypto).getRandomValues(b);
+    for(let i = 0; i < 6; i++) out += A[b[i] % A.length];
+  } catch(e) { for(let i = 0; i < 6; i++) out += A[Math.floor(Math.random() * A.length)]; }
+  return 'TVR-' + out;
+}
+// Give every old registration (made before this feature) an ID. Admin-only, safe to run many times.
+async function backfillRegCodes() {
+  await waitForFirebase();
+  const { doc, writeBatch } = window.firebaseFunctions;
+  const db = window.firebaseDB;
+  const regs = (await loadRegistrations()) || [];
+  const used = new Set(regs.map(r => r.regCode).filter(Boolean));
+  const todo = regs.filter(r => !r.regCode);
+  for(let i = 0; i < todo.length; i += 400) {
+    const batch = writeBatch(db);
+    todo.slice(i, i + 400).forEach(r => {
+      let c; do { c = genRegCode(); } while(used.has(c));
+      used.add(c); r.regCode = c;
+      batch.update(doc(db, "registrations", r.id), { regCode: c });
+    });
+    await batch.commit();
+  }
+  return todo.length;
 }
 
 async function addRegistration(r) {
@@ -319,6 +352,8 @@ async function addRegistration(r) {
   const db = window.firebaseDB;
   r.createdAt = Date.now();
   r.approval = 'pending';           // every registration starts as pending; only an admin can approve / reject
+  r.regCode = genRegCode();         // automatic registration ID shown to the user and in admin
+  window.lastRegCode = r.regCode; window._sqRegs = null;
   const code = String(r.refCode || '').trim().toUpperCase();
   if(code) r.refCode = code; else delete r.refCode;
   const regRef = doc(collection(db, "registrations"));
@@ -860,7 +895,7 @@ async function publishQuizResults(quizId, opts) {
       try {
         if(typeof loadAllData === 'function') await loadAllData();
         const titles = (typeof getOlympiads === 'function' ? getOlympiads() : [])
-          .filter(o => o.quizId === quizId).map(o => String(o.title || '').trim().toLowerCase());
+          .filter(o => o.quizId === quizId || Object.values(o.segQuiz || {}).includes(quizId)).map(o => String(o.title || '').trim().toLowerCase());
         (await loadRegistrations()).forEach(r => {
           if(titles.includes(String(r.olympiad || '').trim().toLowerCase())) segOf[String(r.email || '').trim().toLowerCase()] = r.segment || '';
         });

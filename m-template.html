@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b0f0d">
+<title>Portfolio — TalentVerse Bangladesh</title>
+<link rel="icon" href="logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--acc:#287A50;--acc2:#4388E8;--bg:#0b0f0d;--card:#131a16;--txt:#e9f0ec;--mut:#98a69f;--bdr:#243029;--font:'Inter','Noto Sans Bengali',system-ui,sans-serif;--head:'Inter','Noto Sans Bengali',system-ui,sans-serif}
+body.light{--bg:#f6f8f7;--card:#fff;--txt:#14201a;--mut:#5b6b63;--bdr:#dfe7e2}
+body.serif{--font:'Inter','Noto Serif Bengali',serif;--head:'Fraunces','Noto Serif Bengali',serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:var(--font);line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:var(--acc2);text-decoration:none}
+.wrap{max-width:1040px;margin:0 auto;padding:0 18px}
+/* ===== TVBD navbar ===== */
+.nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--txt)}
+.brand img{width:36px;height:36px;border-radius:9px;object-fit:cover}
+.brand b{font-family:var(--head);font-size:1.02rem;line-height:1.1}
+.brand b span{color:var(--acc)}
+.brand small{display:block;font-size:.66rem;color:var(--mut);font-weight:600;letter-spacing:.4px}
+.nav-r{display:flex;gap:8px}
+.nav-r a{border:1px solid var(--bdr);border-radius:999px;padding:6px 13px;font-size:.78rem;font-weight:700;color:var(--txt)}
+.nav-r a.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+@media(max-width:520px){.nav-r a.hide-s{display:none}}
+#state{padding:90px 20px;text-align:center;color:var(--mut)}
+#state h2{color:var(--txt);margin:10px 0 6px;font-family:var(--head)}
+#page{display:none}
+/* ===== hero: same structure for everyone ===== */
+.hero{background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 24%,transparent),color-mix(in srgb,var(--acc2) 18%,transparent));border-bottom:1px solid var(--bdr)}
+.hero-in{display:flex;gap:26px;align-items:center;padding:38px 0 34px;flex-wrap:wrap}
+.avatar{width:136px;height:136px;border-radius:50%;border:3px solid var(--acc);background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:3rem;font-weight:800;color:#fff;overflow:hidden;flex:none;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.hero-tx{flex:1;min-width:240px}
+h1{font-family:var(--head);font-size:clamp(1.8rem,5.5vw,2.7rem);line-height:1.2;font-weight:700}
+.roles{color:var(--acc2);font-weight:700;font-size:1.08rem;min-height:1.7em;margin-top:2px}
+.roles i{display:inline-block;width:2px;height:1.1em;background:var(--acc2);vertical-align:-3px;margin-left:2px;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.tv{display:inline-flex;align-items:center;gap:8px;margin-top:10px;background:var(--card);border:1px solid var(--acc);border-radius:999px;padding:5px 14px 5px 6px;font-size:.82rem;font-weight:700}
+.tv img{width:24px;height:24px;border-radius:50%;object-fit:cover}
+.tv span{color:var(--mut);font-weight:600}
+.meta{color:var(--mut);font-size:.88rem;margin-top:8px;display:flex;gap:14px;flex-wrap:wrap}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.links a{border:1px solid var(--bdr);background:var(--card);color:var(--txt);border-radius:999px;padding:7px 14px;font-size:.84rem;font-weight:600}
+.links a:hover{border-color:var(--acc);color:var(--acc)}
+@media(max-width:620px){.hero-in{flex-direction:column;text-align:center;align-items:center}.meta,.links{justify-content:center}}
+/* ===== sections ===== */
+.sec{margin-top:34px}
+.sec h2{font-family:var(--head);font-size:1.3rem;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.sec h2:after{content:'';flex:1;height:1px;background:var(--bdr)}
+.sec h2 b{width:8px;height:22px;border-radius:4px;background:linear-gradient(var(--acc),var(--acc2))}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:16px 18px}
+.card.tvbd{border-color:var(--acc);background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 12%,var(--card)),var(--card))}
+.card.tvbd .row{display:flex;gap:12px;align-items:center}
+.card.tvbd img{width:46px;height:46px;border-radius:12px;object-fit:cover;flex:none}
+.grid{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:720px){.grid.two{grid-template-columns:1fr 1fr}}
+.card h3{font-size:1.02rem;font-family:var(--head)}
+.card .sub{color:var(--acc2);font-size:.86rem;font-weight:600}
+.card p{color:var(--mut);font-size:.9rem;margin-top:4px;white-space:pre-line}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tags span{background:var(--card);border:1px solid var(--bdr);border-radius:999px;padding:6px 14px;font-size:.86rem;font-weight:600}
+.stats{display:grid;gap:10px;margin-bottom:12px}
+.stats div{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:12px;text-align:center}
+.stats b{display:block;font-size:1.5rem;color:var(--acc);font-family:var(--head)}
+.stats small{color:var(--mut);font-size:.76rem}
+.bio{white-space:pre-line;color:var(--mut);font-size:1rem}
+/* ===== TVBD footer ===== */
+footer{margin-top:54px;border-top:1px solid var(--bdr);background:var(--card)}
+.ft{padding:28px 0;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.ft .brand img{width:46px;height:46px}
+.ft p{color:var(--mut);font-size:.84rem;max-width:520px;margin-top:6px}
+.ft .cta{display:flex;gap:8px;flex-wrap:wrap}
+.ft .cta a{border:1px solid var(--bdr);border-radius:999px;padding:8px 16px;font-size:.84rem;font-weight:700;color:var(--txt)}
+.ft .cta a.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.copy{border-top:1px solid var(--bdr);text-align:center;color:var(--mut);font-size:.74rem;padding:12px}
+#up{position:fixed;right:16px;bottom:16px;width:42px;height:42px;border-radius:50%;border:none;background:var(--acc);color:#fff;font-size:1.1rem;cursor:pointer;display:none;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+@media print{#up,.nav{display:none!important}}
+</style>
+</head>
+<body>
+<div class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="logo.jpg" alt="TalentVerse Bangladesh"><b>Talent<span>Verse</span><small>BANGLADESH</small></b></a>
+  <div class="nav-r"><a class="hide-s" href="verify.html">Verify</a><a class="pri" href="index.html">Official Website</a></div>
+</div></div>
+<div id="state"><div style="font-size:2.2rem">⏳</div><h2>Loading…</h2></div>
+<div id="page">
+ <section class="hero"><div class="wrap"><div class="hero-in" id="hero"></div></div></section>
+ <main class="wrap" id="main"></main>
+ <footer>
+  <div class="wrap ft">
+    <div><a class="brand" href="index.html"><img src="logo.jpg" alt="TVBD"><b>Talent<span>Verse</span> Bangladesh<small>BETTER YOUTH, BETTER TOMORROW</small></b></a>
+    <p id="ft-p">TalentVerse Bangladesh তরুণদের প্রতিভা বিকাশের একটি যুব প্ল্যাটফর্ম। অলিম্পিয়াড, কুইজ, ওয়ার্কশপ ও নেতৃত্ব প্রশিক্ষণের মাধ্যমে আমরা কাজ করি।</p></div>
+    <div class="cta"><a class="pri" href="index.html">Official Website</a><a href="portfolio-edit.html">নিজের পোর্টফোলিও বানাও</a></div>
+  </div>
+  <div class="copy">© TalentVerse Bangladesh · এই পোর্টফোলিওর তথ্য সদস্য নিজে দিয়েছেন। TVBD পদবি ও সার্টিফিকেট যাচাইযোগ্য।</div>
+ </footer>
+</div>
+<button id="up" onclick="scrollTo({top:0,behavior:'smooth'})" aria-label="Top">↑</button>
+<script>
+/* ============ এখানে শুধু এই অংশটা বদলাও ============ */
+const DATA = {
+  name: "সদস্যের নাম",
+  photo: "",                       // ছবির লিংক (https://...), না থাকলে নামের প্রথম অক্ষর দেখাবে
+  roles: ["Student", "Volunteer"], // টাইপিং অ্যানিমেশনে ঘুরবে (২–৪টা)
+  location: "Chattogram, Bangladesh",
+  memberCode: "",                  // যেমন "TVM-123456" (না থাকলে ফাঁকা রাখো)
+  bio: "ছোট পরিচয় এখানে লেখো।",
+  tvbd: { role: "Member", department: "", description: "" },   // TVBD-তে পদবি, বিভাগ, কাজের বর্ণনা
+  edu: [ { school: "প্রতিষ্ঠানের নাম", degree: "ক্লাস / ডিগ্রি", years: "2024–2026" } ],
+  skills: ["Leadership", "Public Speaking"],
+  orgs: [ /* { name: "NexEra Youth Network", role: "Founder", url: "" } */ ],
+  projects: [ /* { title: "প্রজেক্ট", desc: "কী করেছো", url: "https://..." } */ ],
+  ach: [ { title: "অর্জনের নাম", desc: "বিস্তারিত" } ],
+  auto: { certs: [ /* { id: "TVBD-XXXX", event: "Math Olympiad", position: "Gold" } */ ], events: [], best: 0 },
+  links: { facebook: "", linkedin: "", github: "", youtube: "", instagram: "", website: "", email: "" },
+  theme: { palette: "green", color: "", mode: "dark", font: "sans", lang: "bn" },
+  // palette: green | blue | purple | orange | rose | teal | gold      color: নিজের পছন্দের রঙ যেমন "#e11d48" (ফাঁকা = palette)
+  // mode: dark | light      font: sans | serif      lang: bn | en
+  hide: []                          // লুকাতে চাইলে: "about","education","skills","orgs","projects","ach","contact"
+};
+/* ================================================== */
+const PAL={green:['#287A50','#4388E8'],blue:['#2563eb','#22c55e'],purple:['#8B5CF6','#287A50'],orange:['#f97316','#287A50'],rose:['#e11d48','#8B5CF6'],teal:['#0d9488','#4388E8'],gold:['#d4a017','#287A50']};
+const L={bn:{about:'পরিচিতি',education:'শিক্ষা',skills:'দক্ষতা',orgs:'সংগঠন ও অভিজ্ঞতা',projects:'প্রজেক্ট',ach:'অর্জন',contact:'যোগাযোগ',verify:'যাচাই করুন',events:'ইভেন্ট',certs:'সার্টিফিকেট',best:'সেরা স্ট্রিক',view:'দেখুন',noPub:'এই পোর্টফোলিও প্রাইভেট বা নেই',noPubD:'লিংকটা ঠিক আছে কিনা দেখো, অথবা মালিক এটা এখনো পাবলিক করেননি।',ver:'TVBD সার্টিফিকেট',dept:'বিভাগ'},
+       en:{about:'About',education:'Education',skills:'Skills',orgs:'Organizations & Experience',projects:'Projects',ach:'Achievements',contact:'Contact',verify:'Verify',events:'Events',certs:'Certificates',best:'Best streak',view:'View',noPub:'This portfolio is private or not found',noPubD:'Check the link, or the owner has not made it public yet.',ver:'TVBD Certificate',dept:'Department'}};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl=u=>{u=String(u||'').trim();if(!u)return'';if(/^https?:\/\//i.test(u))return u;if(/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(u))return'https://'+u;return''};
+function state(icon,h,d){const s=document.getElementById('state');s.style.display='block';document.getElementById('page').style.display='none';s.innerHTML=`<div style="font-size:2.2rem">${icon}</div><h2>${esc(h)}</h2><p>${esc(d||'')}</p>`}
+function waitFb(){return new Promise(r=>{const t=setInterval(()=>{if(window.firebaseDB&&window.firebaseFunctions){clearInterval(t);r()}},80)})}
+function authReady(){return new Promise(r=>{try{const a=window.firebaseAuth,f=window.firebaseAuthFunctions;if(!a||!f)return r(null);const un=f.onAuthStateChanged(a,u=>{un&&un();r(u)});setTimeout(()=>r(a.currentUser),3500)}catch(e){r(null)}})}
+function render(d,tm){
+  const t=d.theme||{},T=L[t.lang==='en'?'en':'bn'];
+  const pal=PAL[t.palette]||PAL.green;
+  const custom=/^#[0-9a-f]{6}$/i.test(t.color||'')?t.color:null;
+  document.documentElement.style.setProperty('--acc',custom||pal[0]);document.documentElement.style.setProperty('--acc2',custom?pal[1]:pal[1]);
+  document.documentElement.lang=t.lang==='en'?'en':'bn';
+  document.body.className=[t.mode==='light'?'light':'',t.font==='serif'?'serif':''].join(' ').trim();
+  document.querySelector('meta[name=theme-color]').content=t.mode==='light'?'#f6f8f7':'#0b0f0d';
+  const name=d.name||'Member';document.title=name+' — TVBD Portfolio';
+  const hide=new Set(d.hide||[]);
+  const roles=(d.roles||[]).filter(Boolean);
+  const L2=d.links||{};
+  const lk=[['facebook','Facebook'],['linkedin','LinkedIn'],['github','GitHub'],['youtube','YouTube'],['instagram','Instagram'],['website','Website']]
+    .map(([k,n])=>{const u=safeUrl(L2[k]);return u?`<a href="${esc(u)}" target="_blank" rel="noopener nofollow">${n}</a>`:''}).join('');
+  const mail=/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(L2.email||'')?`<a href="mailto:${esc(L2.email)}">✉️ ${esc(L2.email)}</a>`:'';
+  const ph=safeUrl(d.photo);
+  const badge=tm?`<div class="tv"><img src="logo.jpg" alt=""><div>TVBD · ${esc(tm.role||'')} <span>${tm.department?'· '+esc(tm.department):''}</span></div></div>`:`<div class="tv"><img src="logo.jpg" alt=""><div>TVBD Member</div></div>`;
+  document.getElementById('hero').innerHTML=`
+   <div class="avatar">${ph?`<img src="${esc(ph)}" alt="${esc(name)}" referrerpolicy="no-referrer">`:esc(name.charAt(0).toUpperCase())}</div>
+   <div class="hero-tx"><h1>${esc(name)}</h1><div class="roles"><span id="ty"></span><i></i></div>
+   ${badge}
+   <div class="meta">${d.location?`<span>📍 ${esc(d.location)}</span>`:''}${d.memberCode?`<span>🆔 ${esc(d.memberCode)}</span>`:''}</div>
+   <div class="links">${lk}${hide.has('contact')?'':mail}</div></div>`;
+  if(roles.length){let i=0,j=0,del=false;const el=document.getElementById('ty');
+    (function tick(){const w=roles[i%roles.length];if(!del){j++;el.textContent=w.slice(0,j);if(j===w.length){del=true;return setTimeout(tick,1500)}}else{j--;el.textContent=w.slice(0,j);if(j===0){del=false;i++}}setTimeout(tick,del?40:75)})();}
+  const secs=[];
+  const sec=(k,body)=>{if(body&&!hide.has(k))secs.push(`<section class="sec" id="s-${k}"><h2><b></b>${T[k]}</h2>${body}</section>`)};
+  sec('about',d.bio?`<div class="bio">${esc(d.bio)}</div>`:'');
+  sec('education',(d.edu||[]).length?`<div class="grid two">${d.edu.map(e=>`<div class="card"><h3>${esc(e.school)}</h3><div class="sub">${esc(e.degree||'')}${e.years?' · '+esc(e.years):''}</div></div>`).join('')}</div>`:'');
+  sec('skills',(d.skills||[]).length?`<div class="tags">${d.skills.map(s=>`<span>${esc(s)}</span>`).join('')}</div>`:'');
+  const tvCard=`<div class="card tvbd"><div class="row"><img src="logo.jpg" alt="TVBD"><div><h3>TalentVerse Bangladesh</h3><div class="sub">${tm?esc(tm.role||'Member')+(tm.department?' · '+T.dept+': '+esc(tm.department):''):'Member'}</div></div></div>${tm&&tm.description?`<p>${esc(tm.description)}</p>`:''}<p><a href="index.html">Official Website →</a></p></div>`;
+  const others=(d.orgs||[]).filter(o=>!/talentverse/i.test(o.name||'')).map(o=>{const u=safeUrl(o.url);return `<div class="card"><h3>${esc(o.name)}</h3><div class="sub">${esc(o.role||'')}</div>${u?`<p><a href="${esc(u)}" target="_blank" rel="noopener nofollow">${T.view} →</a></p>`:''}</div>`});
+  sec('orgs',`<div class="grid two">${tvCard}${others.join('')}</div>`);
+  sec('projects',(d.projects||[]).length?`<div class="grid two">${d.projects.map(o=>{const u=safeUrl(o.url);return `<div class="card"><h3>${esc(o.title)}</h3>${o.desc?`<p>${esc(o.desc)}</p>`:''}${u?`<p><a href="${esc(u)}" target="_blank" rel="noopener nofollow">${T.view} →</a></p>`:''}</div>`}).join('')}</div>`:'');
+  const a=d.auto||{};let ach='';
+  const st=[];if((a.events||[]).length)st.push(`<div><b>${a.events.length}</b><small>${T.events}</small></div>`);if((a.certs||[]).length)st.push(`<div><b>${a.certs.length}</b><small>${T.certs}</small></div>`);if(a.best)st.push(`<div><b>${a.best}🔥</b><small>${T.best}</small></div>`);
+  if(st.length)ach+=`<div class="stats" style="grid-template-columns:repeat(${st.length},1fr)">${st.join('')}</div>`;
+  const items=[];
+  (a.certs||[]).forEach(c=>items.push(`<div class="card"><h3>🏅 ${esc(c.event||T.ver)}</h3><div class="sub">${esc(c.position||'Participant')}</div><p><a href="verify.html?id=${encodeURIComponent(c.id||'')}" target="_blank">${T.verify} →</a></p></div>`));
+  (d.ach||[]).forEach(c=>items.push(`<div class="card"><h3>⭐ ${esc(c.title)}</h3>${c.desc?`<p>${esc(c.desc)}</p>`:''}</div>`));
+  if(items.length)ach+=`<div class="grid two">${items.join('')}</div>`;
+  if((a.events||[]).length)ach+=`<div class="tags" style="margin-top:12px">${a.events.map(e=>`<span>📌 ${esc(e)}</span>`).join('')}</div>`;
+  sec('ach',ach);
+  document.getElementById('main').innerHTML=secs.join('');
+  document.getElementById('state').style.display='none';document.getElementById('page').style.display='block';
+}
+render(DATA,DATA.tvbd||null);
+addEventListener('scroll',()=>{document.getElementById('up').style.display=scrollY>500?'block':'none'});
+</script>
+</body>
+</html>

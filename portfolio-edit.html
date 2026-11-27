@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S7D7S2G08K"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-S7D7S2G08K');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TalentVerse">
+<title>My Portfolio — TalentVerse Bangladesh</title>
+<meta name="description" content="Build your own TVBD member portfolio.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="logo.jpg" as="image">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=75">
+<link rel="stylesheet" href="loader.css?v=5">
+</head>
+<body>
+<div id="tvbd-loader" class="tvbd-loader">
+  <div class="tvbd-loader-ring-wrap">
+    <svg class="tvbd-ring-svg" viewBox="0 0 160 160">
+      <circle class="tvbd-ring-bg" cx="80" cy="80" r="72"></circle>
+      <circle class="tvbd-ring-fg" cx="80" cy="80" r="72"></circle>
+    </svg>
+    <img src="logo.jpg" class="tvbd-loader-logo" alt="TalentVerse Bangladesh">
+  </div>
+  <div class="tvbd-loader-text">
+    <h1>TALENTVERSE <span>BANGLADESH</span></h1>
+    <p class="tvbd-loader-estd">ESTD 2026</p>
+  </div>
+  <div class="tvbd-loader-progress">
+    <div class="tvbd-loader-bar"><div class="tvbd-loader-fill" id="tvbd-loader-fill"></div></div>
+    <span class="tvbd-loader-pct" id="tvbd-loader-pct">Loading... 0%</span>
+  </div>
+</div>
+<script src="loader.js?v=3"></script>
+
+
+<!-- HEADER -->
+<header id="site-header">
+  <a class="h-logo" href="index.html">
+    <img class="h-logo-img" src="logo.jpg" alt="TalentVerse Logo">
+    <div class="h-logo-text">
+      <div class="name">Talent<span>Verse</span></div>
+      <div class="sub">Bangladesh</div>
+    </div>
+  </a>
+  <nav class="h-nav" id="hnav">
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <a href="about.html" data-i18n="nav_about">About</a>
+    <a href="events.html" data-i18n="nav_olympiads">Events &amp; Quiz</a>
+    <a href="team.html" data-i18n="nav_team">Team</a>
+    <a href="news.html" data-i18n="nav_news">News</a>
+    <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    <div class="nav-more" id="nav-more">
+      <button type="button" class="nav-more-btn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_more">More</span> <span class="nav-more-caret">▾</span></button>
+      <div class="nav-more-menu">
+        <a href="resources.html" data-i18n="nav_resources">Resources</a>
+        <a href="register.html" data-i18n="nav_register">Register</a>
+        <a href="leaderboard.html" data-i18n="nav_results">Results</a>
+        <a href="playzone.html" data-i18n="nav_play">Play Zone</a>
+        <a href="verify.html" data-i18n="nav_verify">Verify</a>
+        <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
+      </div>
+    </div>
+    <a href="forum.html" class="nav-forum-btn"><svg class="nav-forum-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg> <span data-i18n="nav_forum">Forum</span></a>
+    <a href="account.html" id="nav-account-link">🔐 Account</a>
+    <button class="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch language">
+      🌐 <span class="lang-toggle-label">বাং</span>
+    </button>
+  </nav>
+  <button class="hamburger" id="hbtn" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <span class="eyebrow">Member Portfolio</span>
+  <h1>আমার <span>পোর্টফোলিও</span></h1>
+  <p>তোমার নিজের লিংক, নিজের তথ্য, নিজের ডিজাইন। সাজাও, তারপর শেয়ার করো।</p>
+</div>
+<style>
+#pe{max-width:760px;margin:0 auto;padding:10px 16px 60px}
+.pe-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:18px;margin-bottom:16px}
+.pe-card h3{font-family:var(--display);font-size:1.05rem;margin-bottom:12px}
+.pe-card label{display:block;font-size:.8rem;font-weight:700;margin:10px 0 4px;color:var(--muted)}
+.pe-in{width:100%;background:var(--bg);border:1px solid var(--bdr2);color:var(--txt);border-radius:10px;padding:10px 12px;font-size:.95rem;font-family:inherit}
+textarea.pe-in{min-height:96px;resize:vertical}
+.pe-row{display:flex;gap:8px;align-items:center}
+.pe-rep{border:1px dashed var(--bdr2);border-radius:12px;padding:10px;margin-bottom:8px}
+.pe-btn{background:var(--blue);color:#fff;border:none;border-radius:999px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:.88rem}
+.pe-btn.sec{background:transparent;border:1px solid var(--bdr2);color:var(--txt)}
+.pe-btn.red{background:#ef4444}
+.pe-sw{display:flex;flex-wrap:wrap;gap:8px}
+.pe-sw button{width:42px;height:42px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.pe-sw button.on{border-color:var(--txt)}
+.pe-ch{display:flex;flex-wrap:wrap;gap:8px}
+.pe-ch button{padding:8px 14px;border-radius:999px;border:1px solid var(--bdr2);background:transparent;color:var(--txt);cursor:pointer;font-weight:600}
+.pe-ch button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.pe-hint{font-size:.76rem;color:var(--muted);margin-top:4px;line-height:1.6}
+#pe-bar{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--bdr);padding:10px 0;display:flex;gap:8px;flex-wrap:wrap;z-index:5}
+</style>
+<div id="pe">
+  <div id="pe-load" style="text-align:center;padding:50px 10px;color:var(--muted);">⏳ লোড হচ্ছে...</div>
+  <div id="pe-login" style="display:none;text-align:center;padding:40px 10px;">
+    <p style="margin-bottom:14px;">পোর্টফোলিও বানাতে আগে Log In করতে হবে।</p>
+    <a class="pe-btn" href="account.html" style="text-decoration:none;display:inline-block;">🔐 Log In / Sign Up</a>
+  </div>
+  <div id="pe-form" style="display:none;">
+
+    <div class="pe-card">
+      <h3>🔗 তোমার লিংক</h3>
+      <label>লিংকের নাম (ইংরেজি ছোট হাতের অক্ষর, সংখ্যা ও - দিয়ে, ৩–৩০ অক্ষর)</label>
+      <div class="pe-row"><span style="font-size:.78rem;color:var(--muted);white-space:nowrap;">…/p.html?u=</span><input class="pe-in" id="f-slug" maxlength="30" placeholder="fahad-abdur-rahman"></div>
+      <div class="pe-hint" id="f-link"></div>
+      <label>কে দেখতে পারবে?</label>
+      <div class="pe-ch" id="f-pub"><button data-v="0">🔒 শুধু আমি (প্রাইভেট)</button><button data-v="1">🌍 সবাই (পাবলিক)</button></div>
+      <div class="pe-hint">পাবলিক করলে লিংক যার কাছে আছে সেই দেখতে পারবে। ফোন, ঠিকানা কখনো দেখানো হয় না। এই পেজ গুগলে সার্চ রেজাল্টে আসে না।</div>
+    </div>
+
+    <div class="pe-card">
+      <h3>🙋 তোমার সম্পর্কে</h3>
+      <div class="pe-row" style="margin-bottom:6px;">
+        <div id="f-av" style="width:72px;height:72px;border-radius:50%;background:var(--bg);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.6rem;flex:none;"></div>
+        <div><button class="pe-btn sec" type="button" onclick="document.getElementById('f-file').click()">📷 ছবি বদলাও</button><input type="file" id="f-file" accept="image/*" style="display:none" onchange="peUpload(this)"><div class="pe-hint">না দিলে প্রোফাইলের ছবি যাবে।</div></div>
+      </div>
+      <label>নাম</label><input class="pe-in" id="f-name" maxlength="60">
+      <label>তুমি কী? (কমা দিয়ে ২–৪টা, টাইপিং অ্যানিমেশনে ঘুরবে)</label><input class="pe-in" id="f-roles" maxlength="120" placeholder="Student, Debater, Volunteer">
+      <label>এলাকা</label><input class="pe-in" id="f-loc" maxlength="60" placeholder="Chattogram, Bangladesh">
+      <label>ছোট পরিচয় (Bio)</label><textarea class="pe-in" id="f-bio" maxlength="700"></textarea>
+    </div>
+
+    <div class="pe-card"><h3>🎓 শিক্ষা</h3><div id="r-edu"></div><button class="pe-btn sec" type="button" onclick="peAdd('edu')">➕ যোগ করো</button></div>
+    <div class="pe-card"><h3>🛠 দক্ষতা</h3><input class="pe-in" id="f-skills" maxlength="400" placeholder="Public Speaking, Graphic Design, Leadership"><div class="pe-hint">কমা দিয়ে আলাদা করো (সর্বোচ্চ ২০টা)</div></div>
+    <div class="pe-card"><h3>🏢 সংগঠন ও অভিজ্ঞতা</h3><div class="pe-hint" style="margin:-6px 0 10px;">TalentVerse Bangladesh-এর তথ্য অটো যোগ হয়। TVBD-তে তোমার পদবি ও বিভাগ অ্যাডমিন ঠিক করে দেয়, এখানে লিখতে হবে না। অন্য সংগঠনগুলো যোগ করো।</div><div id="r-orgs"></div><button class="pe-btn sec" type="button" onclick="peAdd('orgs')">➕ যোগ করো</button></div>
+    <div class="pe-card"><h3>🚀 প্রজেক্ট</h3><div id="r-projects"></div><button class="pe-btn sec" type="button" onclick="peAdd('projects')">➕ যোগ করো</button></div>
+    <div class="pe-card"><h3>⭐ নিজের অর্জন</h3><div id="r-ach"></div><button class="pe-btn sec" type="button" onclick="peAdd('ach')">➕ যোগ করো</button></div>
+
+    <div class="pe-card">
+      <h3>🏅 TVBD থেকে পাওয়া অর্জন (অটো)</h3>
+      <div id="f-auto" class="pe-hint" style="font-size:.85rem;">এখনো আনা হয়নি।</div>
+      <button class="pe-btn sec" type="button" id="f-sync" onclick="peSync()" style="margin-top:8px;">🔄 আমার সার্টিফিকেট, ইভেন্ট ও স্ট্রিক আনো</button>
+      <div class="pe-hint">নতুন সার্টিফিকেট পেলে আবার চেপে Save করো। প্রতিটা সার্টিফিকেটের পাশে সবার জন্য "যাচাই করুন" লিংক থাকে।</div>
+    </div>
+
+    <div class="pe-card">
+      <h3>🔗 যোগাযোগ ও লিংক</h3>
+      <label>Facebook</label><input class="pe-in" id="l-facebook"><label>LinkedIn</label><input class="pe-in" id="l-linkedin">
+      <label>GitHub</label><input class="pe-in" id="l-github"><label>YouTube</label><input class="pe-in" id="l-youtube">
+      <label>Instagram</label><input class="pe-in" id="l-instagram"><label>নিজের ওয়েবসাইট</label><input class="pe-in" id="l-website">
+      <label>পাবলিক ইমেইল (ঐচ্ছিক)</label><input class="pe-in" id="l-email" type="email">
+      <div class="pe-hint">যা দেবে শুধু সেটাই দেখাবে। ফোন নম্বর দেওয়ার জায়গাই নেই।</div>
+    </div>
+
+    <div class="pe-card">
+      <h3>🎨 ডিজাইন (তোমার পছন্দমতো)</h3>
+      <label>রঙ</label><div class="pe-sw" id="t-palette"></div>
+      <label>থিম</label><div class="pe-ch" id="t-mode"><button data-v="dark">🌙 ডার্ক</button><button data-v="light">☀️ লাইট</button></div>
+      <label>তোমার Favorite Color (নিজের পছন্দের রঙ, ঐচ্ছিক)</label><div class="pe-row"><input type="color" id="t-color" value="#287A50" style="width:54px;height:40px;border:none;background:none;padding:0;"><button class="pe-btn sec" type="button" onclick="S.theme.color='';drawTheme()">ডিফল্ট রঙে ফেরো</button></div>
+      <div class="pe-hint">পেজের কাঠামো সবার একই (TVBD লোগো, হেডার, ফুটার সহ), শুধু রঙ, থিম, ফন্ট ও তথ্য তোমার নিজের।</div>
+      <label>ফন্ট</label><div class="pe-ch" id="t-font"><button data-v="sans">আধুনিক</button><button data-v="serif">ক্লাসিক (Serif)</button></div>
+      <label>পেজের ভাষা (শিরোনাম)</label><div class="pe-ch" id="t-lang"><button data-v="bn">বাংলা</button><button data-v="en">English</button></div>
+      <label>কোন সেকশন দেখাবে?</label><div class="pe-ch" id="t-show"></div>
+    </div>
+
+    <div id="pe-bar">
+      <button class="pe-btn" id="b-save" type="button" onclick="peSave()">💾 Save করো</button>
+      <button class="pe-btn sec" type="button" onclick="pePreview()">👁 দেখো</button>
+      <button class="pe-btn sec" type="button" onclick="peCopy()">📋 লিংক কপি</button>
+      <button class="pe-btn sec" type="button" onclick="peWA()">WhatsApp</button>
+    </div>
+    <div style="text-align:center;margin-top:18px;"><button class="pe-btn red" type="button" id="b-del" style="display:none" onclick="peDelete()">🗑 পোর্টফোলিও মুছে ফেলো</button></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-grid">
+    <div class="f-brand">
+      <a class="h-logo" href="index.html" style="text-decoration:none;">
+        <img class="h-logo-img" src="logo.jpg" alt="Logo">
+        <div class="h-logo-text">
+          <div class="name">Talent<span>Verse</span></div>
+          <div class="sub">Bangladesh</div>
+        </div>
+      </a>
+      <p id="f-desc" data-i18n="f_desc">TalentVerse Bangladesh is the country's most dedicated platform for event information, resources, and community.</p>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_quicklinks">Quick Links</h4>
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="about.html" data-i18n="nav_about">About</a>
+      <a href="events.html" data-i18n="nav_olympiads">Events & Quiz</a>
+      <a href="team.html" data-i18n="nav_team">Team</a>
+      <a href="news.html" data-i18n="nav_news">News</a>
+      <a href="resources.html" data-i18n="nav_resources">Resources</a>
+      <a href="playzone.html" data-i18n="nav_play">Play Zone</a>
+      <a href="forum.html" data-i18n="nav_forum">Forum</a>
+      <a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a><a href="blog.html" data-i18n="nav_blog">Blog &amp; Articles</a>
+      <a href="register.html" data-i18n="nav_register">Register</a>
+      <a href="verify.html" data-i18n="nav_verify">Verify Certificate</a>
+      <a href="contact.html" data-i18n="nav_contact">Contact</a>
+    </div>
+    <div class="f-col">
+      <h4 data-i18n="f_contact">Contact</h4>
+      <a id="f-email" href="#">talentversebangladesh@gmail.com</a>
+      <a id="f-phone" href="#">+880 1634-428536</a>
+      <a id="f-addr" href="#">Dhaka, Bangladesh</a>
+    </div>
+  </div>
+  <div class="f-bottom">
+    <p data-i18n="f_bottom">© 2026 <span>TalentVerse Bangladesh</span>. All rights reserved | Developed By Samin & <a class="dev-link" href="https://fahad-abdur-rahman.github.io/ghost-leader/" target="_blank" rel="noopener">Fahad</a>.</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-ico">✅</span>
+  <span class="toast-msg" id="t-msg"></span>
+</div>
+
+<!-- Firebase & EmailJS -->
+<script type="module" src="firebase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<script src="data.js?v=18"></script>
+<script src="render.js?v=6"></script>
+<script src="lang.js"></script>
+<script src="main.js?v=6"></script>
+<script>
+const PAL={green:['#287A50','#4388E8'],blue:['#2563eb','#22c55e'],purple:['#8B5CF6','#287A50'],orange:['#f97316','#287A50'],rose:['#e11d48','#8B5CF6'],teal:['#0d9488','#4388E8'],gold:['#d4a017','#287A50']};
+const SECS=[['about','পরিচিতি'],['education','শিক্ষা'],['skills','দক্ষতা'],['orgs','সংগঠন'],['projects','প্রজেক্ট'],['ach','অর্জন'],['contact','ইমেইল']];
+const REP={edu:[['school','প্রতিষ্ঠান',80],['degree','ক্লাস / ডিগ্রি',80],['years','সাল (যেমন 2023–2025)',30]],
+  orgs:[['name','সংগঠনের নাম',80],['role','তোমার পদ / ভূমিকা',80],['url','লিংক (ঐচ্ছিক)',200]],
+  projects:[['title','প্রজেক্টের নাম',80],['desc','সংক্ষেপে কী করেছো',300],['url','লিংক (ঐচ্ছিক)',200]],
+  ach:[['title','অর্জনের নাম',100],['desc','বিস্তারিত (ঐচ্ছিক)',300]]};
+const MAXR={edu:5,orgs:8,projects:10,ach:10};
+const S={uid:null,email:'',profile:null,oldSlug:'',pub:0,photo:'',auto:null,theme:{palette:'green',mode:'dark',color:'',font:'sans',lang:'bn'},hide:[],rep:{edu:[],orgs:[],projects:[],ach:[]},memberCode:''};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function say(m,e){try{toast(m,!!e)}catch(x){alert(m)}}
+function chips(id,val,cb){const b=$(id);b.querySelectorAll('button').forEach(x=>{x.classList.toggle('on',String(x.dataset.v)===String(val));x.onclick=()=>{b.querySelectorAll('button').forEach(y=>y.classList.remove('on'));x.classList.add('on');cb(x.dataset.v)}})}
+function drawRep(k){
+  const box=$('r-'+k);box.innerHTML=S.rep[k].map((it,i)=>`<div class="pe-rep">${REP[k].map(([f,ph,mx])=>`<input class="pe-in" style="margin-bottom:6px" maxlength="${mx}" placeholder="${ph}" value="${esc(it[f]||'')}" oninput="S.rep['${k}'][${i}]['${f}']=this.value">`).join('')}<button class="pe-btn sec" type="button" onclick="peDel('${k}',${i})">🗑 বাদ দাও</button></div>`).join('')}
+function peAdd(k){if(S.rep[k].length>=MAXR[k])return say('এর বেশি যোগ করা যাবে না।',true);S.rep[k].push({});drawRep(k)}
+function peDel(k,i){S.rep[k].splice(i,1);drawRep(k)}
+function drawTheme(){
+  $('t-palette').innerHTML=Object.keys(PAL).map(k=>`<button type="button" data-k="${k}" class="${S.theme.palette===k?'on':''}" style="background:linear-gradient(135deg,${PAL[k][0]} 55%,${PAL[k][1]} 55%)" onclick="S.theme.palette='${k}';drawTheme()"></button>`).join('');
+  chips('t-mode',S.theme.mode,v=>S.theme.mode=v);$('t-color').value=S.theme.color||(PAL[S.theme.palette]||PAL.green)[0];$('t-color').oninput=function(){S.theme.color=this.value};chips('t-font',S.theme.font,v=>S.theme.font=v);chips('t-lang',S.theme.lang,v=>S.theme.lang=v);
+  $('t-show').innerHTML=SECS.map(([k,n])=>`<button type="button" class="${S.hide.includes(k)?'':'on'}" onclick="peTog('${k}')">${n}</button>`).join('');
+}
+function peTog(k){const i=S.hide.indexOf(k);if(i>=0)S.hide.splice(i,1);else S.hide.push(k);drawTheme()}
+function drawAuto(){const a=S.auto;$('f-auto').innerHTML=a?`🏅 সার্টিফিকেট: <b>${(a.certs||[]).length}</b> · 📌 ইভেন্ট: <b>${(a.events||[]).length}</b> · 🔥 সেরা স্ট্রিক: <b>${a.best||0}</b>`:'এখনো আনা হয়নি।'}
+function drawAv(){const n=($('f-name').value||'?').charAt(0).toUpperCase();$('f-av').innerHTML=S.photo?`<img src="${esc(S.photo)}" style="width:100%;height:100%;object-fit:cover">`:esc(n)}
+function drawLink(){const s=$('f-slug').value.trim().toLowerCase();$('f-link').textContent=s?'তোমার লিংক: '+location.origin+location.pathname.replace(/[^/]*$/,'')+'p.html?u='+s:''}
+function url(){return location.origin+location.pathname.replace(/[^/]*$/,'')+'p.html?u='+$('f-slug').value.trim().toLowerCase()}
+const okSlug=s=>/^[a-z0-9][a-z0-9-]{2,29}$/.test(s);
+async function peUpload(inp){const f=inp.files&&inp.files[0];if(!f)return;if(!f.type.startsWith('image/'))return say('ছবি বেছে নাও।',true);say('আপলোড হচ্ছে...');const r=await uploadToImgBB(f);if(r.success){S.photo=r.url;drawAv();say('ছবি ঠিক আছে ✅')}else say('আপলোড হয়নি।',true)}
+async function peSync(){
+  const b=$('f-sync');b.disabled=true;b.textContent='⏳ আনছি...';
+  try{
+    const [certs,regs,st]=await Promise.all([getCertificatesByEmail(S.email),getRegistrationsByEmail(S.email),loadMyStreak(S.uid)]);
+    const evs=[...new Set((regs||[]).filter(r=>r.approval!=='rejected').map(r=>String(r.olympiad||'').trim()).filter(Boolean))].slice(0,40);
+    S.auto={certs:(certs||[]).filter(c=>c.certId).slice(0,30).map(c=>({id:String(c.certId),event:String(c.event||'').slice(0,100),position:String(c.position||c.type||'').slice(0,60)})),events:evs,best:(st&&st.best)||0,points:(st&&st.points)||0,syncedAt:Date.now()};
+    drawAuto();say('এনে ফেলেছি ✅ Save করতে ভুলো না।');
+  }catch(e){console.error(e);say('আনতে সমস্যা হয়েছে।',true)}
+  b.disabled=false;b.textContent='🔄 আমার সার্টিফিকেট, ইভেন্ট ও স্ট্রিক আনো';
+}
+const clean=(v,n)=>String(v||'').trim().slice(0,n);
+const safeUrl=u=>{u=String(u||'').trim();if(!u)return'';if(/^https?:\/\//i.test(u))return u.slice(0,300);if(/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(u))return('https://'+u).slice(0,300);return''};
+function build(){
+  const slug=$('f-slug').value.trim().toLowerCase();
+  const rep=(k,fields)=>S.rep[k].map(it=>{const o={};fields.forEach(([f,,mx])=>o[f]=f==='url'?safeUrl(it[f]):clean(it[f],mx));return o}).filter(o=>Object.values(o).some(Boolean));
+  const d={uid:S.uid,slug,public:S.pub===1,name:clean($('f-name').value,60),photo:safeUrl(S.photo),location:clean($('f-loc').value,60),memberCode:S.memberCode||'',
+    roles:$('f-roles').value.split(',').map(x=>clean(x,40)).filter(Boolean).slice(0,4),bio:clean($('f-bio').value,700),
+    edu:rep('edu',REP.edu).filter(e=>e.school),orgs:rep('orgs',REP.orgs).filter(e=>e.name),projects:rep('projects',REP.projects).filter(e=>e.title),ach:rep('ach',REP.ach).filter(e=>e.title),
+    skills:$('f-skills').value.split(',').map(x=>clean(x,40)).filter(Boolean).slice(0,20),
+    links:{},theme:{palette:S.theme.palette,mode:S.theme.mode,color:/^#[0-9a-f]{6}$/i.test(S.theme.color||'')?S.theme.color:'',font:S.theme.font,lang:S.theme.lang},hide:S.hide.slice(),auto:S.auto||null,updatedAt:Date.now()};
+  ['facebook','linkedin','github','youtube','instagram','website'].forEach(k=>d.links[k]=safeUrl($('l-'+k).value));
+  const em=$('l-email').value.trim();d.links.email=/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)?em.slice(0,100):'';
+  return d;
+}
+async function peSave(){
+  const d=build();
+  if(!okSlug(d.slug))return say('লিংকের নামে ইংরেজি ছোট হাতের অক্ষর, সংখ্যা বা - ব্যবহার করো (৩–৩০ অক্ষর)।',true);
+  if(!d.name)return say('নাম দাও।',true);
+  const b=$('b-save');b.disabled=true;b.textContent='⏳ Save হচ্ছে...';
+  try{
+    const {doc,setDoc,getDoc,deleteDoc}=window.firebaseFunctions,db=window.firebaseDB;
+    if(S.oldSlug!==d.slug){ // new or renamed link: it must be free
+      try{const ex=await getDoc(doc(db,'portfolios',d.slug));if(ex.exists())throw new Error('taken')}catch(e){if(String(e.message)==='taken'||/permission/i.test(e.message||e.code||''))throw new Error('taken')}
+      d.createdAt=Date.now();
+    }else d.createdAt=S.createdAt||Date.now();
+    await setDoc(doc(db,'portfolios',d.slug),d);
+    if(S.oldSlug&&S.oldSlug!==d.slug){try{await deleteDoc(doc(db,'portfolios',S.oldSlug))}catch(e){}}
+    S.oldSlug=d.slug;S.createdAt=d.createdAt;$('b-del').style.display='';drawLink();
+    say(d.public?'Save হয়েছে ✅ লিংক পাবলিক।':'Save হয়েছে ✅ (এখন প্রাইভেট, শুধু তুমি দেখছো)');
+  }catch(e){console.error(e);say(String(e.message)==='taken'?'এই লিংকের নাম অন্য কেউ নিয়ে নিয়েছে, অন্যটা দাও।':'Save হয়নি: '+(e.message||e),true)}
+  b.disabled=false;b.textContent='💾 Save করো';
+}
+function pePreview(){if(!S.oldSlug)return say('আগে Save করো।',true);window.open(url(),'_blank')}
+async function peCopy(){if(!S.oldSlug)return say('আগে Save করো।',true);try{await navigator.clipboard.writeText(url());say('লিংক কপি হয়েছে ✅')}catch(e){prompt('লিংক কপি করো:',url())}}
+function peWA(){if(!S.oldSlug)return say('আগে Save করো।',true);window.open('https://wa.me/?text='+encodeURIComponent('আমার TVBD পোর্টফোলিও দেখো: '+url()),'_blank')}
+async function peDelete(){
+  if(!S.oldSlug||!confirm('পোর্টফোলিও মুছে ফেলবে? লিংকটা আর কাজ করবে না।'))return;
+  try{const {doc,deleteDoc}=window.firebaseFunctions;await deleteDoc(doc(window.firebaseDB,'portfolios',S.oldSlug));S.oldSlug='';$('b-del').style.display='none';say('মুছে ফেলা হয়েছে।')}catch(e){say('মুছতে সমস্যা হয়েছে।',true)}
+}
+function fill(d){
+  $('f-slug').value=d.slug||'';S.oldSlug=d.slug||'';S.createdAt=d.createdAt;S.pub=d.public?1:0;S.photo=d.photo||'';
+  $('f-name').value=d.name||'';$('f-roles').value=(d.roles||[]).join(', ');$('f-loc').value=d.location||'';$('f-bio').value=d.bio||'';
+  $('f-skills').value=(d.skills||[]).join(', ');
+  ['edu','orgs','projects','ach'].forEach(k=>S.rep[k]=(d[k]||[]).map(x=>Object.assign({},x)));
+  Object.assign(S.theme,d.theme||{});S.hide=(d.hide||[]).slice();S.auto=d.auto||null;
+  const l=d.links||{};['facebook','linkedin','github','youtube','instagram','website','email'].forEach(k=>$('l-'+k).value=l[k]||'');
+}
+async function init(){
+  await new Promise(r=>{const t=setInterval(()=>{if(window.firebaseDB&&window.firebaseAuth&&window.firebaseAuthFunctions){clearInterval(t);r()}},100)});
+  const u=await new Promise(r=>{const un=window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth,x=>{un&&un();r(x)})});
+  $('pe-load').style.display='none';
+  if(!u){$('pe-login').style.display='block';return}
+  S.uid=u.uid;S.email=u.email||'';
+  const p=await getRegisteredUserById(u.uid)||{};S.profile=p;
+  try{S.memberCode=await ensureMemberCode(u.uid,p)||p.memberCode||''}catch(e){S.memberCode=p.memberCode||''}
+  const {collection,getDocs,query,where}=window.firebaseFunctions;
+  let mine=null;
+  try{const s=await getDocs(query(collection(window.firebaseDB,'portfolios'),where('uid','==',u.uid)));if(!s.empty)mine=s.docs[0].data()}catch(e){console.warn('portfolio lookup',e)}
+  if(mine){fill(mine);$('b-del').style.display=''}
+  else{
+    const nm=[p.firstName,p.lastName].filter(Boolean).join(' ')||(u.email||'').split('@')[0];
+    $('f-name').value=nm;S.photo=p.photo||'';
+    $('f-slug').value=String(nm).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,30)||(S.memberCode||'').toLowerCase();
+    if(p.institution)S.rep.edu=[{school:p.institution,degree:p.classLevel||''}];
+    if(p.district)$('f-loc').value=p.district+', Bangladesh';
+  }
+  ['edu','orgs','projects','ach'].forEach(drawRep);drawTheme();drawAuto();drawAv();drawLink();
+  chips('f-pub',S.pub,v=>S.pub=Number(v));
+  $('f-slug').oninput=drawLink;$('f-name').oninput=drawAv;
+  $('pe-form').style.display='block';
+}
+init();
+</script>
+<script src="bnav.js"></script>
+<script src="fx.js"></script>
+<script src="pwa.js"></script>
+</body>
+</html>

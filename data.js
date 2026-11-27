@@ -353,7 +353,7 @@ async function addRegistration(r) {
   r.createdAt = Date.now();
   r.approval = 'pending';           // every registration starts as pending; only an admin can approve / reject
   r.regCode = genRegCode();         // automatic registration ID shown to the user and in admin
-  window.lastRegCode = r.regCode; window._sqRegs = null;
+  window.lastRegCode = r.regCode; window.lastRegList = []; window._sqRegs = null;
   const code = String(r.refCode || '').trim().toUpperCase();
   if(code) r.refCode = code; else delete r.refCode;
   const regRef = doc(collection(db, "registrations"));

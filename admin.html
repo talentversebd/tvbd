@@ -550,6 +550,7 @@ select.fi{cursor:pointer}
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
           <input class="fi" id="reg-search" type="search" placeholder="🔎 Reg ID / নাম / ইমেইল / ফোন" style="width:auto;min-width:200px;flex:1;" oninput="renderRegistrationsTable()">
           <select class="fi" id="reg-event-filter" style="width:auto;min-width:170px;flex:1;" onchange="renderRegistrationsTable()"><option value="">সব ইভেন্ট</option></select>
+          <select class="fi" id="reg-seg-filter" style="width:auto;min-width:150px;" onchange="renderRegistrationsTable()"><option value="">সব সেগমেন্ট</option></select>
           <select class="fi" id="reg-status-filter" style="width:auto;min-width:140px;" onchange="renderRegistrationsTable()">
             <option value="">সব স্ট্যাটাস</option><option value="pending">⏳ Pending</option><option value="approved">✅ Approved</option><option value="rejected">❌ Rejected</option>
           </select>
@@ -1138,6 +1139,10 @@ select.fi{cursor:pointer}
       </datalist>
     </div>
     <div class="fg">
+      <label>🆔 Member ID (ঐচ্ছিক, যেমন TVM-123456)</label>
+      <input class="fi" id="tf-mcode" placeholder="সদস্যের পোর্টফোলিওতে এই পদবি ও বিভাগ দেখাতে">
+    </div>
+    <div class="fg">
       <label>📝 Short Description</label>
       <textarea class="fi" id="tf-desc" style="min-height:80px;" placeholder="Brief bio..."></textarea>
     </div>
@@ -1332,13 +1337,13 @@ select.fi{cursor:pointer}
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <!-- Site Scripts -->
-<script src="data.js?v=17"></script>
-<script src="render.js?v=5"></script>
+<script src="data.js?v=18"></script>
+<script src="render.js?v=6"></script>
 <script src="certificate-render.js?v=2"></script>
 <script src="admin-log.js"></script>
 <script src="admin-auth.js"></script>
-<script src="admin.js?v=12"></script>
-<script src="main.js?v=5"></script>
+<script src="admin.js?v=14"></script>
+<script src="main.js?v=6"></script>
 
 <script src="fx.js"></script>
 <script src="pwa.js"></script>

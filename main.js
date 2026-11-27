@@ -281,7 +281,8 @@ async function submitRegistration(e) {
 
   const email = user.email; // always the verified account email — never trust a form field for this
   const olympiad = document.getElementById('rf-olympiad')?.value;
-  const segment = document.getElementById('rf-segment')?.value.trim();
+  const segs = segPicked('rf');
+  const segment = segs.join(', ');
   const txnId = document.getElementById('rf-txnid')?.value.trim();
   const msg = document.getElementById('rf-message')?.value.trim();
 
@@ -295,7 +296,8 @@ async function submitRegistration(e) {
   if(isPaid && !txnId) return toast("Transaction ID দিতে হবে — এটা Paid Event!", true);
 
   if(selectedOlympiad && isRegDeadlinePassed(selectedOlympiad)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
-  if(await alreadyRegistered(olympiad, email, needsSegment ? segment : '')) return toast(needsSegment ? "তুমি এই সেগমেন্টে আগেই রেজিস্ট্রেশন করেছো। অন্য সেগমেন্ট বেছে নাও।" : "তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+  const todo = await segTodo(olympiad, email, segs, needsSegment);
+  if(!todo) return;
   const caCode = await caReadInput('rf-ca');
   if(caCode === false) return;
 
@@ -308,12 +310,12 @@ async function submitRegistration(e) {
     // Snapshot the participant's name/phone/school/class from their Profile at
     // the time of registration — so this record stays accurate even if they
     // edit their profile later, and so the admin can see everything in one place.
-    const saved = await addRegistration({
-      uid: user.uid, email, olympiad, segment, transactionId: txnId, message: msg, refCode: caCode,
+    const saved = await addRegistrationsFor({
+      uid: user.uid, email, olympiad, transactionId: txnId, message: msg, refCode: caCode,
       name: fullName, phone: profile.phone,
       class: profile.classLevel || '', school: profile.institution || '',
       address: profile.district || ''
-    });
+    }, todo);
 
     if(!saved) {
       toast("Failed to submit. Please try again!", true);
@@ -345,11 +347,11 @@ Name: ${fullName}
 Email: ${email}
 Phone: ${profile.phone}
 Olympiad: ${olympiad}
-Segment: ${segment || 'N/A'}
+Segment: ${todo.filter(Boolean).join(', ') || 'N/A'}
 Transaction ID: ${txnId || 'N/A'}
 Class: ${profile.classLevel || 'N/A'}
 School: ${profile.institution || 'N/A'}
-Registration ID: ${window.lastRegCode || 'N/A'}
+Registration ID: ${regCodesText()}
 
 Message: ${msg || 'N/A'}
           `.trim()
@@ -369,7 +371,7 @@ Message: ${msg || 'N/A'}
     toast("Registration successful! We'll contact you soon. ✅");
 
     // Reset form
-    document.getElementById('rf-segment').value = '';
+    document.querySelectorAll('#rf-segbox input').forEach(i => i.checked = false);
     document.getElementById('rf-txnid').value = '';
     document.getElementById('rf-message').value = '';
 
@@ -401,11 +403,48 @@ Message: ${msg || 'N/A'}
 /*===== Registration ID box (shown to the participant after registering) =====*/
 function regCodeBoxHtml(code) {
   if(!code) return '';
+  // several segments registered at once -> one ID per segment
+  const list = (window.lastRegList || []).length > 1 && window.lastRegList.some(x => x.code === code) ? window.lastRegList : [{ segment: '', code }];
+  const rows = list.map(x =>
+    '<div style="margin-top:8px;">' + (x.segment ? '<div style="font-size:.78rem;font-weight:700;">' + String(x.segment).replace(/</g, '&lt;') + '</div>' : '')
+    + '<div style="font-family:monospace;font-size:1.25rem;font-weight:800;letter-spacing:2px;">' + x.code + '</div>'
+    + '<button type="button" onclick="copyRegCode(\'' + x.code + '\')" style="margin-top:4px;background:#2563eb;color:#fff;border:none;border-radius:999px;padding:5px 14px;font-size:.75rem;font-weight:700;cursor:pointer;">📋 Copy</button></div>').join('');
   return '<div id="reg-code-box" style="margin:14px auto 4px;max-width:320px;background:rgba(37,99,235,.10);border:1.5px dashed #3b82f6;border-radius:14px;padding:12px 14px;text-align:center;">'
-    + '<div style="font-size:.74rem;opacity:.8;margin-bottom:4px;">তোমার Registration ID</div>'
-    + '<div style="font-family:monospace;font-size:1.35rem;font-weight:800;letter-spacing:2px;">' + code + '</div>'
-    + '<button type="button" onclick="copyRegCode(\'' + code + '\')" style="margin-top:8px;background:#2563eb;color:#fff;border:none;border-radius:999px;padding:7px 16px;font-size:.8rem;font-weight:700;cursor:pointer;">📋 Copy</button>'
-    + '<div style="font-size:.7rem;opacity:.7;margin-top:6px;">এই ID টা সেভ করে রাখো। Dashboard-এও দেখতে পাবে।</div></div>';
+    + '<div style="font-size:.74rem;opacity:.8;">তোমার Registration ID' + (list.length > 1 ? ' (প্রতি সেগমেন্টে আলাদা)' : '') + '</div>' + rows
+    + '<div style="font-size:.7rem;opacity:.7;margin-top:8px;">এই ID টা সেভ করে রাখো। Dashboard-এও দেখতে পাবে।</div></div>';
+}
+function regCodesText() {
+  const l = window.lastRegList || [];
+  return l.length ? l.map(x => (x.segment ? x.segment + ': ' : '') + x.code).join(' | ') : (window.lastRegCode || 'N/A');
+}
+
+/*===== Multi-select segment checkboxes (one registration record per ticked segment) =====*/
+function segPickerHtml(prefix, segs) {
+  return '<div id="' + prefix + '-segbox" style="display:flex;flex-direction:column;gap:6px;">'
+    + (segs || []).map(s => '<label style="display:flex;gap:10px;align-items:center;border:1px solid rgba(148,163,184,.35);border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:600;">'
+      + '<input type="checkbox" value="' + String(s).replace(/"/g, '&quot;') + '" style="width:18px;height:18px;flex:none;"> <span>' + String(s).replace(/</g, '&lt;') + '</span></label>').join('')
+    + '</div><div style="font-size:.74rem;opacity:.75;margin-top:6px;">এক বা একাধিক সেগমেন্ট বেছে নিতে পারো। প্রতিটার জন্য আলাদা Registration ID পাবে।</div>';
+}
+function segPicked(prefix) { return Array.from(document.querySelectorAll('#' + prefix + '-segbox input:checked')).map(i => i.value); }
+// segments still to register (already-registered ones are skipped); null = nothing left to do
+async function segTodo(title, email, segs, needsSegment) {
+  const todo = needsSegment ? segs : [''];
+  const dups = [];
+  for(const s of todo) { if(await alreadyRegistered(title, email, s)) dups.push(s); }
+  if(dups.length === todo.length) { toast(needsSegment ? "তুমি এই সেগমেন্টে আগেই রেজিস্ট্রেশন করেছো। অন্য সেগমেন্ট বেছে নাও।" : "তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true); return null; }
+  if(dups.length) toast('আগেই রেজিস্ট্রেশন আছে, তাই বাদ গেলো: ' + dups.join(', '));
+  return todo.filter(s => !dups.includes(s));
+}
+async function addRegistrationsFor(base, todo) {
+  const results = [];
+  for(const s of todo) {
+    const ok = await addRegistration(Object.assign({}, base, { segment: s }));
+    if(ok) results.push({ segment: s, code: window.lastRegCode });
+  }
+  window.lastRegList = results;
+  if(results.length) window.lastRegCode = results[0].code;
+  if(results.length && results.length < todo.length) toast('কিছু সেগমেন্টে রেজিস্ট্রেশন হয়নি, আবার চেষ্টা করো।', true);
+  return results.length > 0;
 }
 function copyRegCode(c) {
   try { navigator.clipboard.writeText(c).then(() => toast('Copied: ' + c)); }
@@ -429,7 +468,8 @@ async function submitInlineRegistration(olympiadId) {
   const fullName = `${profile.firstName} ${profile.lastName}`.trim();
   const email = user.email;
 
-  const segment = document.getElementById('im-segment')?.value.trim() || '';
+  const segs = segPicked('im');
+  const segment = segs.join(', ');
   const txnId = document.getElementById('im-txnid')?.value.trim() || '';
   const msg = document.getElementById('im-message')?.value.trim() || '';
 
@@ -440,7 +480,8 @@ async function submitInlineRegistration(olympiadId) {
   if(isPaid && !txnId) return toast("Transaction ID দিতে হবে — এটা Paid Event!", true);
 
   if(isRegDeadlinePassed(o)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
-  if(await alreadyRegistered(o.title, email, needsSegment ? segment : '')) return toast(needsSegment ? "তুমি এই সেগমেন্টে আগেই রেজিস্ট্রেশন করেছো। অন্য সেগমেন্ট বেছে নাও।" : "তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+  const todo = await segTodo(o.title, email, segs, needsSegment);
+  if(!todo) return;
   const caCode = await caReadInput('im-ca');
   if(caCode === false) return;
 
@@ -450,12 +491,12 @@ async function submitInlineRegistration(olympiadId) {
   if(btn) { btn.textContent = '⏳ Submitting...'; btn.disabled = true; }
 
   try {
-    const saved = await addRegistration({
-      uid: user.uid, email, olympiad: o.title, segment, transactionId: txnId, message: msg, refCode: caCode,
+    const saved = await addRegistrationsFor({
+      uid: user.uid, email, olympiad: o.title, transactionId: txnId, message: msg, refCode: caCode,
       name: fullName, phone: profile.phone,
       class: profile.classLevel || '', school: profile.institution || '',
       address: profile.district || ''
-    });
+    }, todo);
 
     if(!saved) {
       toast("Failed to submit. Please try again!", true);
@@ -472,7 +513,7 @@ async function submitInlineRegistration(olympiadId) {
             from_name: fullName,
             from_email: email,
             subject: `New Registration: ${o.title}`,
-            message: `New Registration Received!\n\nName: ${fullName}\nEmail: ${email}\nPhone: ${profile.phone}\nOlympiad: ${o.title}\nSegment: ${segment || 'N/A'}\nTransaction ID: ${txnId || 'N/A'}\nClass: ${profile.classLevel || 'N/A'}\nSchool: ${profile.institution || 'N/A'}\nRegistration ID: ${window.lastRegCode || 'N/A'}\n\nMessage: ${msg || 'N/A'}`
+            message: `New Registration Received!\n\nName: ${fullName}\nEmail: ${email}\nPhone: ${profile.phone}\nOlympiad: ${o.title}\nSegment: ${todo.filter(Boolean).join(', ') || 'N/A'}\nTransaction ID: ${txnId || 'N/A'}\nClass: ${profile.classLevel || 'N/A'}\nSchool: ${profile.institution || 'N/A'}\nRegistration ID: ${regCodesText()}\n\nMessage: ${msg || 'N/A'}`
           },
           window.EMAILJS_CONFIG.publicKey
         );
@@ -630,8 +671,7 @@ function onOlympiadSelectChange() {
 
   // Segments
   if(o && (o.segments || []).length > 0 && segSelect) {
-    segSelect.innerHTML = '<option value="">-- Select a segment --</option>' +
-      o.segments.map(s => `<option value="${s}">${s}</option>`).join('');
+    segSelect.innerHTML = segPickerHtml('rf', o.segments);
     if(segWrap) segWrap.style.display = 'block';
   } else {
     if(segWrap) segWrap.style.display = 'none';
@@ -641,7 +681,7 @@ function onOlympiadSelectChange() {
   // Paid event → show fee note + require Transaction ID
   if(o && o.fee && feeNote && txnWrap) {
     feeNote.style.display = 'block';
-    feeNote.innerHTML = `💰 <strong>Registration Fee: ${o.fee}</strong><br><span style="font-size:.8rem;color:var(--muted);">পেমেন্ট সম্পন্ন করে নিচে Transaction ID দাও।</span>`;
+    feeNote.innerHTML = `💰 <strong>Registration Fee: ${o.fee}</strong><br><span style="font-size:.8rem;color:var(--muted);">পেমেন্ট সম্পন্ন করে নিচে Transaction ID দাও। একাধিক সেগমেন্ট বাছলে সবগুলোর জন্য এই Transaction ID-ই জমা হবে।</span>`;
     txnWrap.style.display = 'block';
   } else {
     if(feeNote) feeNote.style.display = 'none';

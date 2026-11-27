@@ -397,9 +397,10 @@ function regFiltered() {
   const ev = (document.getElementById('reg-event-filter') || {}).value || '';
   const st = (document.getElementById('reg-status-filter') || {}).value || '';
   const at = (document.getElementById('reg-att-filter') || {}).value || '';
+  const sg = (document.getElementById('reg-seg-filter') || {}).value || '';
   const q = String((document.getElementById('reg-search') || {}).value || '').trim().toLowerCase();
   const hit = r => !q || [r.regCode, r.name, r.email, r.phone].some(v => String(v || '').toLowerCase().includes(q));
-  return getRegistrations().filter(r => hit(r) && (!ev || r.olympiad === ev) && (!st || regStatus(r) === st) && (!at || (at === 'yes' ? r.attended === true : r.attended !== true)));
+  return getRegistrations().filter(r => hit(r) && (!ev || r.olympiad === ev) && (!sg || (sg === '__none' ? !String(r.segment || '').trim() : String(r.segment || '').trim() === sg)) && (!st || regStatus(r) === st) && (!at || (at === 'yes' ? r.attended === true : r.attended !== true)));
 }
 
 function renderRegistrationsTable() {
@@ -414,11 +415,23 @@ function renderRegistrationsTable() {
     evSel.innerHTML = '<option value="">সব ইভেন্ট</option>' + evs.map(e => `<option value="${bcEsc(e)}" ${e === keep ? 'selected' : ''}>${bcEsc(e)}</option>`).join('');
   }
 
+  // segment filter: only the segments that exist (for the chosen event)
+  const sgSel = document.getElementById('reg-seg-filter');
+  if(sgSel) {
+    const keepS = sgSel.value, evV = (evSel && evSel.value) || '';
+    const segs = [...new Set(all.filter(r => !evV || r.olympiad === evV).map(r => String(r.segment || '').trim()).filter(Boolean))].sort();
+    sgSel.innerHTML = '<option value="">সব সেগমেন্ট</option>' + segs.map(s => `<option value="${bcEsc(s)}" ${s === keepS ? 'selected' : ''}>${bcEsc(s)}</option>`).join('');
+  }
   const data = regFiltered();
   const count = st => data.filter(r => regStatus(r) === st).length;
+  // per-segment head-count line (segment-wise participants)
+  const segCount = {};
+  data.forEach(r => { const k = String(r.segment || '').trim() || '—'; segCount[k] = (segCount[k] || 0) + 1; });
+  const segLine = Object.keys(segCount).length > 1 || (Object.keys(segCount)[0] && Object.keys(segCount)[0] !== '—')
+    ? '<br>📚 সেগমেন্ট অনুযায়ী: ' + Object.keys(segCount).sort().map(k => `<strong>${bcEsc(k)}</strong> ${segCount[k]}`).join(' · ') : '';
   const sum = document.getElementById('reg-summary');
   if(sum) sum.innerHTML = data.length
-    ? `দেখানো হচ্ছে <strong>${data.length}</strong> জন · ⏳ Pending <strong>${count('pending')}</strong> · ✅ Approved <strong>${count('approved')}</strong> · ❌ Rejected <strong>${count('rejected')}</strong> · 🟢 উপস্থিত <strong>${data.filter(r => r.attended === true).length}</strong>`
+    ? `দেখানো হচ্ছে <strong>${data.length}</strong> জন · ⏳ Pending <strong>${count('pending')}</strong> · ✅ Approved <strong>${count('approved')}</strong> · ❌ Rejected <strong>${count('rejected')}</strong> · 🟢 উপস্থিত <strong>${data.filter(r => r.attended === true).length}</strong>${segLine}`
     : '';
 
   if(!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="12">${all.length ? 'এই ফিল্টারে কোনো রেজিস্ট্রেশন নেই।' : 'No registrations yet.'}</td></tr>`; return; }
@@ -1976,6 +1989,7 @@ function openTeamForm() {
   document.getElementById('tf-role').value = '';
   document.getElementById('tf-special').value = '0';
   document.getElementById('tf-dept').value = '';
+  if(document.getElementById('tf-mcode')) document.getElementById('tf-mcode').value = '';
   document.getElementById('tf-desc').value = '';
   document.getElementById('tf-order').value = '';
   document.getElementById('tf-photo').value = '';
@@ -1992,6 +2006,7 @@ function editTeamMember(id) {
   document.getElementById('tf-role').value = m.role || '';
   document.getElementById('tf-special').value = m.special ? '1' : '0';
   document.getElementById('tf-dept').value = m.department || '';
+  document.getElementById('tf-mcode').value = m.memberCode || '';
   document.getElementById('tf-desc').value = m.description || '';
   document.getElementById('tf-order').value = m.order || '';
   document.getElementById('tf-photo').value = m.photo || '';
@@ -2011,7 +2026,8 @@ async function saveTeamMember() {
   if(!name) return toast("Name is required!", true);
   if(!role) return toast("Role is required!", true);
   
-  const member = { name, role, department, description, order, photo, special };
+  const memberCode = (document.getElementById('tf-mcode').value || '').trim().toUpperCase();
+  const member = { name, role, department, description, order, photo, special, memberCode };
   const eid = document.getElementById('tf-eid').value;
   
   const btn = document.querySelector('#tfm .fs-btn');

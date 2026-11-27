@@ -386,15 +386,12 @@ function renderInlineRegistration(o, prefixHtml) {
         ${hasSegments ? `
         <div class="cf-group">
           <label>Segment / Category *</label>
-          <select class="cf-input" id="im-segment">
-            <option value="">-- Select a segment --</option>
-            ${o.segments.map(s => `<option value="${s}">${s}</option>`).join('')}
-          </select>
+          ${segPickerHtml('im', o.segments)}
         </div>` : ''}
         ${isPaid ? `
         <div class="cf-group" style="background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.3);border-radius:8px;padding:12px;">
           💰 <strong>Registration Fee: ${o.fee}</strong><br>
-          <span style="font-size:.8rem;color:var(--muted);">পেমেন্ট সম্পন্ন করে নিচে Transaction ID দাও।</span>
+          <span style="font-size:.8rem;color:var(--muted);">পেমেন্ট সম্পন্ন করে নিচে Transaction ID দাও। একাধিক সেগমেন্ট বাছলে সবগুলোর জন্য এই Transaction ID-ই জমা হবে।</span>
         </div>
         <div class="cf-group">
           <label>Transaction ID *</label>

@@ -560,24 +560,34 @@ function fmtRespValue(val, fieldType) {
   return String(val);
 }
 
+function fmtTaken(sec, limitMin) {
+  if(sec == null) return '—';
+  const m = Math.floor(sec / 60), s = sec % 60;
+  const t = m ? `${m}m ${s}s` : `${s}s`;
+  return limitMin ? `${t} / ${limitMin}m` : t;
+}
+function fmtStarted(ts) {
+  return ts ? new Date(ts).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit', second:'2-digit' }) : '—';
+}
+
 function renderResponsesTable(form, responses) {
   const thead = document.getElementById('fadm-resp-thead');
   const tbody = document.getElementById('fadm-resp-tbody');
   const fields = (form.fields || []).filter(f => f.type !== 'section');
-  const scoreCol = form.isQuiz ? '<th>Score</th>' : '';
+  const scoreCol = form.isQuiz ? '<th>Score</th><th>Started</th><th>Time taken</th>' : '';
 
   thead.innerHTML = `<tr><th>Submitted</th>${scoreCol}${fields.map(f => `<th>${f.label}</th>`).join('')}<th>Actions</th></tr>`;
 
   if(!responses.length) {
     const msg = fadmRespSearchQ ? 'No responses match your search.' : 'No responses yet.';
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="${fields.length + (form.isQuiz ? 3 : 2)}">${msg}</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="${fields.length + (form.isQuiz ? 5 : 2)}">${msg}</td></tr>`;
     return;
   }
 
   tbody.innerHTML = responses.map(r => `
     <tr>
       <td>${new Date(r.submittedAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}</td>
-      ${form.isQuiz ? `<td><strong>${r.score ?? 0} / ${r.totalPossible ?? 0}</strong></td>` : ''}
+      ${form.isQuiz ? `<td><strong>${r.score ?? 0} / ${r.totalPossible ?? 0}</strong></td><td style="white-space:nowrap;font-size:.78rem;color:var(--muted);">${fmtStarted(r.startedAt)}</td><td style="white-space:nowrap;font-size:.8rem;"><strong>${fmtTaken(r.timeTakenSeconds, form.duration)}</strong></td>` : ''}
       ${fields.map(f => `<td>${fmtRespValue(r.answers ? r.answers[f.id] : undefined, f.type)}</td>`).join('')}
       <td class="tbl-acts"><button class="d-btn" onclick="deleteResponseAction('${r.id}')">Delete</button></td>
     </tr>`).join('');
@@ -604,10 +614,10 @@ function downloadFormResponsesCSV() {
 
   const fields = (f.fields || []).filter(fl => fl.type !== 'section');
   const escCsv = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const header = ['Submitted', ...(f.isQuiz ? ['Score'] : []), ...fields.map(fl => fl.label)];
+  const header = ['Submitted', ...(f.isQuiz ? ['Score', 'Started', 'Time taken (sec)'] : []), ...fields.map(fl => fl.label)];
   const rows = responses.map(r => [
     new Date(r.submittedAt).toLocaleString(),
-    ...(f.isQuiz ? [`${r.score ?? 0} / ${r.totalPossible ?? 0}`] : []),
+    ...(f.isQuiz ? [`${r.score ?? 0} / ${r.totalPossible ?? 0}`, r.startedAt ? new Date(r.startedAt).toLocaleString() : '', r.timeTakenSeconds ?? ''] : []),
     ...fields.map(fl => {
       const v = r.answers ? r.answers[fl.id] : '';
       return Array.isArray(v) ? v.join('; ') : (v ?? '');

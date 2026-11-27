@@ -197,6 +197,7 @@ async function initPublicForm() {
   document.getElementById('pf-desc').innerHTML = linkify(form.description || '');
   renderPfFields();
   showPfState('pf-form-view');
+  window.pfStartedAt = Date.now();   // quiz timing: when the participant opened the form
 
   if(form.isQuiz && form.duration) {
     pfSecondsLeft = form.duration * 60;
@@ -426,6 +427,11 @@ async function submitCustomForm() {
     grading = gradePfSubmission(answers);
     resp.score = grading.score;
     resp.totalPossible = grading.totalPossible;
+    const now = Date.now();
+    resp.startedAt = window.pfStartedAt || null;
+    resp.timeTakenSeconds = resp.startedAt ? Math.max(0, Math.round((now - resp.startedAt) / 1000)) : null;
+    // never show more than the allowed duration (the timer auto-submits at 0)
+    if(resp.timeTakenSeconds != null && pfForm.duration) resp.timeTakenSeconds = Math.min(resp.timeTakenSeconds, pfForm.duration * 60);
   }
 
   const result = await addFormResponse(resp);

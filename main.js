@@ -565,6 +565,10 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
   const customForm = await getCustomFormById(formId);
   if(!customForm) return toast("Form not found!", true);
 
+  const needsSegment = (o.segments || []).length > 0;
+  const segs = segPicked('im');
+  if(needsSegment && !segs.length) return toast("একটা Segment সিলেক্ট করো!", true);
+
   const answers = {};
   for(const f of (customForm.fields || [])) {
     if(f.type === 'section') continue;
@@ -575,7 +579,8 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
   }
 
   if(isRegDeadlinePassed(o)) return toast("এই ইভেন্টের রেজিস্ট্রেশনের সময় শেষ হয়ে গেছে।", true);
-  if(await alreadyRegistered(o.title, email)) return toast("তুমি এই ইভেন্টে আগেই রেজিস্ট্রেশন করেছো।", true);
+  const todo = await segTodo(o.title, email, segs, needsSegment);
+  if(!todo) return;
   const caCode = await caReadInput('im-ca');
   if(caCode === false) return;
 
@@ -587,7 +592,7 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
   try {
     // 1. Save the full answers against the linked Form Builder form, so the
     // admin can review them under Form Builder → Responses.
-    const formSaved = await addFormResponse({ formId, answers, uid: user.uid, email, olympiad: o.title });
+    const formSaved = await addFormResponse({ formId, answers, uid: user.uid, email, olympiad: o.title, segment: todo.filter(Boolean).join(', ') });
     if(!formSaved.success) {
       toast("Failed to submit. Please try again!", true);
       if(btn) { btn.textContent = originalText; btn.disabled = false; }
@@ -597,14 +602,20 @@ async function submitInlineCustomRegistration(olympiadId, formId) {
     // 2. Also log a lightweight entry in the main Registrations list, so the
     // admin sees "who registered for what" in one place without having to
     // dig through every linked form separately.
-    await addRegistration({
+    // one registration record per ticked segment (each gets its own Reg ID)
+    const regOk = await addRegistrationsFor({
       uid: user.uid, email, olympiad: o.title,
       name: fullName, phone: profile.phone,
       class: profile.classLevel || '', school: profile.institution || '',
       address: profile.district || '',
-      segment: '', transactionId: '', refCode: caCode,
+      transactionId: '', refCode: caCode,
       message: `[Custom form responses — see Form Builder → "${customForm.title}" → Responses]`
-    });
+    }, todo);
+    if(!regOk) {
+      toast("Failed to submit. Please try again!", true);
+      if(btn) { btn.textContent = originalText; btn.disabled = false; }
+      return;
+    }
 
     await ensureRegistered(o.id, user.uid);
 

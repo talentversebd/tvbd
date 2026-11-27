@@ -371,6 +371,7 @@ function renderInlineRegistration(o, prefixHtml) {
         reg.innerHTML = prefixHtml + `
           <div class="modal-reg-section">
             ${sectionHead}
+            ${hasSegments ? `<div class="cf-group"><label>Segment / Category *</label>${segPickerHtml('im', o.segments)}</div>` : ''}
             ${renderCustomRegFields(customForm.fields)}
             ${caFieldHtml('im-ca')}
             <button class="modal-reg-btn im-submit-btn" style="width:100%;border:none;cursor:pointer;" onclick="submitInlineCustomRegistration('${o.id}', '${customForm.id}')">Submit Registration ✅</button>
